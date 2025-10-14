@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import List
 
 from app.core.dependencies import get_db, get_current_user
+from app.core.datetime_utils import now_thailand
 from app.models import User
 from app.services import DashboardService
 from app.schemas.dashboard import DashboardResponse, DashboardRoomCard, DashboardStats, OvertimeAlertsResponse
@@ -39,7 +40,7 @@ async def get_dashboard(
     return DashboardResponse(
         rooms=rooms,
         stats=stats,
-        last_updated=datetime.utcnow()
+        last_updated=now_thailand()
     )
 
 

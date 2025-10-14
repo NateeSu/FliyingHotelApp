@@ -13,6 +13,7 @@ from app.models import Room, RoomType, CheckIn, Customer
 from app.models.room import RoomStatus
 from app.models.check_in import CheckInStatusEnum, StayTypeEnum
 from app.schemas.dashboard import DashboardRoomCard, DashboardStats, OvertimeAlert
+from app.core.datetime_utils import now_thailand
 
 
 class DashboardService:
@@ -50,11 +51,11 @@ class DashboardService:
                 None
             )
 
-            # Calculate overtime if applicable
+            # Calculate overtime if applicable using Thailand timezone
             is_overtime = False
             overtime_minutes = None
             if current_check_in and current_check_in.expected_check_out_time:
-                now = datetime.utcnow()
+                now = now_thailand()
                 if now > current_check_in.expected_check_out_time:
                     is_overtime = True
                     overtime_delta = now - current_check_in.expected_check_out_time
@@ -106,8 +107,8 @@ class DashboardService:
         # Calculate occupancy rate
         occupancy_rate = (occupied_rooms / total_rooms * 100) if total_rooms > 0 else 0.0
 
-        # Count check-ins today
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        # Count check-ins today using Thailand timezone
+        today_start = now_thailand().replace(hour=0, minute=0, second=0, microsecond=0)
         stmt = select(func.count(CheckIn.id)).where(CheckIn.check_in_time >= today_start)
         result = await self.db.execute(stmt)
         total_check_ins_today = result.scalar() or 0
@@ -159,7 +160,7 @@ class DashboardService:
         Returns:
             List of OvertimeAlert
         """
-        now = datetime.utcnow()
+        now = now_thailand()
 
         stmt = (
             select(CheckIn)

@@ -16,6 +16,7 @@ from app.schemas.check_in import CheckOutRequest, CheckOutSummary
 from app.schemas.notification import NotificationCreate
 from app.core.websocket import manager as websocket_manager
 from app.services.notification_service import NotificationService
+from app.core.datetime_utils import now_thailand
 
 
 class CheckOutService:
@@ -45,8 +46,8 @@ class CheckOutService:
         if check_in.status != CheckInStatusEnum.CHECKED_IN:
             raise ValueError("การเช็คอินนี้ได้เช็คเอาท์แล้ว")
 
-        # Calculate overtime
-        now = datetime.utcnow()
+        # Calculate overtime using Thailand timezone
+        now = now_thailand()
         is_overtime = now > check_in.expected_check_out_time
         overtime_minutes = 0
         overtime_charge = Decimal(0)
@@ -108,8 +109,8 @@ class CheckOutService:
         if check_in.status != CheckInStatusEnum.CHECKED_IN:
             raise ValueError("การเช็คอินนี้ได้เช็คเอาท์แล้ว")
 
-        # Calculate actual checkout time
-        actual_checkout_time = checkout_data.actual_check_out_time or datetime.utcnow()
+        # Calculate actual checkout time using Thailand timezone
+        actual_checkout_time = checkout_data.actual_check_out_time or now_thailand()
 
         # Calculate overtime
         is_overtime = actual_checkout_time > check_in.expected_check_out_time
@@ -251,6 +252,6 @@ class CheckOutService:
                 "check_out_time": check_in.actual_check_out_time.isoformat() if check_in.actual_check_out_time else None,
                 "is_overtime": check_in.is_overtime,
                 "total_amount": float(check_in.total_amount),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": now_thailand().isoformat()
             }
         })

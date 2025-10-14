@@ -7,6 +7,7 @@ from fastapi import WebSocket
 import json
 import logging
 from datetime import datetime
+from app.core.datetime_utils import now_thailand
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +58,9 @@ class ConnectionManager:
             message: Dictionary containing the message data
             exclude_client: Optional client ID to exclude from broadcast
         """
-        # Add timestamp if not present
+        # Add timestamp if not present (using Thailand timezone)
         if "timestamp" not in message:
-            message["timestamp"] = datetime.utcnow().isoformat()
+            message["timestamp"] = now_thailand().isoformat()
 
         disconnected_clients = []
 

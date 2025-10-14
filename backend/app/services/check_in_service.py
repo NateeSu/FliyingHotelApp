@@ -13,6 +13,7 @@ from app.models import CheckIn, Room, RoomRate, Customer, Booking, RoomStatus
 from app.models.check_in import StayTypeEnum, CheckInStatusEnum
 from app.schemas.check_in import CheckInCreate, CheckInResponse
 from app.core.websocket import manager as websocket_manager
+from app.core.datetime_utils import now_thailand
 
 
 class CheckInService:
@@ -54,7 +55,8 @@ class CheckInService:
             )
 
         # Calculate expected check-out time
-        check_in_time = check_in_data.check_in_time or datetime.utcnow()
+        # Use Thailand timezone for check-in time
+        check_in_time = check_in_data.check_in_time or now_thailand()
         expected_check_out_time = self._calculate_expected_checkout(
             check_in_time,
             check_in_data.stay_type,
@@ -254,7 +256,7 @@ class CheckInService:
                 "stay_type": check_in.stay_type,
                 "check_in_time": check_in.check_in_time.isoformat(),
                 "expected_check_out_time": check_in.expected_check_out_time.isoformat(),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": now_thailand().isoformat()
             }
         })
 

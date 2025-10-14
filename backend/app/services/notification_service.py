@@ -12,6 +12,7 @@ from app.models import Notification, User, Room
 from app.models.notification import NotificationTypeEnum, TargetRoleEnum
 from app.schemas.notification import NotificationCreate, NotificationResponse, NotificationMarkAllReadResponse
 from app.core.websocket import manager as websocket_manager
+from app.core.datetime_utils import now_thailand
 import logging
 
 logger = logging.getLogger(__name__)
@@ -147,7 +148,7 @@ class NotificationService:
 
         if not notification.is_read:
             notification.is_read = True
-            notification.read_at = datetime.utcnow()
+            notification.read_at = now_thailand()
             await self.db.commit()
             await self.db.refresh(notification)
             logger.info(f"Marked notification {notification_id} as read")
@@ -174,7 +175,7 @@ class NotificationService:
         notifications = result.scalars().all()
 
         count = 0
-        now = datetime.utcnow()
+        now = now_thailand()
         for notification in notifications:
             notification.is_read = True
             notification.read_at = now
