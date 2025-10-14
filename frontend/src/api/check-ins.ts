@@ -135,5 +135,65 @@ export const checkInApi = {
       checkoutData
     )
     return response.data
+  },
+
+  /**
+   * Preview PDF receipt in new window (can download from there)
+   */
+  async downloadReceipt(checkInId: number): Promise<void> {
+    const response = await apiClient.get(`${BASE_PATH}/${checkInId}/generate-receipt`, {
+      responseType: 'blob'
+    })
+
+    // Create blob URL for preview
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+
+    // Open in new window for preview
+    const newWindow = window.open(url, '_blank')
+
+    if (!newWindow) {
+      // If popup blocked, fallback to download
+      const link = document.createElement('a')
+      link.href = url
+
+      const contentDisposition = response.headers['content-disposition']
+      let filename = `receipt_${checkInId}.pdf`
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/)
+        if (filenameMatch) {
+          filename = filenameMatch[1]
+        }
+      }
+
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    }
+
+    // Clean up blob URL after a delay (to allow window to load)
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+    }, 100)
+  },
+
+  /**
+   * Upload payment slip image
+   */
+  async uploadPaymentSlip(checkInId: number, file: File): Promise<{ message: string; file_url: string }> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await apiClient.post<{ message: string; file_url: string }>(
+      `${BASE_PATH}/${checkInId}/upload-slip`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    )
+    return response.data
   }
 }

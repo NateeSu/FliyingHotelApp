@@ -11,6 +11,18 @@
         <p>กำลังโหลดข้อมูล...</p>
       </div>
 
+      <div v-else-if="checkoutSuccess" class="modal-body success-state">
+        <div class="success-icon">✅</div>
+        <h3>เช็คเอาท์สำเร็จ!</h3>
+        <p>การเช็คเอาท์เสร็จสมบูรณ์แล้ว</p>
+        <button class="btn btn-download" @click="handleDownloadReceipt">
+          📄 ดาวน์โหลดใบเสร็จ
+        </button>
+        <button class="btn btn-close-success" @click="handleClose">
+          ปิด
+        </button>
+      </div>
+
       <div v-else-if="summary" class="modal-body">
         <!-- Customer Info Section -->
         <section class="info-section">
@@ -170,7 +182,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useToast } from 'vue-toastification'
 import { checkInApi, type CheckOutRequest, type CheckOutSummary } from '@/api/check-ins'
+
+const toast = useToast()
 
 interface Props {
   show: boolean
@@ -218,7 +233,8 @@ const loadCheckoutSummary = async () => {
     summary.value = await checkInApi.getCheckoutSummary(props.checkInId)
   } catch (error: any) {
     console.error('Failed to load checkout summary:', error)
-    alert(error.response?.data?.detail || 'ไม่สามารถโหลดข้อมูลได้')
+    const errorMessage = error.response?.data?.detail || 'ไม่สามารถโหลดข้อมูลได้'
+    toast.error(errorMessage)
     emit('close')
   } finally {
     loadingSummary.value = false
@@ -260,12 +276,15 @@ const formatOvertimeHours = (minutes: number) => {
 // Submit checkout
 const loading = ref(false)
 
+const checkoutSuccess = ref(false)
+const completedCheckInId = ref<number | null>(null)
+
 const handleSubmit = async () => {
   if (!props.checkInId || !summary.value) return
 
   // Validate discount reason if discount is given
   if ((formData.value.discount_amount || 0) > 0 && !formData.value.discount_reason) {
-    alert('กรุณาระบุเหตุผลการให้ส่วนลด')
+    toast.warning('กรุณาระบุเหตุผลการให้ส่วนลด')
     return
   }
 
@@ -273,8 +292,12 @@ const handleSubmit = async () => {
   try {
     await checkInApi.processCheckout(props.checkInId, formData.value)
 
-    // Show success message
-    alert('✅ เช็คเอาท์สำเร็จ!')
+    // Show success toast
+    toast.success('✅ เช็คเอาท์สำเร็จ!')
+
+    // Mark as success and store check-in ID for receipt download
+    checkoutSuccess.value = true
+    completedCheckInId.value = props.checkInId
 
     // Emit success event (don't wait for it)
     try {
@@ -283,14 +306,24 @@ const handleSubmit = async () => {
       console.error('Error in success handler:', emitError)
     }
 
-    // Close modal
-    handleClose()
   } catch (error: any) {
     console.error('Checkout error:', error)
     const errorMessage = error.response?.data?.detail || 'เกิดข้อผิดพลาดในการเช็คเอาท์'
-    alert('❌ ' + errorMessage)
+    toast.error(errorMessage)
   } finally {
     loading.value = false
+  }
+}
+
+const handleDownloadReceipt = async () => {
+  if (!completedCheckInId.value) return
+
+  try {
+    await checkInApi.downloadReceipt(completedCheckInId.value)
+    toast.info('📄 กำลังเปิดใบเสร็จ...')
+  } catch (error: any) {
+    console.error('Download receipt error:', error)
+    toast.error('เกิดข้อผิดพลาดในการเปิดใบเสร็จ')
   }
 }
 
@@ -310,6 +343,8 @@ const resetForm = () => {
     payment_notes: ''
   }
   summary.value = null
+  checkoutSuccess.value = false
+  completedCheckInId.value = null
 }
 
 // Watch for show change
@@ -420,6 +455,74 @@ onMounted(() => {
 .loading-state p {
   color: #6b7280;
   font-size: 15px;
+}
+
+/* Success State */
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 72px;
+  margin-bottom: 20px;
+  animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-state h3 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.success-state p {
+  margin: 0 0 32px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.btn-download {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 14px 32px;
+  margin-bottom: 12px;
+  width: 250px;
+  font-size: 16px;
+}
+
+.btn-download:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-close-success {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 12px 32px;
+  width: 250px;
+}
+
+.btn-close-success:hover {
+  background: #e5e7eb;
 }
 
 /* Info Section */

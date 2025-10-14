@@ -66,9 +66,10 @@
               <label>อีเมล</label>
               <input
                 v-model="formData.customer.email"
-                type="email"
+                type="text"
                 class="form-input"
-                placeholder="email@example.com"
+                placeholder="email@example.com (ไม่จำเป็น)"
+                inputmode="email"
               />
             </div>
             <div class="form-group">
@@ -212,8 +213,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useToast } from 'vue-toastification'
 import { checkInApi, type CheckInCreateData, type CustomerData } from '@/api/check-ins'
 import { customerApi, type CustomerSearchResult } from '@/api/customers'
+
+const toast = useToast()
 
 interface Props {
   show: boolean
@@ -316,13 +320,22 @@ const handleSubmit = async () => {
     // Ensure room_id is set
     formData.value.checkIn.room_id = props.roomId
 
+    // Prepare customer data - convert empty email to undefined
+    const customerData = {
+      ...formData.value.customer,
+      email: formData.value.customer.email?.trim() || undefined,
+      id_card_number: formData.value.customer.id_card_number?.trim() || undefined,
+      address: formData.value.customer.address?.trim() || undefined,
+      notes: formData.value.customer.notes?.trim() || undefined
+    }
+
     const response = await checkInApi.createCheckIn(
       formData.value.checkIn,
-      formData.value.customer
+      customerData
     )
 
-    // Show success message
-    alert('✅ เช็คอินสำเร็จ!')
+    // Show success toast
+    toast.success('✅ เช็คอินสำเร็จ!')
 
     // Emit success event (don't wait for it)
     try {
@@ -331,13 +344,14 @@ const handleSubmit = async () => {
       console.error('Error in success handler:', emitError)
     }
 
-    // Close modal
-    handleClose()
+    // Reset loading and close modal immediately
+    loading.value = false
+    emit('close')
+    resetForm()
   } catch (error: any) {
     console.error('Check-in error:', error)
     const errorMessage = error.response?.data?.detail || 'เกิดข้อผิดพลาดในการเช็คอิน'
-    alert('❌ ' + errorMessage)
-  } finally {
+    toast.error(errorMessage)
     loading.value = false
   }
 }

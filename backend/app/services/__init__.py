@@ -7,11 +7,13 @@ from .notification_service import NotificationService
 from .check_in_service import CheckInService
 from .check_out_service import CheckOutService
 from .customer_service import CustomerService
+from .pdf_service import PDFService
 
 __all__ = [
     "DashboardService",
     "NotificationService",
     "CheckInService",
     "CheckOutService",
-    "CustomerService"
+    "CustomerService",
+    "PDFService"
 ]

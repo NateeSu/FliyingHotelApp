@@ -2,13 +2,18 @@
 Check-In API Endpoints (Phase 4)
 Handles check-in operations for rooms
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from typing import List
+import os
+from datetime import datetime
 
 from app.core.dependencies import get_db, get_current_user
-from app.models import User
-from app.services import CheckInService, CheckOutService, CustomerService
+from app.models import User, CheckIn, Customer, Room, RoomType
+from app.services import CheckInService, CheckOutService, CustomerService, PDFService
 from app.schemas.check_in import (
     CheckInCreate,
     CheckInCreateWithCustomer,
@@ -216,3 +221,175 @@ async def process_checkout(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
+
+@router.get("/{check_in_id}/generate-receipt")
+async def generate_receipt(
+    check_in_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate PDF receipt for a checked-out check-in
+
+    Requires authentication.
+
+    Returns:
+        PDF file as streaming response
+
+    Business Logic:
+        - Validates check-in exists and is checked out
+        - Generates PDF receipt with:
+          - Hotel information
+          - Customer details
+          - Room details
+          - Charges breakdown (base, overtime, extra, discount)
+          - Payment method
+          - Receipt number and date
+    """
+    try:
+        # Get check-in with all related data
+        result = await db.execute(
+            select(CheckIn)
+            .options(
+                selectinload(CheckIn.customer),
+                selectinload(CheckIn.room).selectinload(Room.room_type),
+                selectinload(CheckIn.checkout_user)
+            )
+            .where(CheckIn.id == check_in_id)
+        )
+        check_in = result.scalar_one_or_none()
+
+        if not check_in:
+            raise HTTPException(status_code=404, detail="ไม่พบข้อมูลการเช็คอิน")
+
+        if check_in.status != "checked_out":
+            raise HTTPException(status_code=400, detail="ยังไม่ได้เช็คเอาท์")
+
+        # Build checkout summary from stored check-in data (already checked out)
+        from app.schemas.check_in import CheckOutSummary
+        checkout_summary = CheckOutSummary(
+            check_in_id=check_in.id,
+            room_number=check_in.room.room_number,
+            customer_name=check_in.customer.full_name,
+            stay_type=check_in.stay_type,
+            check_in_time=check_in.check_in_time,
+            expected_check_out_time=check_in.expected_check_out_time,
+            actual_check_out_time=check_in.actual_check_out_time or check_in.check_in_time,
+            base_amount=check_in.base_amount,
+            is_overtime=bool(check_in.is_overtime),
+            overtime_minutes=check_in.overtime_minutes,
+            overtime_charge=check_in.overtime_charge,
+            extra_charges=check_in.extra_charges,
+            discount_amount=check_in.discount_amount,
+            total_amount=check_in.total_amount
+        )
+
+        # Generate PDF
+        pdf_service = PDFService()
+        pdf_buffer = pdf_service.generate_receipt(
+            check_in=check_in,
+            customer=check_in.customer,
+            room=check_in.room,
+            room_type=check_in.room.room_type,
+            checkout_summary=checkout_summary,
+            checked_out_by=check_in.checkout_user,
+            hotel_name="Flying Hotel",  # TODO: Get from settings
+            hotel_address="123 ถนนสุขุมวิท กรุงเทพฯ 10110",  # TODO: Get from settings
+            hotel_phone="02-123-4567"  # TODO: Get from settings
+        )
+
+        # Create filename
+        receipt_no = f"R{check_in.id:06d}"
+        filename = f"receipt_{receipt_no}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        # Return PDF as streaming response
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error generating receipt: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการสร้างใบเสร็จ: {str(e)}")
+
+
+@router.post("/{check_in_id}/upload-slip")
+async def upload_payment_slip(
+    check_in_id: int,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Upload payment slip image for a check-in
+
+    Requires authentication and Reception or Admin role.
+
+    Args:
+        check_in_id: Check-in ID
+        file: Image file (JPG, PNG)
+
+    Returns:
+        Success message with file URL
+
+    Business Logic:
+        - Validates file type (image only)
+        - Saves file to uploads directory
+        - Updates check-in record with payment_slip_url
+    """
+    try:
+        # Validate check-in exists
+        result = await db.execute(
+            select(CheckIn).where(CheckIn.id == check_in_id)
+        )
+        check_in = result.scalar_one_or_none()
+
+        if not check_in:
+            raise HTTPException(status_code=404, detail="ไม่พบข้อมูลการเช็คอิน")
+
+        # Validate file type
+        allowed_types = ["image/jpeg", "image/png", "image/jpg"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail="รองรับเฉพาะไฟล์รูปภาพ (JPG, PNG)"
+            )
+
+        # Create uploads directory if not exists
+        upload_dir = "/app/uploads/payment_slips"
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Generate filename
+        file_ext = file.filename.split(".")[-1]
+        filename = f"slip_{check_in_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_ext}"
+        file_path = os.path.join(upload_dir, filename)
+
+        # Save file
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+
+        # Update check-in record
+        check_in.payment_slip_url = f"/uploads/payment_slips/{filename}"
+        await db.commit()
+
+        return {
+            "message": "อัปโหลดสลิปสำเร็จ",
+            "file_url": check_in.payment_slip_url
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error uploading slip: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการอัปโหลดสลิป: {str(e)}")
