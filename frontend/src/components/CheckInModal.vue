@@ -1,0 +1,727 @@
+<template>
+  <div v-if="show" class="modal-overlay" @click.self="handleClose">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>เช็คอินห้อง {{ roomNumber }}</h2>
+        <button class="close-btn" @click="handleClose">×</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Step 1: Customer Information -->
+        <section class="form-section">
+          <h3>ข้อมูลลูกค้า</h3>
+
+          <!-- Customer Search -->
+          <div class="form-group">
+            <label>ค้นหาลูกค้า (ชื่อหรือเบอร์โทร)</label>
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="form-input"
+              placeholder="พิมพ์ชื่อหรือเบอร์โทรศัพท์"
+              @input="handleSearchInput"
+            />
+
+            <!-- Search Results Dropdown -->
+            <div v-if="searchResults.length > 0" class="search-results">
+              <div
+                v-for="customer in searchResults"
+                :key="customer.id"
+                class="search-result-item"
+                @click="selectCustomer(customer)"
+              >
+                <div class="customer-name">{{ customer.full_name }}</div>
+                <div class="customer-phone">{{ customer.phone_number }}</div>
+                <div class="customer-stats">เข้าพัก {{ customer.total_visits }} ครั้ง</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Form Fields -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>ชื่อ-นามสกุล <span class="required">*</span></label>
+              <input
+                v-model="formData.customer.full_name"
+                type="text"
+                class="form-input"
+                placeholder="ชื่อ-นามสกุล"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>เบอร์โทรศัพท์ <span class="required">*</span></label>
+              <input
+                v-model="formData.customer.phone_number"
+                type="tel"
+                class="form-input"
+                placeholder="0812345678"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>อีเมล</label>
+              <input
+                v-model="formData.customer.email"
+                type="email"
+                class="form-input"
+                placeholder="email@example.com"
+              />
+            </div>
+            <div class="form-group">
+              <label>เลขบัตรประชาชน</label>
+              <input
+                v-model="formData.customer.id_card_number"
+                type="text"
+                class="form-input"
+                placeholder="1234567890123"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Step 2: Check-In Details -->
+        <section class="form-section">
+          <h3>รายละเอียดการเช็คอิน</h3>
+
+          <!-- Stay Type Selection -->
+          <div class="form-group">
+            <label>ประเภทการเข้าพัก <span class="required">*</span></label>
+            <div class="stay-type-selector">
+              <button
+                :class="['stay-type-btn', { active: formData.checkIn.stay_type === 'overnight' }]"
+                @click="formData.checkIn.stay_type = 'overnight'"
+              >
+                <div class="icon">🌙</div>
+                <div class="label">ค้างคืน</div>
+              </button>
+              <button
+                :class="['stay-type-btn', { active: formData.checkIn.stay_type === 'temporary' }]"
+                @click="formData.checkIn.stay_type = 'temporary'"
+              >
+                <div class="icon">⏱️</div>
+                <div class="label">ชั่วคราว (3 ชม.)</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Number of Nights (for overnight) -->
+          <div v-if="formData.checkIn.stay_type === 'overnight'" class="form-row">
+            <div class="form-group">
+              <label>จำนวนคืน <span class="required">*</span></label>
+              <input
+                v-model.number="formData.checkIn.number_of_nights"
+                type="number"
+                class="form-input"
+                min="1"
+                placeholder="1"
+              />
+            </div>
+            <div class="form-group">
+              <label>จำนวนผู้เข้าพัก</label>
+              <input
+                v-model.number="formData.checkIn.number_of_guests"
+                type="number"
+                class="form-input"
+                min="1"
+                placeholder="1"
+              />
+            </div>
+          </div>
+
+          <!-- Number of Guests (for temporary) -->
+          <div v-else class="form-group">
+            <label>จำนวนผู้เข้าพัก</label>
+            <input
+              v-model.number="formData.checkIn.number_of_guests"
+              type="number"
+              class="form-input"
+              min="1"
+              placeholder="1"
+            />
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-group">
+            <label>วิธีชำระเงิน <span class="required">*</span></label>
+            <div class="payment-method-selector">
+              <button
+                :class="['payment-btn', { active: formData.checkIn.payment_method === 'cash' }]"
+                @click="formData.checkIn.payment_method = 'cash'"
+              >
+                💵 เงินสด
+              </button>
+              <button
+                :class="['payment-btn', { active: formData.checkIn.payment_method === 'transfer' }]"
+                @click="formData.checkIn.payment_method = 'transfer'"
+              >
+                🏦 โอนเงิน
+              </button>
+              <button
+                :class="['payment-btn', { active: formData.checkIn.payment_method === 'credit_card' }]"
+                @click="formData.checkIn.payment_method = 'credit_card'"
+              >
+                💳 บัตรเครดิต
+              </button>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group">
+            <label>หมายเหตุ</label>
+            <textarea
+              v-model="formData.checkIn.notes"
+              class="form-input"
+              rows="3"
+              placeholder="บันทึกเพิ่มเติม..."
+            ></textarea>
+          </div>
+        </section>
+
+        <!-- Calculated Summary -->
+        <section class="summary-section">
+          <h3>สรุปค่าใช้จ่าย</h3>
+          <div class="summary-row">
+            <span>ค่าห้อง:</span>
+            <span class="amount">{{ calculatedAmount }} บาท</span>
+          </div>
+          <div v-if="formData.checkIn.stay_type === 'overnight'" class="summary-detail">
+            {{ formData.checkIn.number_of_nights || 1 }} คืน × {{ ratePerNight }} บาท
+          </div>
+          <div v-else class="summary-detail">
+            1 รอบ (3 ชั่วโมง)
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-cancel" @click="handleClose" :disabled="loading">
+          ยกเลิก
+        </button>
+        <button class="btn btn-primary" @click="handleSubmit" :disabled="loading || !isFormValid">
+          <span v-if="loading">กำลังเช็คอิน...</span>
+          <span v-else>เช็คอิน</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { checkInApi, type CheckInCreateData, type CustomerData } from '@/api/check-ins'
+import { customerApi, type CustomerSearchResult } from '@/api/customers'
+
+interface Props {
+  show: boolean
+  roomId: number
+  roomNumber: string
+  ratePerNight?: number // For overnight
+  ratePerSession?: number // For temporary
+}
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  close: []
+  success: [checkInId: number]
+}>()
+
+// Form data
+const formData = ref({
+  customer: {
+    full_name: '',
+    phone_number: '',
+    email: '',
+    id_card_number: '',
+    address: '',
+    notes: ''
+  } as CustomerData,
+  checkIn: {
+    room_id: props.roomId,
+    stay_type: 'overnight' as 'overnight' | 'temporary',
+    number_of_nights: 1,
+    number_of_guests: 1,
+    payment_method: 'cash' as 'cash' | 'transfer' | 'credit_card',
+    notes: ''
+  } as CheckInCreateData
+})
+
+// Customer search
+const searchQuery = ref('')
+const searchResults = ref<CustomerSearchResult[]>([])
+let searchTimeout: NodeJS.Timeout | null = null
+
+const handleSearchInput = () => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  if (searchQuery.value.length < 2) {
+    searchResults.value = []
+    return
+  }
+
+  searchTimeout = setTimeout(async () => {
+    try {
+      searchResults.value = await customerApi.searchCustomers(searchQuery.value, 5)
+    } catch (error) {
+      console.error('Customer search error:', error)
+    }
+  }, 300)
+}
+
+const selectCustomer = (customer: CustomerSearchResult) => {
+  formData.value.customer.full_name = customer.full_name
+  formData.value.customer.phone_number = customer.phone_number
+  formData.value.customer.email = customer.email || ''
+  searchQuery.value = customer.full_name
+  searchResults.value = []
+}
+
+// Calculated amount
+const calculatedAmount = computed(() => {
+  if (formData.value.checkIn.stay_type === 'overnight') {
+    const nights = formData.value.checkIn.number_of_nights || 1
+    const rate = props.ratePerNight || 0
+    return nights * rate
+  } else {
+    return props.ratePerSession || 0
+  }
+})
+
+// Form validation
+const isFormValid = computed(() => {
+  const customer = formData.value.customer
+  const checkIn = formData.value.checkIn
+
+  if (!customer.full_name || !customer.phone_number) return false
+  if (!checkIn.payment_method) return false
+  if (checkIn.stay_type === 'overnight' && (!checkIn.number_of_nights || checkIn.number_of_nights < 1)) return false
+
+  return true
+})
+
+// Submit
+const loading = ref(false)
+
+const handleSubmit = async () => {
+  if (!isFormValid.value) return
+
+  loading.value = true
+  try {
+    // Ensure room_id is set
+    formData.value.checkIn.room_id = props.roomId
+
+    const response = await checkInApi.createCheckIn(
+      formData.value.checkIn,
+      formData.value.customer
+    )
+
+    // Show success message
+    alert('✅ เช็คอินสำเร็จ!')
+
+    // Emit success event (don't wait for it)
+    try {
+      emit('success', response.id)
+    } catch (emitError) {
+      console.error('Error in success handler:', emitError)
+    }
+
+    // Close modal
+    handleClose()
+  } catch (error: any) {
+    console.error('Check-in error:', error)
+    const errorMessage = error.response?.data?.detail || 'เกิดข้อผิดพลาดในการเช็คอิน'
+    alert('❌ ' + errorMessage)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleClose = () => {
+  if (!loading.value) {
+    emit('close')
+    resetForm()
+  }
+}
+
+const resetForm = () => {
+  formData.value = {
+    customer: {
+      full_name: '',
+      phone_number: '',
+      email: '',
+      id_card_number: '',
+      address: '',
+      notes: ''
+    },
+    checkIn: {
+      room_id: props.roomId,
+      stay_type: 'overnight',
+      number_of_nights: 1,
+      number_of_guests: 1,
+      payment_method: 'cash',
+      notes: ''
+    }
+  }
+  searchQuery.value = ''
+  searchResults.value = []
+}
+
+// Watch for room changes
+watch(() => props.roomId, (newRoomId) => {
+  formData.value.checkIn.room_id = newRoomId
+})
+</script>
+
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.form-section h3 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Customer Search Results */
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  margin-top: 4px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.search-result-item:hover {
+  background: #f9fafb;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.customer-phone {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.customer-stats {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Stay Type Selector */
+.stay-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stay-type-btn {
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stay-type-btn:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.stay-type-btn.active {
+  border-color: #3b82f6;
+  background: #3b82f6;
+  color: white;
+}
+
+.stay-type-btn .icon {
+  font-size: 32px;
+}
+
+.stay-type-btn .label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Payment Method Selector */
+.payment-method-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.payment-btn {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.payment-btn:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.payment-btn.active {
+  border-color: #10b981;
+  background: #10b981;
+  color: white;
+}
+
+/* Summary Section */
+.summary-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 12px;
+  color: white;
+}
+
+.summary-section h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  padding: 0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.amount {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.summary-detail {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-method-selector {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

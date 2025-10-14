@@ -8,7 +8,15 @@
       "Bash(curl:*)",
       "Bash(python:*)",
       "Bash(git log:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nComplete Phase 0: Project Setup & Infrastructure\n\n- Setup Docker Compose with 7 services (MySQL, Redis, Adminer, Backend, Celery, Frontend, Nginx)\n- Create FastAPI backend structure with SQLAlchemy, Alembic, and Celery\n- Create Vue 3 frontend with TypeScript, Naive UI, and PWA support\n- Configure Nginx reverse proxy for backend and frontend\n- Add comprehensive documentation (README, CLAUDE.md, PHASE0_COMPLETE.md)\n- Setup code quality tools (Black, Ruff, ESLint, Prettier)\n- Configure testing frameworks (pytest, vitest)\n- All services tested and running successfully\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(docker-compose exec:*)",
+      "Bash(npm run dev)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

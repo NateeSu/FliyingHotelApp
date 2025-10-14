@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Material Design Custom Styles */
+@layer components {
+  /* Material Card */
+  .material-card {
+    @apply bg-white rounded-material-lg shadow-material hover:shadow-material-lg transition-shadow duration-300;
+  }
+
+  .material-card-elevated {
+    @apply bg-white rounded-material-lg shadow-material-lg hover:shadow-material-xl transition-shadow duration-300;
+  }
+
+  /* Material Button */
+  .material-btn {
+    @apply px-6 py-3 rounded-material font-medium uppercase tracking-wide transition-all duration-200 shadow-material hover:shadow-material-lg;
+  }
+
+  .material-btn-primary {
+    @apply material-btn bg-primary-500 hover:bg-primary-600 text-white;
+  }
+
+  .material-btn-secondary {
+    @apply material-btn bg-secondary-500 hover:bg-secondary-600 text-gray-900;
+  }
+
+  .material-btn-outlined {
+    @apply material-btn bg-transparent border-2 border-primary-500 text-primary-500 hover:bg-primary-50;
+  }
+
+  /* Material Input */
+  .material-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-material focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+  }
+
+  /* Material Badge */
+  .material-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  /* Material Elevation */
+  .elevation-0 {
+    @apply shadow-none;
+  }
+
+  .elevation-1 {
+    @apply shadow-material;
+  }
+
+  .elevation-2 {
+    @apply shadow-material-lg;
+  }
+
+  .elevation-3 {
+    @apply shadow-material-xl;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Body */
+body {
+  font-family: 'Prompt', 'Sarabun', sans-serif;
+  @apply bg-gray-50 text-gray-900;
+}

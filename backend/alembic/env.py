@@ -7,6 +7,9 @@ from alembic import context
 from app.core.config import settings
 from app.db.base import Base
 
+# Import all models here for Alembic to detect
+from app.models.user import User  # noqa: F401
+
 # this is the Alembic Config object
 config = context.config
 
