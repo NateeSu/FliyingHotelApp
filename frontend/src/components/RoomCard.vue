@@ -127,7 +127,8 @@ const stayTypeLabel = computed(() => {
 // Methods
 function formatTime(time: string | null): string {
   if (!time) return '-'
-  return dayjs(time).format('HH:mm')
+  // Show both date and time in Thai format
+  return dayjs(time).format('DD/MM/YYYY HH:mm')
 }
 
 function handleClick(): void {
