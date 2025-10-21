@@ -2,9 +2,9 @@
  * Check-In API Client (Phase 4)
  * Handles check-in and check-out operations
  */
-import apiClient from './axios'
+import apiClient from './client'
 
-const BASE_PATH = '/api/v1/check-ins'
+const BASE_PATH = '/check-ins'
 
 export interface CheckInCreateData {
   room_id: number

@@ -2,7 +2,7 @@
  * Notification API Client (Phase 3)
  * API calls for notification management
  */
-import apiClient from './axios'
+import apiClient from './client'
 import type {
   Notification,
   NotificationCreate,

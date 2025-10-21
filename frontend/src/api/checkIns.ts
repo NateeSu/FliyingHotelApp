@@ -2,9 +2,9 @@
  * Check-Ins API Client (Phase 4)
  * API calls for check-in operations
  */
-import apiClient from './axios'
+import apiClient from './client'
 
-const BASE_PATH = '/api/v1/check-ins'
+const BASE_PATH = '/check-ins'
 
 export interface RoomTransferRequest {
   new_room_id: number

@@ -2,7 +2,7 @@
  * Booking API Client (Phase 7)
  * API calls for booking management
  */
-import api from './axios'
+import api from './client'
 import type {
   Booking,
   BookingCreate,

@@ -2,7 +2,7 @@
  * Dashboard API Client (Phase 3)
  * API calls for dashboard data
  */
-import apiClient from './axios'
+import apiClient from './client'
 import type {
   DashboardResponse,
   DashboardRoomCard,
@@ -10,7 +10,7 @@ import type {
   OvertimeAlertsResponse
 } from '@/types/dashboard'
 
-const BASE_PATH = '/api/v1/dashboard'
+const BASE_PATH = '/dashboard'
 
 export const dashboardApi = {
   /**

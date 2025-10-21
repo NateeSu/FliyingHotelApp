@@ -1,7 +1,7 @@
 /**
  * Room Management API Client (Phase 2)
  */
-import axios from './axios'
+import axios from './client'
 import type {
   RoomType,
   RoomTypeWithStats,
