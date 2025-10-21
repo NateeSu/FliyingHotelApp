@@ -266,6 +266,27 @@
                 <div class="font-semibold text-gray-900">{{ authStore.user?.full_name }}</div>
                 <div class="text-sm text-gray-500">{{ authStore.user?.username }}</div>
               </div>
+
+              <button
+                @click="openEditProfile"
+                class="w-full text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-colors flex items-center space-x-2 border-b border-gray-100"
+              >
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+                <span class="font-medium">แก้ไขโปรไฟล์</span>
+              </button>
+
+              <button
+                @click="openChangePassword"
+                class="w-full text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-colors flex items-center space-x-2 border-b border-gray-100"
+              >
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5s-5 2.24-5 5v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                </svg>
+                <span class="font-medium">เปลี่ยนรหัสผ่าน</span>
+              </button>
+
               <button
                 @click="handleLogout"
                 class="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition-colors flex items-center space-x-2"
@@ -285,6 +306,94 @@
         <router-view />
       </div>
     </main>
+
+    <!-- Edit Profile Modal -->
+    <div v-if="showEditProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">แก้ไขโปรไฟล์</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">ชื่อ</label>
+            <input
+              v-model="editProfileForm.full_name"
+              type="text"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="กรอกชื่อของคุณ"
+            />
+          </div>
+
+          <div class="flex gap-3 pt-6">
+            <button
+              @click="showEditProfileModal = false"
+              class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              ยกเลิก
+            </button>
+            <button
+              @click="saveProfileChanges"
+              class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            >
+              บันทึก
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div v-if="showChangePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">เปลี่ยนรหัสผ่าน</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">รหัสผ่านปัจจุบัน</label>
+            <input
+              v-model="changePasswordForm.current_password"
+              type="password"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="กรอกรหัสผ่านปัจจุบัน"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">รหัสผ่านใหม่</label>
+            <input
+              v-model="changePasswordForm.new_password"
+              type="password"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="กรอกรหัสผ่านใหม่"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">ยืนยันรหัสผ่านใหม่</label>
+            <input
+              v-model="changePasswordForm.confirm_password"
+              type="password"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="ยืนยันรหัสผ่านใหม่"
+            />
+          </div>
+
+          <div class="flex gap-3 pt-6">
+            <button
+              @click="showChangePasswordModal = false"
+              class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              ยกเลิก
+            </button>
+            <button
+              @click="changePassword"
+              class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            >
+              เปลี่ยน
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -302,6 +411,16 @@ const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
 const isMobile = ref(false)
 const expandedMenus = ref<string[]>([])
+const showEditProfileModal = ref(false)
+const showChangePasswordModal = ref(false)
+const editProfileForm = ref({
+  full_name: authStore.user?.full_name || ''
+})
+const changePasswordForm = ref({
+  current_password: '',
+  new_password: '',
+  confirm_password: ''
+})
 
 // Check mobile
 const checkMobile = () => {
@@ -500,6 +619,90 @@ function toggleSubmenu(label: string) {
 // Navigate
 function navigateTo(path: string) {
   router.push(path)
+}
+
+// Open edit profile modal
+function openEditProfile() {
+  editProfileForm.value.full_name = authStore.user?.full_name || ''
+  showEditProfileModal.value = true
+  showUserMenu.value = false
+}
+
+// Save profile changes
+async function saveProfileChanges() {
+  try {
+    const response = await fetch('/api/v1/auth/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        full_name: editProfileForm.value.full_name
+      })
+    })
+
+    if (response.ok) {
+      authStore.user!.full_name = editProfileForm.value.full_name
+      showEditProfileModal.value = false
+      // Show success message (you can use a toast notification)
+      alert('อัปเดตโปรไฟล์เรียบร้อย')
+    } else {
+      alert('ไม่สามารถอัปเดตโปรไฟล์ได้')
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error)
+    alert('เกิดข้อผิดพลาด')
+  }
+}
+
+// Open change password modal
+function openChangePassword() {
+  changePasswordForm.value = {
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  }
+  showChangePasswordModal.value = true
+  showUserMenu.value = false
+}
+
+// Change password
+async function changePassword() {
+  if (changePasswordForm.value.new_password !== changePasswordForm.value.confirm_password) {
+    alert('รหัสผ่านใหม่ไม่ตรงกัน')
+    return
+  }
+
+  if (changePasswordForm.value.new_password.length < 6) {
+    alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
+    return
+  }
+
+  try {
+    const response = await fetch('/api/v1/auth/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        current_password: changePasswordForm.value.current_password,
+        new_password: changePasswordForm.value.new_password
+      })
+    })
+
+    if (response.ok) {
+      showChangePasswordModal.value = false
+      alert('เปลี่ยนรหัสผ่านเรียบร้อย')
+    } else {
+      const error = await response.json()
+      alert(error.detail || 'ไม่สามารถเปลี่ยนรหัสผ่านได้')
+    }
+  } catch (error) {
+    console.error('Error changing password:', error)
+    alert('เกิดข้อผิดพลาด')
+  }
 }
 
 // Logout
