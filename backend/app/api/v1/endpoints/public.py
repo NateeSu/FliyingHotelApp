@@ -407,8 +407,8 @@ async def get_room_qrcode(
             raise HTTPException(status_code=404, detail="ไม่พบห้องนี้")
 
         # Create QR code with guest order page URL
-        # URL format: /public/guest/room/{room_id}/order
-        qr_url = f"/public/guest/room/{room_id}/order"
+        # URL format: Full URL for QR code to work across devices
+        qr_url = f"http://localhost:5173/public/guest/room/{room_id}/order"
 
         qr = qrcode.QRCode(
             version=1,
@@ -459,8 +459,9 @@ async def get_all_room_qrcodes(
 
         qr_codes = []
         for room in rooms:
-            # URL format: /public/guest/room/{room_id}/order
-            qr_url = f"/public/guest/room/{room.id}/order"
+            # URL format: Full URL for QR code to work across devices
+            # Note: In production, this should use the actual domain from request
+            qr_url = f"http://localhost:5173/public/guest/room/{room.id}/order"
 
             # Generate QR code
             qr = qrcode.QRCode(
