@@ -400,11 +400,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
+import axios from '@/api/axios'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const message = useMessage()
 
 const collapsed = ref(false)
 const showMobileMenu = ref(false)
@@ -631,28 +634,19 @@ function openEditProfile() {
 // Save profile changes
 async function saveProfileChanges() {
   try {
-    const response = await fetch('/api/v1/auth/profile', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        full_name: editProfileForm.value.full_name
-      })
+    const response = await axios.put('/auth/profile', {
+      full_name: editProfileForm.value.full_name
     })
 
-    if (response.ok) {
+    if (response.status === 200) {
       authStore.user!.full_name = editProfileForm.value.full_name
       showEditProfileModal.value = false
-      // Show success message (you can use a toast notification)
-      alert('อัปเดตโปรไฟล์เรียบร้อย')
-    } else {
-      alert('ไม่สามารถอัปเดตโปรไฟล์ได้')
+      message.success('อัปเดตโปรไฟล์เรียบร้อย')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating profile:', error)
-    alert('เกิดข้อผิดพลาด')
+    const errorMessage = error.response?.data?.detail || 'ไม่สามารถอัปเดตโปรไฟล์ได้'
+    message.error(errorMessage)
   }
 }
 
@@ -670,38 +664,29 @@ function openChangePassword() {
 // Change password
 async function changePassword() {
   if (changePasswordForm.value.new_password !== changePasswordForm.value.confirm_password) {
-    alert('รหัสผ่านใหม่ไม่ตรงกัน')
+    message.error('รหัสผ่านใหม่ไม่ตรงกัน')
     return
   }
 
   if (changePasswordForm.value.new_password.length < 6) {
-    alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
+    message.error('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
     return
   }
 
   try {
-    const response = await fetch('/api/v1/auth/change-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        current_password: changePasswordForm.value.current_password,
-        new_password: changePasswordForm.value.new_password
-      })
+    const response = await axios.post('/auth/change-password', {
+      current_password: changePasswordForm.value.current_password,
+      new_password: changePasswordForm.value.new_password
     })
 
-    if (response.ok) {
+    if (response.status === 200) {
       showChangePasswordModal.value = false
-      alert('เปลี่ยนรหัสผ่านเรียบร้อย')
-    } else {
-      const error = await response.json()
-      alert(error.detail || 'ไม่สามารถเปลี่ยนรหัสผ่านได้')
+      message.success('เปลี่ยนรหัสผ่านเรียบร้อย')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error changing password:', error)
-    alert('เกิดข้อผิดพลาด')
+    const errorMessage = error.response?.data?.detail || 'ไม่สามารถเปลี่ยนรหัสผ่านได้'
+    message.error(errorMessage)
   }
 }
 
