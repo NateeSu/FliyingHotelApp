@@ -83,10 +83,9 @@
         </div>
 
         <!-- Actions -->
-        <div class="w-full flex gap-2">
+        <div class="w-full grid grid-cols-2 gap-2">
           <n-button
             type="primary"
-            block
             size="small"
             @click="downloadQRCode(qr)"
           >
@@ -94,7 +93,6 @@
           </n-button>
           <n-button
             secondary
-            block
             size="small"
             @click="printQRCode(qr)"
           >
