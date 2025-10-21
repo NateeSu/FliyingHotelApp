@@ -5,10 +5,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { customerApi, type CustomerResponse, type CustomerCreate, type CustomerUpdate } from '@/api/customers'
-import { useMessage } from 'naive-ui'
 
 export const useCustomerStore = defineStore('customer', () => {
-  const message = useMessage()
 
   // State
   const customers = ref<CustomerResponse[]>([])
@@ -30,7 +28,6 @@ export const useCustomerStore = defineStore('customer', () => {
       customers.value = response.data
       totalCustomers.value = response.total
     } catch (error: any) {
-      message.error(error.response?.data?.detail || 'D!H*2!2#B+%I-!9%%9I2DI')
       throw error
     } finally {
       loading.value = false
@@ -49,7 +46,6 @@ export const useCustomerStore = defineStore('customer', () => {
       searchResults.value = results as any
       return results
     } catch (error: any) {
-      message.error(error.response?.data?.detail || 'D!H*2!2#I+2%9I2DI')
       throw error
     } finally {
       loading.value = false
@@ -62,11 +58,9 @@ export const useCustomerStore = defineStore('customer', () => {
       const newCustomer = await customerApi.createCustomer(data)
       customers.value.unshift(newCustomer)
       totalCustomers.value++
-      message.success('@4H!I-!9%%9I2*3@#G')
       return newCustomer
     } catch (error: any) {
       const errorMsg = error.response?.data?.detail || 'D!H*2!2#@4H!I-!9%%9I2DI'
-      message.error(errorMsg)
       throw error
     } finally {
       loading.value = false
@@ -84,10 +78,8 @@ export const useCustomerStore = defineStore('customer', () => {
       if (selectedCustomer.value?.id === id) {
         selectedCustomer.value = updatedCustomer
       }
-      message.success('-1@I-!9%%9I2*3@#G')
       return updatedCustomer
     } catch (error: any) {
-      message.error(error.response?.data?.detail || 'D!H*2!2#-1@I-!9%%9I2DI')
       throw error
     } finally {
       loading.value = false
@@ -98,7 +90,6 @@ export const useCustomerStore = defineStore('customer', () => {
     try {
       selectedCustomer.value = await customerApi.getCustomer(id)
     } catch (error: any) {
-      message.error(error.response?.data?.detail || 'D!H*2!2#B+%I-!9%%9I2DI')
       throw error
     }
   }
