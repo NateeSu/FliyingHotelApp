@@ -438,6 +438,68 @@ async def get_room_qrcode(
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
+@router.get("/qrcode/all-rooms")
+async def get_all_room_qrcodes(
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get QR code data for all active rooms (for admin)
+
+    Returns list of rooms with their QR code URLs
+    """
+    try:
+        stmt = (
+            select(Room)
+            .where(Room.is_active == True)
+            .order_by(Room.floor, Room.room_number)
+        )
+
+        result = await db.execute(stmt)
+        rooms = result.scalars().all()
+
+        qr_codes = []
+        for room in rooms:
+            # URL format: /public/guest/room/{room_id}/order
+            qr_url = f"/public/guest/room/{room.id}/order"
+
+            # Generate QR code
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(qr_url)
+            qr.make(fit=True)
+
+            # Create image
+            img = qr.make_image(fill_color="black", back_color="white")
+
+            # Convert to base64 for JSON response
+            import base64
+            img_bytes = BytesIO()
+            img.save(img_bytes, format='PNG')
+            img_bytes.seek(0)
+            img_base64 = base64.b64encode(img_bytes.getvalue()).decode('utf-8')
+
+            qr_codes.append({
+                "room_id": room.id,
+                "room_number": room.room_number,
+                "floor": room.floor,
+                "qr_code_base64": f"data:image/png;base64,{img_base64}",
+                "qr_url": qr_url,
+                "download_url": f"/api/v1/public/qrcode/room/{room.id}"
+            })
+
+        return qr_codes
+
+    except Exception as e:
+        print(f"Error generating QR codes: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
+
 @router.get("/guest/room/{room_id}/check-in-status")
 async def get_guest_checkin_status(
     room_id: int,

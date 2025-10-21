@@ -107,6 +107,13 @@ const routes: RouteRecordRaw[] = [
     name: 'GuestOrder',
     component: () => import('@/views/PublicGuestOrderView.vue'),
     meta: { requiresAuth: false }
+  },
+  // Phase 6: QR Code Manager (Admin only)
+  {
+    path: '/qrcode-manager',
+    name: 'QRCodeManager',
+    component: () => import('@/views/QRCodeManagerView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
   }
 ]
 
