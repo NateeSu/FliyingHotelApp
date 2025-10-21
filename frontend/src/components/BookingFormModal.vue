@@ -23,8 +23,10 @@
           remote
           :loading="loadingCustomers"
           @search="handleSearchCustomers"
-          placeholder="เลือกหรือค้นหาลูกค้า"
+          placeholder="🔍 เลือกหรือค้นหาลูกค้า..."
           clearable
+          :show-checkmark="false"
+          class="customer-select"
         >
           <template #empty>
             <div class="p-4 text-center">
@@ -43,13 +45,15 @@
           v-model:value="formData.room_id"
           :options="availableRoomOptions"
           filterable
-          placeholder="เลือกห้องที่ว่าง"
+          placeholder="🏠 เลือกห้องที่ว่าง..."
           @update:value="handleRoomChange"
           :disabled="!formData.check_in_date || !formData.check_out_date"
+          :show-checkmark="false"
+          class="room-select"
         >
           <template #empty>
             <div class="p-4 text-center text-gray-500">
-              กรุณาเลือกวันที่เข้า-ออกก่อน
+              📅 กรุณาเลือกวันที่เข้า-ออกก่อน
             </div>
           </template>
         </n-select>
@@ -108,14 +112,14 @@
         </n-form-item-gi>
 
         <n-form-item-gi label="ยอดรวม" path="total_amount">
-          <n-input-number
-            v-model:value="formData.total_amount"
-            :min="0"
-            :format="formatCurrency"
+          <n-input
+            :value="formatCurrency(formData.total_amount)"
+            disabled
+            placeholder="0 บาท"
             class="w-full"
           >
             <template #suffix>บาท</template>
-          </n-input-number>
+          </n-input>
         </n-form-item-gi>
       </n-grid>
 
@@ -259,8 +263,8 @@ const getDefaultDates = () => {
 
 // Form data
 const formData = ref<BookingCreate>({
-  customer_id: 0,
-  room_id: 0,
+  customer_id: null as any,
+  room_id: null as any,
   check_in_date: getDefaultDates().check_in,
   check_out_date: getDefaultDates().check_out,
   total_amount: 0,
@@ -308,19 +312,23 @@ const availableRoomOptions = computed(() => {
 // Form rules
 const rules: FormRules = {
   customer_id: [
-    { required: true, message: 'กรุณาเลือกลูกค้า', type: 'number', trigger: 'change' },
     {
       validator: (rule, value) => {
-        return value > 0 ? true : new Error('กรุณาเลือกลูกค้า')
+        if (!value || value === 0 || value === null) {
+          return new Error('กรุณาเลือกลูกค้า')
+        }
+        return true
       },
       trigger: 'change'
     }
   ],
   room_id: [
-    { required: true, message: 'กรุณาเลือกห้อง', type: 'number', trigger: 'change' },
     {
       validator: (rule, value) => {
-        return value > 0 ? true : new Error('กรุณาเลือกห้อง')
+        if (!value || value === 0 || value === null) {
+          return new Error('กรุณาเลือกห้อง')
+        }
+        return true
       },
       trigger: 'change'
     }
@@ -332,10 +340,12 @@ const rules: FormRules = {
     { required: true, message: 'กรุณาเลือกวันออก', trigger: 'change' }
   ],
   total_amount: [
-    { required: true, message: 'กรุณาระบุยอดรวม', type: 'number', trigger: 'change' },
     {
       validator: (rule, value) => {
-        return value > 0 ? true : new Error('ยอดรวมต้องมากกว่า 0')
+        if (!value || value === 0) {
+          return new Error('ยอดรวมต้องมากกว่า 0')
+        }
+        return true
       },
       trigger: 'change'
     }
@@ -500,8 +510,8 @@ function handleCancel() {
 
 function resetForm() {
   formData.value = {
-    customer_id: 0,
-    room_id: 0,
+    customer_id: null as any,
+    room_id: null as any,
     check_in_date: '',
     check_out_date: '',
     total_amount: 0,
@@ -560,5 +570,31 @@ onMounted(async () => {
 <style scoped>
 .booking-form-modal :deep(.n-form-item-label) {
   font-weight: 600;
+}
+
+/* Hide the 0 value when no option selected, show placeholder instead */
+.customer-select :deep(.n-base-selection__label) {
+  color: transparent;
+}
+
+.customer-select :deep(.n-base-selection__state-border) {
+  display: none;
+}
+
+.room-select :deep(.n-base-selection__label) {
+  color: transparent;
+}
+
+.room-select :deep(.n-base-selection__state-border) {
+  display: none;
+}
+
+/* Better styling for selects */
+.booking-form-modal :deep(.n-select) {
+  width: 100%;
+}
+
+.booking-form-modal :deep(.n-base-selection) {
+  min-height: 40px;
 }
 </style>

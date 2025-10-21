@@ -100,6 +100,13 @@ const routes: RouteRecordRaw[] = [
     name: 'PublicMaintenanceReport',
     component: () => import('@/views/PublicMaintenanceReportView.vue'),
     meta: { requiresAuth: false }
+  },
+  // Phase 6: Guest QR Code Ordering (no authentication required)
+  {
+    path: '/public/guest/room/:roomId/order',
+    name: 'GuestOrder',
+    component: () => import('@/views/PublicGuestOrderView.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 

@@ -1,14 +1,22 @@
 """
-Public API Endpoints (Phase 5.1)
+Public API Endpoints (Phase 5.1 & 6)
 Public endpoints that don't require authentication
-Used for Telegram bot links to allow staff to view and complete tasks
+Used for:
+- Telegram bot links for staff
+- Guest QR code ordering system
 """
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from io import BytesIO
+import qrcode
 
 from app.core.dependencies import get_db
 from app.services.housekeeping_service import HousekeepingService
 from app.services.maintenance_service import MaintenanceService
+from app.models import Room, Product, Order, CheckIn
+from app.models.check_in import CheckInStatusEnum
 from app.schemas.housekeeping import (
     HousekeepingTaskWithDetails,
     HousekeepingTaskStartRequest,
@@ -377,4 +385,222 @@ async def report_public_maintenance(
         print(f"Error creating public maintenance report: {str(e)}")
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
+
+# ==================== Guest QR Code Ordering (Phase 6) ====================
+
+@router.get("/qrcode/room/{room_id}")
+async def get_room_qrcode(
+    room_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate QR code for room ordering page
+
+    Returns PNG image of QR code that links to guest order page
+    """
+    try:
+        # Verify room exists
+        room = await db.get(Room, room_id)
+        if not room:
+            raise HTTPException(status_code=404, detail="ไม่พบห้องนี้")
+
+        # Create QR code with guest order page URL
+        # URL format: /public/guest/room/{room_id}/order
+        qr_url = f"/public/guest/room/{room_id}/order"
+
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_url)
+        qr.make(fit=True)
+
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        # Convert to bytes
+        img_bytes = BytesIO()
+        img.save(img_bytes, format='PNG')
+        img_bytes.seek(0)
+
+        return StreamingResponse(img_bytes, media_type="image/png")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error generating QR code: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
+
+@router.get("/guest/room/{room_id}/check-in-status")
+async def get_guest_checkin_status(
+    room_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Check if room has active check-in
+
+    Used by guest order page to verify guest can order
+    """
+    try:
+        # Check for active check-in in this room
+        stmt = (
+            select(CheckIn)
+            .where(
+                CheckIn.room_id == room_id,
+                CheckIn.status == CheckInStatusEnum.CHECKED_IN
+            )
+        )
+
+        result = await db.execute(stmt)
+        check_in = result.scalar_one_or_none()
+
+        if not check_in:
+            raise HTTPException(status_code=404, detail="ห้องนี้ไม่มีการเข้าพัก")
+
+        return {
+            "room_id": room_id,
+            "check_in_id": check_in.id,
+            "customer_name": check_in.customer.full_name if check_in.customer else "ลูกค้า",
+            "active": True
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error checking check-in status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
+
+@router.get("/guest/products")
+async def get_guest_products(
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all available products for guest ordering
+    """
+    try:
+        stmt = (
+            select(Product)
+            .where(Product.is_active == True)
+            .order_by(Product.name)
+        )
+
+        result = await db.execute(stmt)
+        products = result.scalars().all()
+
+        return [
+            {
+                "id": p.id,
+                "name": p.name,
+                "description": p.description,
+                "category": p.category,
+                "price": float(p.price),
+                "is_active": p.is_active
+            }
+            for p in products
+        ]
+
+    except Exception as e:
+        print(f"Error fetching products: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
+
+@router.post("/guest/room/{room_id}/order")
+async def create_guest_order(
+    room_id: int,
+    order_items: dict,  # {"items": [{"product_id": 1, "quantity": 2}]}
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create order from guest QR code
+
+    order_items format:
+    {
+      "items": [
+        {"product_id": 1, "quantity": 2},
+        {"product_id": 3, "quantity": 1}
+      ]
+    }
+    """
+    try:
+        # Verify room has active check-in
+        stmt = (
+            select(CheckIn)
+            .where(
+                CheckIn.room_id == room_id,
+                CheckIn.status == CheckInStatusEnum.CHECKED_IN
+            )
+        )
+
+        result = await db.execute(stmt)
+        check_in = result.scalar_one_or_none()
+
+        if not check_in:
+            raise HTTPException(status_code=403, detail="ห้องนี้ไม่มีการเข้าพัก")
+
+        # Validate and create order items
+        total_amount = 0
+        order_details = []
+
+        for item in order_items.get("items", []):
+            product_id = item.get("product_id")
+            quantity = item.get("quantity", 1)
+
+            if not product_id or quantity <= 0:
+                raise HTTPException(status_code=400, detail="ข้อมูลสินค้าไม่ถูกต้อง")
+
+            product = await db.get(Product, product_id)
+            if not product:
+                raise HTTPException(status_code=404, detail=f"ไม่พบสินค้า ID {product_id}")
+
+            item_total = float(product.price) * quantity
+            total_amount += item_total
+
+            order_details.append({
+                "product_id": product_id,
+                "product_name": product.name,
+                "quantity": quantity,
+                "unit_price": float(product.price),
+                "total": item_total
+            })
+
+        # Create order
+        from app.core.datetime_utils import now_thailand
+        order = Order(
+            check_in_id=check_in.id,
+            room_id=room_id,
+            order_date=now_thailand(),
+            status="pending",
+            total_amount=total_amount,
+            notes=f"Guest QR order - {len(order_details)} items"
+        )
+
+        db.add(order)
+        await db.flush()
+        await db.commit()
+        await db.refresh(order)
+
+        return {
+            "success": True,
+            "message": "สั่งของเรียบร้อย",
+            "order_id": order.id,
+            "room_id": room_id,
+            "total_amount": total_amount,
+            "items": order_details
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating guest order: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
