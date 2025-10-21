@@ -114,7 +114,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
-import axios from 'axios'
+import apiClient from '@/api/client'
 
 const message = useMessage()
 
@@ -131,7 +131,7 @@ onMounted(() => {
 async function refreshQRCodes() {
   try {
     loading.value = true
-    const response = await axios.get('/api/v1/public/qrcode/all-rooms')
+    const response = await apiClient.get('/public/qrcode/all-rooms')
     console.log('QR Codes Response:', response.data)
     console.log('First QR Code:', response.data[0])
 
