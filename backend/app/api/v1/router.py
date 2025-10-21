@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, room_types, rooms, room_rates, dashboard, notifications, websocket, check_ins, customers, housekeeping, maintenance, settings, public, bookings, products
+from app.api.v1.endpoints import auth, users, room_types, rooms, room_rates, dashboard, notifications, websocket, check_ins, customers, housekeeping, maintenance, settings, public, bookings, products, orders
 
 api_router = APIRouter()
 
@@ -103,6 +103,13 @@ api_router.include_router(
     products.router,
     prefix="/products",
     tags=["Products"]
+)
+
+# Phase 6: Order Management endpoints
+api_router.include_router(
+    orders.router,
+    prefix="/orders",
+    tags=["Orders"]
 )
 
 # Phase 7: Booking endpoints

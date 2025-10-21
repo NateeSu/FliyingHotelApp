@@ -16,7 +16,8 @@ from . import (
     maintenance,
     settings,
     public,
-    products
+    products,
+    orders
 )
 
 __all__ = [
@@ -34,5 +35,6 @@ __all__ = [
     "maintenance",
     "settings",
     "public",
-    "products"
+    "products",
+    "orders"
 ]

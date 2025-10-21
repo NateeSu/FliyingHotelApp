@@ -82,6 +82,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/CustomersView.vue'),
     meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
   },
+  // Phase 6: Order Management
+  {
+    path: '/orders',
+    name: 'Orders',
+    component: () => import('@/views/OrdersView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
+  },
   // Phase 5.1: Public Task Pages (no authentication required)
   {
     path: '/public/housekeeping/tasks/:taskId',
