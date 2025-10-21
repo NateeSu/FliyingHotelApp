@@ -127,9 +127,14 @@ async def get_current_user(
 def require_role(allowed_roles: list[str]):
     """
     Dependency to check if user has required role
+    Case-insensitive role comparison to handle both uppercase and lowercase roles
     """
     async def role_checker(role: str = Depends(get_current_user_role)) -> str:
-        if role not in allowed_roles:
+        # Normalize both role and allowed_roles to lowercase for comparison
+        normalized_role = role.lower()
+        normalized_allowed = [r.lower() for r in allowed_roles]
+
+        if normalized_role not in normalized_allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="คุณไม่มีสิทธิ์เข้าถึงส่วนนี้",
