@@ -29,31 +29,100 @@
 
       <!-- Navigation Menu -->
       <nav class="mt-6 px-3 space-y-2 overflow-y-auto" style="max-height: calc(100vh - 180px);">
-        <router-link
-          v-for="item in menuItems"
-          :key="item.path"
-          :to="item.path"
-          v-slot="{ isActive }"
-          custom
-        >
-          <a
-            @click="navigateTo(item.path)"
-            :class="[
-              'flex items-center px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group',
-              isActive
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                : 'text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50'
-            ]"
+        <!-- Regular menu items -->
+        <template v-for="item in menuItems" :key="item.label">
+          <!-- Submenu Group -->
+          <div v-if="item.children" class="relative">
+            <!-- Submenu Header (Collapsible) -->
+            <button
+              @click="toggleSubmenu(item.label)"
+              :class="[
+                'w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group relative',
+                'text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50'
+              ]"
+            >
+              <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path :d="item.icon"/>
+              </svg>
+              <span v-if="!collapsed" class="ml-3 font-medium">{{ item.label }}</span>
+              <svg
+                v-if="!collapsed"
+                class="ml-auto w-5 h-5 transition-transform duration-300"
+                :class="{ 'rotate-180': expandedMenus.includes(item.label) }"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            <!-- Submenu Items -->
+            <transition
+              enter-active-class="transition-all duration-300 ease-out"
+              leave-active-class="transition-all duration-300 ease-in"
+              enter-from-class="opacity-0 max-h-0"
+              enter-to-class="opacity-100 max-h-96"
+              leave-from-class="opacity-100 max-h-96"
+              leave-to-class="opacity-0 max-h-0"
+            >
+              <div v-if="expandedMenus.includes(item.label)" class="overflow-hidden">
+                <router-link
+                  v-for="subitem in item.children"
+                  :key="subitem.path"
+                  :to="subitem.path"
+                  v-slot="{ isActive }"
+                  custom
+                >
+                  <a
+                    @click="navigateTo(subitem.path)"
+                    :class="[
+                      'flex items-center px-4 py-3 ml-4 rounded-lg transition-all duration-200 cursor-pointer group mt-1',
+                      isActive
+                        ? 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border-l-4 border-indigo-600'
+                        : 'text-gray-600 hover:bg-indigo-50 border-l-4 border-transparent'
+                    ]"
+                  >
+                    <svg class="w-5 h-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path :d="subitem.icon"/>
+                    </svg>
+                    <span v-if="!collapsed" class="ml-3 font-medium text-sm">{{ subitem.label }}</span>
+                    <div v-if="!collapsed && isActive" class="ml-auto">
+                      <div class="w-2 h-2 bg-indigo-600 rounded-full animate-pulse"></div>
+                    </div>
+                  </a>
+                </router-link>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Regular menu item -->
+          <router-link
+            v-else
+            :to="item.path"
+            v-slot="{ isActive }"
+            custom
           >
-            <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path :d="item.icon"/>
-            </svg>
-            <span v-if="!collapsed" class="ml-3 font-medium">{{ item.label }}</span>
-            <div v-if="!collapsed && isActive" class="ml-auto">
-              <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            </div>
-          </a>
-        </router-link>
+            <a
+              @click="navigateTo(item.path)"
+              :class="[
+                'flex items-center px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group',
+                isActive
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                  : 'text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50'
+              ]"
+            >
+              <svg class="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path :d="item.icon"/>
+              </svg>
+              <span v-if="!collapsed" class="ml-3 font-medium">{{ item.label }}</span>
+              <div v-if="!collapsed && isActive" class="ml-auto">
+                <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              </div>
+            </a>
+          </router-link>
+        </template>
       </nav>
 
       <!-- Logout Button -->
@@ -232,6 +301,7 @@ const collapsed = ref(false)
 const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
 const isMobile = ref(false)
+const expandedMenus = ref<string[]>([])
 
 // Check mobile
 const checkMobile = () => {
@@ -249,7 +319,14 @@ onUnmounted(() => {
 
 // Menu items
 const menuItems = computed(() => {
-  const items = [
+  interface MenuItem {
+    label: string
+    path?: string
+    icon: string
+    children?: MenuItem[]
+  }
+
+  const items: MenuItem[] = [
     {
       label: 'หน้าแรก',
       path: '/',
@@ -284,31 +361,33 @@ const menuItems = computed(() => {
     })
   }
 
-  // Housekeeping - for Admin, Housekeeping, and Reception
-  if (authStore.isAdmin || authStore.hasRole(['HOUSEKEEPING', 'RECEPTION'])) {
-    items.push({
-      label: 'งานทำความสะอาด',
-      path: '/housekeeping',
-      icon: 'M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-6.18C12.4 5.84 11.3 5 10 5H7c-1.89 0-3.39 1.67-3 3.56C4.27 10.03 5.5 11 7 11v2H6c-1.1 0-2 .9-2 2v7h2v-2h12v2h2v-7c0-1.1-.9-2-2-2h-1V9c1.5 0 2.73-.97 3-2.44.39-1.89-1.11-3.56-3-3.56z'
-    })
-  }
+  // Housekeeping & Maintenance
+  if (authStore.isAdmin || authStore.hasRole(['HOUSEKEEPING', 'MAINTENANCE', 'RECEPTION'])) {
+    const operationsItems: MenuItem[] = []
 
-  // Maintenance - for Admin, Maintenance, and Reception
-  if (authStore.isAdmin || authStore.hasRole(['MAINTENANCE', 'RECEPTION'])) {
-    items.push({
-      label: 'งานซ่อมบำรุง',
-      path: '/maintenance',
-      icon: 'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z'
-    })
-  }
+    if (authStore.isAdmin || authStore.hasRole(['HOUSEKEEPING', 'RECEPTION'])) {
+      operationsItems.push({
+        label: 'งานทำความสะอาด',
+        path: '/housekeeping',
+        icon: 'M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-6.18C12.4 5.84 11.3 5 10 5H7c-1.89 0-3.39 1.67-3 3.56C4.27 10.03 5.5 11 7 11v2H6c-1.1 0-2 .9-2 2v7h2v-2h12v2h2v-7c0-1.1-.9-2-2-2h-1V9c1.5 0 2.73-.97 3-2.44.39-1.89-1.11-3.56-3-3.56z'
+      })
+    }
 
-  // Orders - for Admin and Reception (Phase 6)
-  if (authStore.isAdmin || authStore.hasRole(['RECEPTION'])) {
-    items.push({
-      label: 'คำสั่งซื้อ',
-      path: '/orders',
-      icon: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'
-    })
+    if (authStore.isAdmin || authStore.hasRole(['MAINTENANCE', 'RECEPTION'])) {
+      operationsItems.push({
+        label: 'งานซ่อมบำรุง',
+        path: '/maintenance',
+        icon: 'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z'
+      })
+    }
+
+    if (operationsItems.length > 0) {
+      items.push({
+        label: 'การจัดการ',
+        icon: 'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z',
+        children: operationsItems
+      })
+    }
   }
 
   // Reports - for Admin and Reception (Phase 8)
@@ -322,12 +401,8 @@ const menuItems = computed(() => {
 
   // Admin-only items
   if (authStore.isAdmin) {
-    items.push(
-      {
-        label: 'จัดการผู้ใช้',
-        path: '/users',
-        icon: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z'
-      },
+    // Room Management submenu
+    const roomItems: MenuItem[] = [
       {
         label: 'ประเภทห้อง',
         path: '/room-types',
@@ -342,12 +417,17 @@ const menuItems = computed(() => {
         label: 'อัตราค่าห้อง',
         path: '/room-rates',
         icon: 'M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z'
-      },
-      {
-        label: 'ตั้งค่าระบบ',
-        path: '/settings',
-        icon: 'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'
-      },
+      }
+    ]
+
+    items.push({
+      label: 'จัดการห้องพัก',
+      icon: 'M5 10a1 1 0 011-1h1a1 1 0 011 1v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-1zM14 10a1 1 0 011-1h1a1 1 0 011 1v1a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1zM5 15a1 1 0 011-1h1a1 1 0 011 1v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-1zM14 15a1 1 0 011-1h1a1 1 0 011 1v1a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1zM3 3a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V3z',
+      children: roomItems
+    })
+
+    // Products & Orders submenu
+    const productsItems: MenuItem[] = [
       {
         label: 'จัดการ QR Code',
         path: '/qrcode-manager',
@@ -357,8 +437,39 @@ const menuItems = computed(() => {
         label: 'จัดการสินค้า',
         path: '/products',
         icon: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'
+      },
+      {
+        label: 'คำสั่งซื้อ',
+        path: '/orders',
+        icon: 'M9 8h-3v2h3v-2zm0 5h-3v2h3v-2zm0 5h-3v2h3v-2zm5-15h-1v-2h-2v2h-6v2h14v-2h-5zm2 5v10c0 1.1-.9 2-2 2h-10c-1.1 0-2-.9-2-2v-10h16zm-11 3h-2v8h2v-8zm4 0h-2v8h2v-8zm4 0h-2v8h2v-8z'
       }
-    )
+    ]
+
+    items.push({
+      label: 'สินค้า & ออเดอร์',
+      icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z',
+      children: productsItems
+    })
+
+    // System Administration submenu
+    const adminItems: MenuItem[] = [
+      {
+        label: 'จัดการผู้ใช้',
+        path: '/users',
+        icon: 'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z'
+      },
+      {
+        label: 'ตั้งค่าระบบ',
+        path: '/settings',
+        icon: 'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'
+      }
+    ]
+
+    items.push({
+      label: 'ระบบ',
+      icon: 'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z',
+      children: adminItems
+    })
   }
 
   return items
@@ -386,6 +497,16 @@ const roleLabel = computed(() => {
   }
   return roleMap[authStore.user?.role || ''] || 'ผู้ใช้'
 })
+
+// Toggle submenu
+function toggleSubmenu(label: string) {
+  const index = expandedMenus.value.indexOf(label)
+  if (index > -1) {
+    expandedMenus.value.splice(index, 1)
+  } else {
+    expandedMenus.value.push(label)
+  }
+}
 
 // Navigate
 function navigateTo(path: string) {
