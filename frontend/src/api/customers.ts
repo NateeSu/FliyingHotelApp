@@ -2,9 +2,9 @@
  * Customer API Client (Phase 4)
  * Handles customer management and search
  */
-import apiClient from './axios'
+import apiClient from './client'
 
-const BASE_PATH = '/api/v1/customers'
+const BASE_PATH = '/customers'
 
 export interface CustomerSearchResult {
   id: number
