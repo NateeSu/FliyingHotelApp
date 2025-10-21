@@ -121,6 +121,13 @@ const routes: RouteRecordRaw[] = [
     name: 'QRCodeManager',
     component: () => import('@/views/QRCodeManagerView.vue'),
     meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  // Phase 6: Products Management (Admin only)
+  {
+    path: '/products',
+    name: 'Products',
+    component: () => import('@/views/ProductsView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
   }
 ]
 
