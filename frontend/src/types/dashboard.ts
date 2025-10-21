@@ -20,6 +20,10 @@ export interface DashboardRoomCard {
   room_type_name: string
   room_type_description: string | null
 
+  // Room rate information (for booking form)
+  overnight_rate: number | null
+  temporary_rate: number | null
+
   // Check-in information (if occupied)
   check_in_id: number | null
   customer_name: string | null

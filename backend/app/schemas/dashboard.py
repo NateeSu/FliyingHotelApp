@@ -24,6 +24,10 @@ class DashboardRoomCard(BaseModel):
     room_type_name: str
     room_type_description: Optional[str] = None
 
+    # Room rate information (for booking form)
+    overnight_rate: Optional[Decimal] = None
+    temporary_rate: Optional[Decimal] = None
+
     # Check-in information (if occupied)
     check_in_id: Optional[int] = None
     customer_name: Optional[str] = None

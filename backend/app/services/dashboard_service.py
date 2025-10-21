@@ -3,15 +3,16 @@ Dashboard Service (Phase 3)
 Business logic for dashboard operations
 """
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_, or_
 from sqlalchemy.orm import joinedload
 from typing import List, Optional
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from app.models import Room, RoomType, CheckIn, Customer
+from app.models import Room, RoomType, CheckIn, Customer, RoomRate
 from app.models.room import RoomStatus
 from app.models.check_in import CheckInStatusEnum, StayTypeEnum
+from app.models.room_rate import StayType
 from app.schemas.dashboard import DashboardRoomCard, DashboardStats, OvertimeAlert
 from app.core.datetime_utils import now_thailand
 
@@ -21,6 +22,34 @@ class DashboardService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def _get_current_rates_for_room_type(self, room_type_id: int) -> tuple[Optional[Decimal], Optional[Decimal]]:
+        """
+        Get current active rates for a room type
+
+        Returns:
+            Tuple of (overnight_rate, temporary_rate)
+        """
+        today = now_thailand().date()
+
+        # Query rates that are active and effective today
+        stmt = (
+            select(RoomRate.stay_type, RoomRate.rate)
+            .where(
+                RoomRate.room_type_id == room_type_id,
+                RoomRate.is_active == True,
+                RoomRate.effective_from <= today,
+                or_(RoomRate.effective_to == None, RoomRate.effective_to >= today)
+            )
+        )
+
+        result = await self.db.execute(stmt)
+        rates = dict(result.all())
+
+        overnight_rate = rates.get(StayType.OVERNIGHT)
+        temporary_rate = rates.get(StayType.TEMPORARY)
+
+        return overnight_rate, temporary_rate
 
     async def get_all_rooms_with_details(self) -> List[DashboardRoomCard]:
         """
@@ -61,6 +90,9 @@ class DashboardService:
                     overtime_delta = now - current_check_in.expected_check_out_time
                     overtime_minutes = int(overtime_delta.total_seconds() / 60)
 
+            # Get current rates for this room type
+            overnight_rate, temporary_rate = await self._get_current_rates_for_room_type(room.room_type_id)
+
             room_card = DashboardRoomCard(
                 id=room.id,
                 room_number=room.room_number,
@@ -69,6 +101,8 @@ class DashboardService:
                 room_type_id=room.room_type_id,
                 room_type_name=room.room_type.name,
                 room_type_description=room.room_type.description,
+                overnight_rate=overnight_rate,
+                temporary_rate=temporary_rate,
                 check_in_id=current_check_in.id if current_check_in else None,
                 customer_name=current_check_in.customer.full_name if current_check_in else None,
                 customer_phone=current_check_in.customer.phone_number if current_check_in else None,

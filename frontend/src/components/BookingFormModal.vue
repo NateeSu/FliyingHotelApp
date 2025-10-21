@@ -308,10 +308,22 @@ const availableRoomOptions = computed(() => {
 // Form rules
 const rules: FormRules = {
   customer_id: [
-    { required: true, message: 'กรุณาเลือกลูกค้า', type: 'number', trigger: 'change' }
+    { required: true, message: 'กรุณาเลือกลูกค้า', type: 'number', trigger: 'change' },
+    {
+      validator: (rule, value) => {
+        return value > 0 ? true : new Error('กรุณาเลือกลูกค้า')
+      },
+      trigger: 'change'
+    }
   ],
   room_id: [
-    { required: true, message: 'กรุณาเลือกห้อง', type: 'number', trigger: 'change' }
+    { required: true, message: 'กรุณาเลือกห้อง', type: 'number', trigger: 'change' },
+    {
+      validator: (rule, value) => {
+        return value > 0 ? true : new Error('กรุณาเลือกห้อง')
+      },
+      trigger: 'change'
+    }
   ],
   check_in_date: [
     { required: true, message: 'กรุณาเลือกวันเข้าพัก', trigger: 'change' }
@@ -320,7 +332,13 @@ const rules: FormRules = {
     { required: true, message: 'กรุณาเลือกวันออก', trigger: 'change' }
   ],
   total_amount: [
-    { required: true, message: 'กรุณาระบุยอดรวม', type: 'number', trigger: 'change' }
+    { required: true, message: 'กรุณาระบุยอดรวม', type: 'number', trigger: 'change' },
+    {
+      validator: (rule, value) => {
+        return value > 0 ? true : new Error('ยอดรวมต้องมากกว่า 0')
+      },
+      trigger: 'change'
+    }
   ]
 }
 
@@ -433,7 +451,12 @@ async function handleSubmit() {
   if (!formRef.value) return
 
   try {
+    console.log('📝 Form data before validation:', formData.value)
+    console.log('📝 Available rooms:', dashboardStore.rooms.length)
+
     await formRef.value.validate()
+
+    console.log('📝 Form validation passed, submitting:', formData.value)
 
     submitting.value = true
 
@@ -450,6 +473,7 @@ async function handleSubmit() {
       message.success('แก้ไขการจองเรียบร้อยแล้ว')
     } else {
       // Create
+      console.log('📝 Creating booking with:', formData.value)
       await bookingStore.createBooking(formData.value)
       message.success('สร้างการจองเรียบร้อยแล้ว')
     }
@@ -457,11 +481,13 @@ async function handleSubmit() {
     emit('saved')
     resetForm()
   } catch (error: any) {
+    console.error('❌ Booking error:', error)
     if (error?.errors) {
       // Validation error
+      console.error('Validation errors:', error.errors)
       return
     }
-    message.error(error?.message || 'ไม่สามารถบันทึกการจองได้')
+    message.error(error?.response?.data?.detail || error?.message || 'ไม่สามารถบันทึกการจองได้')
   } finally {
     submitting.value = false
   }

@@ -49,6 +49,7 @@ async def create_booking(
     **Returns**: Created booking with details
     """
     try:
+        print(f"📌 Creating booking with data: {booking_data}")
         service = BookingService(db)
         booking = await service.create_booking(booking_data, current_user.id)
 
@@ -56,9 +57,10 @@ async def create_booking(
         return await _map_booking_to_response(booking)
 
     except ValueError as e:
+        print(f"❌ ValueError: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error creating booking: {str(e)}")
+        print(f"❌ Error creating booking: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
