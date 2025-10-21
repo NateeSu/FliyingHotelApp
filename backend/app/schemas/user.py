@@ -61,3 +61,16 @@ class TokenPayload(BaseModel):
     sub: int = Field(..., description="User ID")
     role: str = Field(..., description="User Role")
     exp: Optional[datetime] = Field(None, description="Expiration time")
+
+
+# Schema for profile update
+class ProfileUpdate(BaseModel):
+    """Schema for updating user profile"""
+    full_name: str = Field(..., min_length=1, max_length=100, description="ชื่อ-นามสกุล")
+
+
+# Schema for password change
+class PasswordChange(BaseModel):
+    """Schema for changing password"""
+    current_password: str = Field(..., description="รหัสผ่านปัจจุบัน")
+    new_password: str = Field(..., min_length=6, max_length=100, description="รหัสผ่านใหม่")

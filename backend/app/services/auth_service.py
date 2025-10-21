@@ -93,3 +93,43 @@ class AuthService:
         await self.db.refresh(user)
 
         return user
+
+    async def update_profile(self, user_id: int, full_name: str) -> User:
+        """Update user profile (full_name)"""
+        user = await self.get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="ไม่พบข้อมูลผู้ใช้"
+            )
+
+        user.full_name = full_name
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        return user
+
+    async def change_password(self, user_id: int, current_password: str, new_password: str) -> User:
+        """Change user password"""
+        user = await self.get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="ไม่พบข้อมูลผู้ใช้"
+            )
+
+        # Verify current password
+        if not verify_password(current_password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="รหัสผ่านปัจจุบันไม่ถูกต้อง"
+            )
+
+        # Update password
+        user.password_hash = get_password_hash(new_password)
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        return user

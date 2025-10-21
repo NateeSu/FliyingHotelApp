@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_db, get_current_user_id
 from app.services.auth_service import AuthService
-from app.schemas.user import LoginRequest, LoginResponse, UserResponse
+from app.schemas.user import LoginRequest, LoginResponse, UserResponse, ProfileUpdate, PasswordChange
 
 router = APIRouter()
 
@@ -55,4 +55,41 @@ async def get_current_user(
             detail="ไม่พบข้อมูลผู้ใช้"
         )
 
+    return UserResponse.model_validate(user)
+
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    profile_data: ProfileUpdate,
+    current_user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update current user's profile (full_name)
+
+    - **full_name**: ชื่อ-นามสกุล
+    """
+    auth_service = AuthService(db)
+    user = await auth_service.update_profile(current_user_id, profile_data.full_name)
+    return UserResponse.model_validate(user)
+
+
+@router.post("/change-password", response_model=UserResponse)
+async def change_password(
+    password_data: PasswordChange,
+    current_user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Change current user's password
+
+    - **current_password**: รหัสผ่านปัจจุบัน
+    - **new_password**: รหัสผ่านใหม่
+    """
+    auth_service = AuthService(db)
+    user = await auth_service.change_password(
+        current_user_id,
+        password_data.current_password,
+        password_data.new_password
+    )
     return UserResponse.model_validate(user)
