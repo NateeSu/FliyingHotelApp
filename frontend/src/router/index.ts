@@ -128,6 +128,13 @@ const routes: RouteRecordRaw[] = [
     name: 'Products',
     component: () => import('@/views/ProductsView.vue'),
     meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  // Phase 8: Reports & Analytics
+  {
+    path: '/reports',
+    name: 'Reports',
+    component: () => import('@/views/ReportsView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
   }
 ]
 

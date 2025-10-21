@@ -4,9 +4,10 @@ Admin endpoints for managing products that guests can order
 """
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from typing import List
 from decimal import Decimal
+from pydantic import BaseModel
 
 from app.core.dependencies import get_db, get_current_user, require_role
 from app.models import Product, User
@@ -16,7 +17,15 @@ from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 router = APIRouter()
 
 
-@router.get("", response_model=List[ProductResponse])
+class ProductListResponse(BaseModel):
+    """Response model for product list"""
+    data: List[ProductResponse]
+    total: int
+    skip: int
+    limit: int
+
+
+@router.get("", response_model=ProductListResponse)
 async def get_all_products(
     skip: int = 0,
     limit: int = 100,
@@ -32,9 +41,18 @@ async def get_all_products(
         - category: Filter by category (room_amenity, food_beverage)
 
     Returns:
-        List of active products
+        List of active products with total count
     """
     try:
+        # Get total count
+        count_stmt = select(func.count(Product.id)).where(Product.is_active == True)
+        if category:
+            count_stmt = count_stmt.where(Product.category == category)
+
+        count_result = await db.execute(count_stmt)
+        total = count_result.scalar() or 0
+
+        # Get paginated products
         stmt = select(Product).where(Product.is_active == True)
 
         if category:
@@ -45,14 +63,19 @@ async def get_all_products(
         result = await db.execute(stmt)
         products = result.scalars().all()
 
-        return [ProductResponse.from_orm(p) for p in products]
+        return ProductListResponse(
+            data=[ProductResponse.from_orm(p) for p in products],
+            total=total,
+            skip=skip,
+            limit=limit
+        )
 
     except Exception as e:
         print(f"Error fetching products: {str(e)}")
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
-@router.get("/admin/all", response_model=List[ProductResponse])
+@router.get("/admin/all", response_model=ProductListResponse)
 async def get_all_products_admin(
     skip: int = 0,
     limit: int = 100,
@@ -69,10 +92,19 @@ async def get_all_products_admin(
         - include_inactive: Include inactive products
 
     Returns:
-        List of all products
+        List of all products with total count
     """
 
     try:
+        # Get total count
+        count_stmt = select(func.count(Product.id))
+        if not include_inactive:
+            count_stmt = count_stmt.where(Product.is_active == True)
+
+        count_result = await db.execute(count_stmt)
+        total = count_result.scalar() or 0
+
+        # Get paginated products
         stmt = select(Product)
 
         if not include_inactive:
@@ -83,7 +115,12 @@ async def get_all_products_admin(
         result = await db.execute(stmt)
         products = result.scalars().all()
 
-        return [ProductResponse.from_orm(p) for p in products]
+        return ProductListResponse(
+            data=[ProductResponse.from_orm(p) for p in products],
+            total=total,
+            skip=skip,
+            limit=limit
+        )
 
     except Exception as e:
         print(f"Error fetching products: {str(e)}")

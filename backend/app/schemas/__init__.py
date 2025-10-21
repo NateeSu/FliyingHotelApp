@@ -98,3 +98,16 @@ from .order import (
     OrderResponse,
     OrderListResponse
 )
+from .reports import (
+    RevenueByPeriod,
+    RevenueReportResponse,
+    OccupancyByPeriod,
+    RoomStatusDistribution,
+    OccupancyReportResponse,
+    BookingByPeriod,
+    BookingReportResponse,
+    TopCustomer,
+    CustomerReportResponse,
+    QuickStat,
+    SummaryReportResponse
+)

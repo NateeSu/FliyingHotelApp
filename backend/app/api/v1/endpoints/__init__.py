@@ -17,7 +17,8 @@ from . import (
     settings,
     public,
     products,
-    orders
+    orders,
+    reports
 )
 
 __all__ = [
@@ -36,5 +37,6 @@ __all__ = [
     "settings",
     "public",
     "products",
-    "orders"
+    "orders",
+    "reports"
 ]

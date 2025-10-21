@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 pb-12">
     <!-- Hero Section with Animated Background -->
     <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 pb-32">
       <!-- Decorative Elements -->
@@ -34,9 +34,19 @@
           </p>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Stat Card 1 -->
+        <!-- Real-time Stats Cards -->
+        <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div v-for="i in 4" :key="i" class="bg-white bg-opacity-95 backdrop-blur-xl rounded-3xl p-6 shadow-xl">
+            <div class="animate-pulse">
+              <div class="h-14 w-14 bg-gray-300 rounded-2xl mb-4"></div>
+              <div class="h-8 bg-gray-300 rounded w-20 mb-2"></div>
+              <div class="h-4 bg-gray-300 rounded w-32"></div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Total Rooms Card -->
           <div class="group bg-white bg-opacity-95 backdrop-blur-xl rounded-3xl p-6 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
             <div class="flex items-center justify-between mb-4">
               <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -44,15 +54,15 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </div>
-              <span class="text-3xl font-bold text-gray-900">50</span>
+              <span class="text-3xl font-bold text-gray-900">{{ stats.totalRooms }}</span>
             </div>
             <p class="text-gray-600 font-semibold text-lg">ห้องพักทั้งหมด</p>
             <div class="mt-2 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: 75%"></div>
+              <div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: 100%"></div>
             </div>
           </div>
 
-          <!-- Stat Card 2 -->
+          <!-- Available Rooms Card -->
           <div class="group bg-white bg-opacity-95 backdrop-blur-xl rounded-3xl p-6 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
             <div class="flex items-center justify-between mb-4">
               <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -60,27 +70,43 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <span class="text-3xl font-bold text-gray-900">35</span>
+              <span class="text-3xl font-bold text-gray-900">{{ stats.availableRooms }}</span>
             </div>
             <p class="text-gray-600 font-semibold text-lg">ห้องว่าง</p>
             <div class="mt-2 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full" style="width: 70%"></div>
+              <div class="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full" :style="`width: ${stats.availablePercentage}%`"></div>
             </div>
           </div>
 
-          <!-- Stat Card 3 -->
+          <!-- Occupied Rooms Card -->
           <div class="group bg-white bg-opacity-95 backdrop-blur-xl rounded-3xl p-6 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
             <div class="flex items-center justify-between mb-4">
               <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <span class="text-3xl font-bold text-gray-900">15</span>
+              <span class="text-3xl font-bold text-gray-900">{{ stats.occupiedRooms }}</span>
             </div>
             <p class="text-gray-600 font-semibold text-lg">ห้องมีผู้เข้าพัก</p>
             <div class="mt-2 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full" style="width: 30%"></div>
+              <div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full" :style="`width: ${stats.occupiedPercentage}%`"></div>
+            </div>
+          </div>
+
+          <!-- Revenue Card (Today) -->
+          <div class="group bg-white bg-opacity-95 backdrop-blur-xl rounded-3xl p-6 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span class="text-2xl font-bold text-gray-900">฿{{ stats.totalRevenue.toLocaleString('th-TH') }}</span>
+            </div>
+            <p class="text-gray-600 font-semibold text-lg">รายได้รวม (20 วัน)</p>
+            <div class="mt-2 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full" style="width: 85%"></div>
             </div>
           </div>
         </div>
@@ -88,12 +114,183 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- User Info Card -->
+        <!-- Main Column -->
         <div class="lg:col-span-2 space-y-8">
-          <!-- Profile Card -->
-          <div class="bg-white rounded-3xl shadow-xl p-8 transform hover:shadow-2xl transition-all duration-300">
+          <!-- Quick Access Features -->
+          <div class="bg-white rounded-3xl shadow-xl p-8">
+            <div class="flex items-center space-x-4 mb-6">
+              <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center">
+                <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900">เข้าถึงฟีเจอร์หลักอย่างรวดเร็ว</h2>
+                <p class="text-gray-500">ฟีเจอร์สำคัญของระบบ PMS</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Dashboard -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])"
+                @click="$router.push('/dashboard')"
+                class="group p-6 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-blue-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">แดชบอร์ดห้องพัก</p>
+                    <p class="text-sm text-gray-600">เช็คอิน/เช็คเอาท์แบบเรียลไทม์</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Bookings -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])"
+                @click="$router.push('/bookings')"
+                class="group p-6 bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-purple-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">ปฏิทินจองห้อง</p>
+                    <p class="text-sm text-gray-600">จัดการการจองล่วงหน้า</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Reports -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])"
+                @click="$router.push('/reports')"
+                class="group p-6 bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-green-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">รายงานและสถิติ</p>
+                    <p class="text-sm text-gray-600">วิเคราะห์รายได้และอัตราเข้าพัก</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Customers -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])"
+                @click="$router.push('/customers')"
+                class="group p-6 bg-gradient-to-br from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-yellow-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">ฐานข้อมูลลูกค้า</p>
+                    <p class="text-sm text-gray-600">CRM และประวัติการเข้าพัก</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Housekeeping -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION', 'HOUSEKEEPING'])"
+                @click="$router.push('/housekeeping')"
+                class="group p-6 bg-gradient-to-br from-teal-50 to-cyan-50 hover:from-teal-100 hover:to-cyan-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-teal-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">งานแม่บ้าน</p>
+                    <p class="text-sm text-gray-600">จัดการทำความสะอาด</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Maintenance -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION', 'MAINTENANCE'])"
+                @click="$router.push('/maintenance')"
+                class="group p-6 bg-gradient-to-br from-red-50 to-rose-50 hover:from-red-100 hover:to-rose-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-red-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">งานซ่อมบำรุง</p>
+                    <p class="text-sm text-gray-600">แจ้งซ่อมและติดตาม</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Products & Orders -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])"
+                @click="$router.push('/products')"
+                class="group p-6 bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-indigo-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">สินค้าและออเดอร์</p>
+                    <p class="text-sm text-gray-600">จัดการสินค้าและคำสั่งซื้อ</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Settings -->
+              <button
+                v-if="authStore.isAdmin"
+                @click="$router.push('/settings')"
+                class="group p-6 bg-gradient-to-br from-gray-50 to-slate-50 hover:from-gray-100 hover:to-slate-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-gray-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-gray-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">ตั้งค่าระบบ</p>
+                    <p class="text-sm text-gray-600">กำหนดค่าและ Telegram</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- User Info Card -->
+          <div class="bg-white rounded-3xl shadow-xl p-8">
             <div class="flex items-center space-x-4 mb-6">
               <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center">
                 <svg class="w-9 h-9 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -107,7 +304,7 @@
             </div>
 
             <div class="space-y-4">
-              <!-- Info Row -->
+              <!-- Username -->
               <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
                 <div class="flex items-center space-x-3">
                   <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
@@ -118,7 +315,7 @@
                 <span class="text-gray-900 font-semibold">{{ authStore.user?.username }}</span>
               </div>
 
-              <!-- Role Badge -->
+              <!-- Role -->
               <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
                 <div class="flex items-center space-x-3">
                   <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
@@ -146,54 +343,9 @@
               </div>
             </div>
           </div>
-
-          <!-- System Status Card -->
-          <div class="bg-white rounded-3xl shadow-xl p-8 transform hover:shadow-2xl transition-all duration-300">
-            <div class="flex items-center space-x-4 mb-6">
-              <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center">
-                <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-                </svg>
-              </div>
-              <div>
-                <h2 class="text-2xl font-bold text-gray-900">สถานะระบบ</h2>
-                <p class="text-gray-500">ตรวจสอบการเชื่อมต่อ</p>
-              </div>
-            </div>
-
-            <!-- Status Alert -->
-            <div v-if="backendStatus" :class="backendStatus.type === 'success' ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'" class="border-l-4 p-4 rounded-2xl mb-4">
-              <div class="flex items-center">
-                <svg v-if="backendStatus.type === 'success'" class="w-6 h-6 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-                <svg v-else class="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-                <p :class="backendStatus.type === 'success' ? 'text-green-700' : 'text-red-700'" class="font-semibold">
-                  {{ backendStatus.message }}
-                </p>
-              </div>
-            </div>
-
-            <button
-              @click="checkBackend"
-              :disabled="checking"
-              class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-            >
-              <svg v-if="!checking" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <svg v-else class="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>{{ checking ? 'กำลังตรวจสอบ...' : 'ตรวจสอบการเชื่อมต่อ' }}</span>
-            </button>
-          </div>
         </div>
 
-        <!-- Quick Actions Sidebar -->
+        <!-- Sidebar -->
         <div class="lg:col-span-1 space-y-6">
           <!-- Admin Menu -->
           <div v-if="authStore.isAdmin" class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition-transform duration-300">
@@ -215,28 +367,8 @@
             </button>
           </div>
 
-          <!-- Phase 3: Dashboard (Critical Feature) -->
-          <div v-if="authStore.isAdmin || authStore.user?.role?.toLowerCase() === 'reception'" class="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition-transform duration-300">
-            <div class="w-16 h-16 bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-6 mx-auto">
-              <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold mb-2 text-center">แดชบอร์ดห้องพัก</h3>
-            <p class="text-white text-opacity-90 mb-6 text-center">ดูสถานะห้องแบบเรียลไทม์</p>
-            <button
-              @click="$router.push('/dashboard')"
-              class="w-full bg-white text-blue-600 font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <span>เปิดแดชบอร์ด</span>
-            </button>
-          </div>
-
-          <!-- Phase 2: Room Management Menu -->
-          <div v-if="authStore.isAdmin || authStore.user?.role?.toLowerCase() === 'reception'" class="bg-white rounded-3xl shadow-xl p-6">
+          <!-- Room Management Menu -->
+          <div v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])" class="bg-white rounded-3xl shadow-xl p-6">
             <div class="flex items-center space-x-3 mb-6">
               <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center">
                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,10 +456,37 @@ import { useAuthStore } from '@/stores/auth'
 import axios from '@/api/axios'
 
 const authStore = useAuthStore()
-const backendStatus = ref<{ type: 'success' | 'error', message: string } | null>(null)
-const checking = ref(false)
+const loading = ref(true)
 const currentTime = ref('')
 const currentDate = ref('')
+
+interface Stats {
+  totalRooms: number
+  availableRooms: number
+  occupiedRooms: number
+  cleaningRooms: number
+  reservedRooms: number
+  outOfServiceRooms: number
+  totalRevenue: number
+  totalCheckins: number
+  occupancyRate: number
+  availablePercentage: number
+  occupiedPercentage: number
+}
+
+const stats = ref<Stats>({
+  totalRooms: 0,
+  availableRooms: 0,
+  occupiedRooms: 0,
+  cleaningRooms: 0,
+  reservedRooms: 0,
+  outOfServiceRooms: 0,
+  totalRevenue: 0,
+  totalCheckins: 0,
+  occupancyRate: 0,
+  availablePercentage: 0,
+  occupiedPercentage: 0
+})
 
 function getRoleText(role?: string): string {
   const roleMap: Record<string, string> = {
@@ -354,21 +513,40 @@ function getRoleBadgeClass(role?: string): string {
   return classMap[roleKey || ''] || 'bg-gray-100 text-gray-700'
 }
 
-const checkBackend = async () => {
-  checking.value = true
+async function loadStats() {
   try {
-    const response = await axios.get('/health')
-    backendStatus.value = {
-      type: 'success',
-      message: `✓ Backend เชื่อมต่อสำเร็จ - สถานะ: ${response.data.status}`
+    loading.value = true
+
+    // Get room statistics from occupancy report
+    const today = new Date().toISOString().split('T')[0]
+    const response = await axios.get(`/reports/occupancy?start_date=${today}&end_date=${today}`)
+
+    const roomStatus = response.data.room_status_distribution
+    const totalRooms = response.data.total_rooms
+    const occupiedRooms = roomStatus.occupied
+    const availableRooms = roomStatus.available
+
+    // Get revenue from reports
+    const startDate = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const summaryResponse = await axios.get(`/reports/summary?start_date=${startDate}&end_date=${today}`)
+
+    stats.value = {
+      totalRooms: totalRooms,
+      availableRooms: availableRooms,
+      occupiedRooms: occupiedRooms,
+      cleaningRooms: roomStatus.cleaning,
+      reservedRooms: roomStatus.reserved,
+      outOfServiceRooms: roomStatus.out_of_service,
+      totalRevenue: summaryResponse.data.total_revenue || 0,
+      totalCheckins: summaryResponse.data.total_checkins || 0,
+      occupancyRate: response.data.occupancy_rate || 0,
+      availablePercentage: totalRooms > 0 ? (availableRooms / totalRooms * 100) : 0,
+      occupiedPercentage: totalRooms > 0 ? (occupiedRooms / totalRooms * 100) : 0
     }
   } catch (error) {
-    backendStatus.value = {
-      type: 'error',
-      message: '✗ ไม่สามารถเชื่อมต่อ Backend ได้'
-    }
+    console.error('Error loading stats:', error)
   } finally {
-    checking.value = false
+    loading.value = false
   }
 }
 
@@ -383,6 +561,7 @@ let timeInterval: number
 onMounted(() => {
   updateTime()
   timeInterval = setInterval(updateTime, 1000) as unknown as number
+  loadStats()
 })
 
 onUnmounted(() => {

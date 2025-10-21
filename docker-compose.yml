@@ -64,7 +64,7 @@ services:
       - ./backend:/app
       - backend_uploads:/app/uploads
     environment:
-      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-flyinghotel_user}:${MYSQL_PASSWORD:-flyinghotel_pass}@mysql:3306/${MYSQL_DATABASE:-flyinghotel}
+      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-flyinghotel_user}:${MYSQL_PASSWORD:-flyinghotel_pass}@mysql:3306/${MYSQL_DATABASE:-flyinghotel}?charset=utf8mb4
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-this-in-production}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
@@ -88,7 +88,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-flyinghotel_user}:${MYSQL_PASSWORD:-flyinghotel_pass}@mysql:3306/${MYSQL_DATABASE:-flyinghotel}
+      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-flyinghotel_user}:${MYSQL_PASSWORD:-flyinghotel_pass}@mysql:3306/${MYSQL_DATABASE:-flyinghotel}?charset=utf8mb4
       REDIS_URL: redis://redis:6379/0
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-this-in-production}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
