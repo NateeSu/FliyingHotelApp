@@ -28,7 +28,7 @@ export interface TelegramTestResponse {
  * Get all system settings (Admin only)
  */
 export const getSettings = async (): Promise<SystemSettings> => {
-  const response = await axios.get<SystemSettings>('/api/v1/settings')
+  const response = await axios.get<SystemSettings>('/settings')
   return response.data
 }
 
@@ -36,7 +36,7 @@ export const getSettings = async (): Promise<SystemSettings> => {
  * Update system settings (Admin only)
  */
 export const updateSettings = async (settings: Partial<SystemSettings>): Promise<SystemSettings> => {
-  const response = await axios.put<SystemSettings>('/api/v1/settings', settings)
+  const response = await axios.put<SystemSettings>('/settings', settings)
   return response.data
 }
 
@@ -48,7 +48,7 @@ export const testTelegramConnection = async (
   chatId: string
 ): Promise<TelegramTestResponse> => {
   const response = await axios.post<TelegramTestResponse>(
-    '/api/v1/settings/test-telegram',
+    '/settings/test-telegram',
     null,
     {
       params: {

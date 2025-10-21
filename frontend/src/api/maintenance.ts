@@ -27,7 +27,7 @@ export const maintenanceApi = {
     if (filters?.assigned_to) params.assigned_to = filters.assigned_to
     if (filters?.room_id) params.room_id = filters.room_id
 
-    const response = await api.get<MaintenanceTaskListResponse>('/api/v1/maintenance/', { params })
+    const response = await api.get<MaintenanceTaskListResponse>('/maintenance/', { params })
     return response.data
   },
 
@@ -35,7 +35,7 @@ export const maintenanceApi = {
    * Get maintenance task by ID
    */
   async getTaskById(taskId: number): Promise<MaintenanceTaskWithDetails> {
-    const response = await api.get<MaintenanceTaskWithDetails>(`/api/v1/maintenance/${taskId}`)
+    const response = await api.get<MaintenanceTaskWithDetails>(`/maintenance/${taskId}`)
     return response.data
   },
 
@@ -43,7 +43,7 @@ export const maintenanceApi = {
    * Create a new maintenance task
    */
   async createTask(data: MaintenanceTaskCreate): Promise<MaintenanceTaskWithDetails> {
-    const response = await api.post<MaintenanceTaskWithDetails>('/api/v1/maintenance/', data)
+    const response = await api.post<MaintenanceTaskWithDetails>('/maintenance/', data)
     return response.data
   },
 
@@ -54,7 +54,7 @@ export const maintenanceApi = {
     taskId: number,
     data: MaintenanceTaskUpdate
   ): Promise<MaintenanceTaskWithDetails> {
-    const response = await api.put<MaintenanceTaskWithDetails>(`/api/v1/maintenance/${taskId}`, data)
+    const response = await api.put<MaintenanceTaskWithDetails>(`/maintenance/${taskId}`, data)
     return response.data
   },
 
@@ -66,7 +66,7 @@ export const maintenanceApi = {
     data?: MaintenanceTaskStartRequest
   ): Promise<MaintenanceTaskWithDetails> {
     const response = await api.post<MaintenanceTaskWithDetails>(
-      `/api/v1/maintenance/${taskId}/start`,
+      `/maintenance/${taskId}/start`,
       data || {}
     )
     return response.data
@@ -80,7 +80,7 @@ export const maintenanceApi = {
     data?: MaintenanceTaskCompleteRequest
   ): Promise<MaintenanceTaskWithDetails> {
     const response = await api.post<MaintenanceTaskWithDetails>(
-      `/api/v1/maintenance/${taskId}/complete`,
+      `/maintenance/${taskId}/complete`,
       data || {}
     )
     return response.data
@@ -90,7 +90,7 @@ export const maintenanceApi = {
    * Cancel a maintenance task
    */
   async cancelTask(taskId: number): Promise<MaintenanceTaskWithDetails> {
-    const response = await api.post<MaintenanceTaskWithDetails>(`/api/v1/maintenance/${taskId}/cancel`)
+    const response = await api.post<MaintenanceTaskWithDetails>(`/maintenance/${taskId}/cancel`)
     return response.data
   },
 
@@ -98,7 +98,7 @@ export const maintenanceApi = {
    * Get maintenance statistics
    */
   async getStats(): Promise<MaintenanceStats> {
-    const response = await api.get<MaintenanceStats>('/api/v1/maintenance/stats/summary')
+    const response = await api.get<MaintenanceStats>('/maintenance/stats/summary')
     return response.data
   }
 }

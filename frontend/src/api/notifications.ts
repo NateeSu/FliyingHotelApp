@@ -11,7 +11,7 @@ import type {
   UnreadCountResponse
 } from '@/types/notification'
 
-const BASE_PATH = '/api/v1/notifications'
+const BASE_PATH = '/notifications'
 
 export interface GetNotificationsParams {
   limit?: number

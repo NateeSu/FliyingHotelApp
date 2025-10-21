@@ -20,7 +20,7 @@ export const bookingApi = {
    * Create a new booking
    */
   async createBooking(data: BookingCreate): Promise<Booking> {
-    const response = await api.post<Booking>('/api/v1/bookings/', data)
+    const response = await api.post<Booking>('/bookings/', data)
     return response.data
   },
 
@@ -38,7 +38,7 @@ export const bookingApi = {
       if (filters.end_date) params.end_date = filters.end_date
     }
 
-    const response = await api.get<BookingListResponse>('/api/v1/bookings/', { params })
+    const response = await api.get<BookingListResponse>('/bookings/', { params })
     return response.data
   },
 
@@ -46,7 +46,7 @@ export const bookingApi = {
    * Get booking by ID
    */
   async getBooking(id: number): Promise<Booking> {
-    const response = await api.get<Booking>(`/api/v1/bookings/${id}`)
+    const response = await api.get<Booking>(`/bookings/${id}`)
     return response.data
   },
 
@@ -54,7 +54,7 @@ export const bookingApi = {
    * Update booking
    */
   async updateBooking(id: number, data: BookingUpdate): Promise<Booking> {
-    const response = await api.put<Booking>(`/api/v1/bookings/${id}`, data)
+    const response = await api.put<Booking>(`/bookings/${id}`, data)
     return response.data
   },
 
@@ -62,7 +62,7 @@ export const bookingApi = {
    * Cancel booking
    */
   async cancelBooking(id: number): Promise<Booking> {
-    const response = await api.delete<Booking>(`/api/v1/bookings/${id}`)
+    const response = await api.delete<Booking>(`/bookings/${id}`)
     return response.data
   },
 
@@ -70,7 +70,7 @@ export const bookingApi = {
    * Get calendar events (bookings) for date range
    */
   async getCalendarEvents(startDate: string, endDate: string): Promise<BookingCalendarEvent[]> {
-    const response = await api.get<BookingCalendarEvent[]>('/api/v1/bookings/calendar/events', {
+    const response = await api.get<BookingCalendarEvent[]>('/bookings/calendar/events', {
       params: {
         start_date: startDate,
         end_date: endDate
@@ -83,7 +83,7 @@ export const bookingApi = {
    * Get Thai public holidays for a year
    */
   async getPublicHolidays(year: number): Promise<PublicHoliday[]> {
-    const response = await api.get<PublicHoliday[]>(`/api/v1/bookings/calendar/public-holidays/${year}`)
+    const response = await api.get<PublicHoliday[]>(`/bookings/calendar/public-holidays/${year}`)
     return response.data
   },
 
@@ -91,7 +91,7 @@ export const bookingApi = {
    * Check room availability for date range
    */
   async checkAvailability(data: RoomAvailabilityCheck): Promise<RoomAvailabilityResponse> {
-    const response = await api.post<RoomAvailabilityResponse>('/api/v1/bookings/check-availability', data)
+    const response = await api.post<RoomAvailabilityResponse>('/bookings/check-availability', data)
     return response.data
   },
 
@@ -101,7 +101,7 @@ export const bookingApi = {
    */
   async getBookingByRoomAndDate(roomId: number, date: string): Promise<Booking | null> {
     try {
-      const response = await api.get<BookingListResponse>('/api/v1/bookings/', {
+      const response = await api.get<BookingListResponse>('/bookings/', {
         params: {
           room_id: roomId,
           start_date: date,
