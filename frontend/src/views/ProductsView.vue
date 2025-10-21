@@ -38,8 +38,8 @@
           <n-select
             v-model:value="showInactive"
             :options="[
-              { label: 'สินค้าที่ใช้งาน', value: false },
-              { label: 'ทั้งหมด', value: true }
+              { label: 'สินค้าที่ใช้งาน', value: 'false' },
+              { label: 'ทั้งหมด', value: 'true' }
             ]"
             @update:value="handleSearch"
           />
@@ -74,8 +74,13 @@
       />
     </div>
 
+    <!-- Error State -->
+    <div v-if="errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <p class="text-red-800">⚠️ {{ errorMessage }}</p>
+    </div>
+
     <!-- Empty State -->
-    <div v-if="!loading && products.length === 0" class="text-center py-12 text-gray-500">
+    <div v-if="!loading && products.length === 0 && !errorMessage" class="text-center py-12 text-gray-500">
       <p class="text-lg">ไม่พบสินค้า</p>
     </div>
 
@@ -115,11 +120,12 @@ const products = ref<Product[]>([])
 const loading = ref(false)
 const searchQuery = ref('')
 const selectedCategory = ref<string | null>(null)
-const showInactive = ref(false)
+const showInactive = ref<string>('false')
 const showFormModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedProduct = ref<Product | null>(null)
 const productToDelete = ref<Product | null>(null)
+const errorMessage = ref<string | null>(null)
 
 // Pagination
 const pagination = ref({
@@ -228,10 +234,12 @@ onMounted(() => {
 async function loadProducts() {
   try {
     loading.value = true
+    errorMessage.value = null
+    const includeInactive = showInactive.value === 'true'
     const response = await productsApi.getAdminProducts(
       (pagination.value.page - 1) * pagination.value.pageSize,
       pagination.value.pageSize,
-      showInactive.value
+      includeInactive
     )
 
     let filteredProducts = response.data
@@ -253,7 +261,9 @@ async function loadProducts() {
     products.value = filteredProducts
     pagination.value.pageCount = Math.ceil(response.total / pagination.value.pageSize)
   } catch (error: any) {
-    message.error(error.response?.data?.detail || 'ไม่สามารถโหลดสินค้าได้')
+    const errorDetail = error.response?.data?.detail || 'ไม่สามารถโหลดสินค้าได้'
+    errorMessage.value = errorDetail
+    message.error(errorDetail)
   } finally {
     loading.value = false
   }
