@@ -205,7 +205,7 @@ function handleTransfer(): void {
 }
 
 .room-card.status-cleaning {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
 .room-card.status-reserved {
