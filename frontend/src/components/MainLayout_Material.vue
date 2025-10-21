@@ -361,33 +361,22 @@ const menuItems = computed(() => {
     })
   }
 
-  // Housekeeping & Maintenance
-  if (authStore.isAdmin || authStore.hasRole(['HOUSEKEEPING', 'MAINTENANCE', 'RECEPTION'])) {
-    const operationsItems: MenuItem[] = []
+  // Housekeeping - for Admin, Reception and Housekeeping
+  if (authStore.isAdmin || authStore.hasRole(['HOUSEKEEPING', 'RECEPTION'])) {
+    items.push({
+      label: 'งานทำความสะอาด',
+      path: '/housekeeping',
+      icon: 'M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-6.18C12.4 5.84 11.3 5 10 5H7c-1.89 0-3.39 1.67-3 3.56C4.27 10.03 5.5 11 7 11v2H6c-1.1 0-2 .9-2 2v7h2v-2h12v2h2v-7c0-1.1-.9-2-2-2h-1V9c1.5 0 2.73-.97 3-2.44.39-1.89-1.11-3.56-3-3.56z'
+    })
+  }
 
-    if (authStore.isAdmin || authStore.hasRole(['HOUSEKEEPING', 'RECEPTION'])) {
-      operationsItems.push({
-        label: 'งานทำความสะอาด',
-        path: '/housekeeping',
-        icon: 'M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-6.18C12.4 5.84 11.3 5 10 5H7c-1.89 0-3.39 1.67-3 3.56C4.27 10.03 5.5 11 7 11v2H6c-1.1 0-2 .9-2 2v7h2v-2h12v2h2v-7c0-1.1-.9-2-2-2h-1V9c1.5 0 2.73-.97 3-2.44.39-1.89-1.11-3.56-3-3.56z'
-      })
-    }
-
-    if (authStore.isAdmin || authStore.hasRole(['MAINTENANCE', 'RECEPTION'])) {
-      operationsItems.push({
-        label: 'งานซ่อมบำรุง',
-        path: '/maintenance',
-        icon: 'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z'
-      })
-    }
-
-    if (operationsItems.length > 0) {
-      items.push({
-        label: 'การจัดการ',
-        icon: 'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z',
-        children: operationsItems
-      })
-    }
+  // Maintenance - for Admin, Reception and Maintenance
+  if (authStore.isAdmin || authStore.hasRole(['MAINTENANCE', 'RECEPTION'])) {
+    items.push({
+      label: 'งานซ่อมบำรุง',
+      path: '/maintenance',
+      icon: 'M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z'
+    })
   }
 
   // Reports - for Admin and Reception (Phase 8)
