@@ -51,6 +51,8 @@ class Room(Base):
     bookings = relationship("Booking", back_populates="room")
     check_ins = relationship("CheckIn", back_populates="room")
     notifications = relationship("Notification", back_populates="room")
+    housekeeping_tasks = relationship("HousekeepingTask", back_populates="room")
+    maintenance_tasks = relationship("MaintenanceTask", back_populates="room")
 
     def __repr__(self):
         return f"<Room(id={self.id}, number='{self.room_number}', status='{self.status.value}')>"

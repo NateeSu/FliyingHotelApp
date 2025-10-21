@@ -1,7 +1,22 @@
 """
 API v1 Endpoints
 """
-from . import auth, users, room_types, rooms, room_rates, dashboard, notifications, websocket
+from . import (
+    auth,
+    users,
+    room_types,
+    rooms,
+    room_rates,
+    dashboard,
+    notifications,
+    websocket,
+    check_ins,
+    customers,
+    housekeeping,
+    maintenance,
+    settings,
+    public
+)
 
 __all__ = [
     "auth",
@@ -11,5 +26,11 @@ __all__ = [
     "room_rates",
     "dashboard",
     "notifications",
-    "websocket"
+    "websocket",
+    "check_ins",
+    "customers",
+    "housekeeping",
+    "maintenance",
+    "settings",
+    "public"
 ]

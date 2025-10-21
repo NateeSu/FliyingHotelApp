@@ -46,6 +46,60 @@ const routes: RouteRecordRaw[] = [
     name: 'Dashboard',
     component: () => import('@/views/DashboardView.vue'),
     meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
+  },
+  // Phase 5: Housekeeping
+  {
+    path: '/housekeeping',
+    name: 'Housekeeping',
+    component: () => import('@/views/HousekeepingView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'HOUSEKEEPING', 'RECEPTION'] }
+  },
+  // Phase 6: Maintenance
+  {
+    path: '/maintenance',
+    name: 'Maintenance',
+    component: () => import('@/views/MaintenanceView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'MAINTENANCE', 'RECEPTION'] }
+  },
+  // Phase 5.1: System Settings
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/SettingsView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN'] }
+  },
+  // Phase 7: Booking System
+  {
+    path: '/bookings',
+    name: 'Bookings',
+    component: () => import('@/views/BookingCalendarView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
+  },
+  // Phase 7: Customer Management
+  {
+    path: '/customers',
+    name: 'Customers',
+    component: () => import('@/views/CustomersView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
+  },
+  // Phase 5.1: Public Task Pages (no authentication required)
+  {
+    path: '/public/housekeeping/tasks/:taskId',
+    name: 'PublicHousekeepingTask',
+    component: () => import('@/views/PublicHousekeepingTaskView.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/public/maintenance/tasks/:taskId',
+    name: 'PublicMaintenanceTask',
+    component: () => import('@/views/PublicMaintenanceTaskView.vue'),
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/public/maintenance/report',
+    name: 'PublicMaintenanceReport',
+    component: () => import('@/views/PublicMaintenanceReportView.vue'),
+    meta: { requiresAuth: false }
   }
 ]
 

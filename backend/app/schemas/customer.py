@@ -37,7 +37,7 @@ class CustomerResponse(BaseModel):
     id_card_number: Optional[str] = None
     address: Optional[str] = None
     total_visits: int
-    total_spent: Decimal
+    total_spent: Decimal = Decimal('0.00')  # Default to 0, will be calculated from check_ins/bookings
     last_visit_date: Optional[datetime] = None
     notes: Optional[str] = None
     created_at: datetime

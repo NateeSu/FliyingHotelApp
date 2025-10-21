@@ -167,6 +167,24 @@ class CheckOutService:
         old_status = room.status
         room.status = RoomStatus.CLEANING
 
+        # Phase 5: Create housekeeping task
+        # Start task immediately (IN_PROGRESS) - housekeeping staff only needs to confirm completion
+        from app.models import HousekeepingTask
+        from app.models.housekeeping_task import HousekeepingTaskStatusEnum, HousekeepingTaskPriorityEnum
+
+        current_time = now_thailand()
+        housekeeping_task = HousekeepingTask(
+            room_id=room.id,
+            check_in_id=check_in.id,
+            title=f"ทำความสะอาดห้อง {room.room_number}",
+            description=f"ทำความสะอาดหลังลูกค้าเช็คเอาท์ ({check_in.customer.full_name if check_in.customer else 'N/A'})",
+            priority=HousekeepingTaskPriorityEnum.HIGH if is_overtime else HousekeepingTaskPriorityEnum.MEDIUM,
+            status=HousekeepingTaskStatusEnum.IN_PROGRESS,  # Auto-start immediately
+            started_at=current_time,  # Set start time to now
+            created_by=processed_by_user_id
+        )
+        self.db.add(housekeeping_task)
+
         # Create notification record for housekeeping (before commit)
         # Note: We'll broadcast via WebSocket after commit
         from app.models import Notification
@@ -179,9 +197,10 @@ class CheckOutService:
         )
         self.db.add(notification)
 
-        # Commit transaction (includes check-in, payment, room status, and notification)
+        # Commit transaction (includes check-in, payment, room status, housekeeping task, and notification)
         await self.db.commit()
         await self.db.refresh(check_in)
+        await self.db.refresh(housekeeping_task)
 
         # Broadcast WebSocket events (after commit)
         await self._broadcast_check_out_event(check_in, room)
@@ -199,6 +218,19 @@ class CheckOutService:
             message_text=notification.message,
             room_id=notification.room_id
         )
+
+        # Send Telegram notification for housekeeping task
+        try:
+            from app.services.telegram_service import TelegramService
+            telegram_service = TelegramService(self.db)
+            await telegram_service.send_housekeeping_notification(
+                task_id=housekeeping_task.id,
+                room_number=room.room_number,
+                room_type=room.room_type.name if room.room_type else "ไม่ระบุ"
+            )
+        except Exception as e:
+            print(f"Failed to send Telegram notification: {e}")
+            # Don't fail the checkout if Telegram notification fails
 
         return check_in
 

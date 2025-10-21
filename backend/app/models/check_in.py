@@ -86,6 +86,7 @@ class CheckIn(Base):
     checkout_user = relationship("User", foreign_keys=[checked_out_by], back_populates="checked_out_check_ins")
     orders = relationship("Order", back_populates="check_in", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="check_in", cascade="all, delete-orphan")
+    housekeeping_tasks = relationship("HousekeepingTask", back_populates="check_in")
 
     def __repr__(self):
         return f"<CheckIn(id={self.id}, room_id={self.room_id}, stay_type={self.stay_type}, status={self.status})>"

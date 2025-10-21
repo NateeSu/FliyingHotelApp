@@ -131,3 +131,46 @@ class CheckOutSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Room Transfer Schemas
+class RoomTransferRequest(BaseModel):
+    """Schema for room transfer request"""
+    new_room_id: int = Field(..., description="ID of the new room to transfer to")
+    reason: Optional[str] = Field(None, max_length=500, description="Reason for room transfer")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "new_room_id": 102,
+                "reason": "แอร์ห้องเดิมเสีย ขอย้ายไปห้องใหม่"
+            }
+        }
+
+
+class RoomTransferResponse(BaseModel):
+    """Schema for room transfer response"""
+    check_in_id: int
+    old_room_id: int
+    old_room_number: str
+    new_room_id: int
+    new_room_number: str
+    transferred_by: int
+    transferred_at: datetime
+    reason: Optional[str] = None
+    message: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "check_in_id": 1,
+                "old_room_id": 101,
+                "old_room_number": "101",
+                "new_room_id": 102,
+                "new_room_number": "102",
+                "transferred_by": 1,
+                "transferred_at": "2024-10-19T14:30:00",
+                "reason": "แอร์ห้องเดิมเสีย ขอย้ายไปห้องใหม่",
+                "message": "ย้ายห้องจาก 101 ไป 102 สำเร็จ"
+            }
+        }

@@ -1,9 +1,12 @@
 <template>
-  <MainLayout v-if="authStore.isAuthenticated" />
-  <router-view v-else />
+  <n-message-provider>
+    <MainLayout v-if="authStore.isAuthenticated" />
+    <router-view v-else />
+  </n-message-provider>
 </template>
 
 <script setup lang="ts">
+import { NMessageProvider } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 import MainLayout from '@/components/MainLayout_Material.vue'
 

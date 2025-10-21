@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, room_types, rooms, room_rates, dashboard, notifications, websocket, check_ins, customers
+from app.api.v1.endpoints import auth, users, room_types, rooms, room_rates, dashboard, notifications, websocket, check_ins, customers, housekeeping, maintenance, settings, public, bookings
 
 api_router = APIRouter()
 
@@ -68,4 +68,39 @@ api_router.include_router(
     customers.router,
     prefix="/customers",
     tags=["Customers"]
+)
+
+# Phase 5: Housekeeping endpoints
+api_router.include_router(
+    housekeeping.router,
+    prefix="/housekeeping",
+    tags=["Housekeeping"]
+)
+
+# Phase 6: Maintenance endpoints
+api_router.include_router(
+    maintenance.router,
+    prefix="/maintenance",
+    tags=["Maintenance"]
+)
+
+# Phase 5.1: System Settings endpoints
+api_router.include_router(
+    settings.router,
+    prefix="/settings",
+    tags=["Settings"]
+)
+
+# Phase 5.1: Public endpoints (no authentication)
+api_router.include_router(
+    public.router,
+    prefix="/public",
+    tags=["Public"]
+)
+
+# Phase 7: Booking endpoints
+api_router.include_router(
+    bookings.router,
+    prefix="/bookings",
+    tags=["Bookings"]
 )

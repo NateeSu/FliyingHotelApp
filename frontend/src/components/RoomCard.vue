@@ -72,15 +72,26 @@
         <span class="text">เช็คอิน</span>
       </button>
 
-      <!-- Check-Out Button (occupied rooms) -->
-      <button
-        v-if="room.status === 'occupied'"
-        class="action-btn check-out-btn"
-        @click="handleCheckOut"
-      >
-        <span class="icon">→</span>
-        <span class="text">เช็คเอาท์</span>
-      </button>
+      <!-- Occupied Room Actions -->
+      <template v-if="room.status === 'occupied'">
+        <!-- Transfer Room Button -->
+        <button
+          class="action-btn transfer-btn"
+          @click="handleTransfer"
+        >
+          <span class="icon">↔</span>
+          <span class="text">ย้ายห้อง</span>
+        </button>
+
+        <!-- Check-Out Button -->
+        <button
+          class="action-btn check-out-btn"
+          @click="handleCheckOut"
+        >
+          <span class="icon">→</span>
+          <span class="text">เช็คเอาท์</span>
+        </button>
+      </template>
     </div>
   </div>
 </template>
@@ -105,6 +116,7 @@ const emit = defineEmits<{
   click: [room: DashboardRoomCard]
   checkIn: [room: DashboardRoomCard]
   checkOut: [room: DashboardRoomCard]
+  transfer: [room: DashboardRoomCard]
 }>()
 
 // Computed
@@ -141,6 +153,10 @@ function handleCheckIn(): void {
 
 function handleCheckOut(): void {
   emit('checkOut', props.room)
+}
+
+function handleTransfer(): void {
+  emit('transfer', props.room)
 }
 </script>
 
@@ -407,6 +423,15 @@ function handleCheckOut(): void {
 
 .check-out-btn:hover {
   background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.transfer-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+}
+
+.transfer-btn:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
 }
 
 /* Responsive */

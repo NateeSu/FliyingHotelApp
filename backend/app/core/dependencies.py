@@ -114,11 +114,13 @@ async def get_current_user(
         )
 
     if not user.is_active:
+        print(f"❌ User {user.username} is not active")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="บัญชีถูกระงับการใช้งาน",
         )
 
+    print(f"✅ get_current_user: user={user.username}, role={user.role}, is_active={user.is_active}")
     return user
 
 
@@ -135,3 +137,59 @@ def require_role(allowed_roles: list[str]):
         return role
 
     return role_checker
+
+
+async def require_admin(
+    user: User = Depends(get_current_user)
+) -> User:
+    """
+    Dependency to require admin role
+    """
+    from app.models.user import UserRole
+
+    # Check if user role is ADMIN (case-insensitive comparison)
+    # Handle both enum value and string from database
+    user_role_str = user.role.value if hasattr(user.role, 'value') else str(user.role)
+
+    if user_role_str.upper() != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="ต้องมีสิทธิ์ ADMIN เท่านั้น",
+        )
+    return user
+
+
+async def require_admin_or_reception(
+    user: User = Depends(get_current_user)
+) -> User:
+    """
+    Dependency to require admin or reception role
+    """
+    try:
+        from app.models.user import UserRole
+
+        # Check if user role is ADMIN or RECEPTION (case-insensitive comparison)
+        # Handle both enum value and string from database
+        user_role_str = user.role.value if hasattr(user.role, 'value') else str(user.role)
+
+        print(f"🔍 DEBUG require_admin_or_reception: user={user.username}, role={user.role}, role_str={user_role_str}, role_type={type(user.role)}, has_value={hasattr(user.role, 'value')}")
+
+        if user_role_str.upper() not in ["ADMIN", "RECEPTION"]:
+            print(f"❌ Access denied for role: {user_role_str.upper()}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="ต้องมีสิทธิ์ ADMIN หรือ RECEPTION เท่านั้น",
+            )
+
+        print(f"✅ Access granted for role: {user_role_str.upper()}")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"💥 ERROR in require_admin_or_reception: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์: {str(e)}",
+        )

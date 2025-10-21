@@ -266,3 +266,147 @@ class CheckInService:
             old_status="available",
             new_status="occupied"
         )
+
+    async def transfer_room(
+        self,
+        check_in_id: int,
+        new_room_id: int,
+        reason: Optional[str],
+        transferred_by_user_id: int
+    ) -> Tuple[CheckIn, Room, Room]:
+        """
+        Transfer a guest from current room to a new room
+
+        Business Logic:
+        1. Validate check-in exists and is active
+        2. Validate new room is available
+        3. Validate new room is same room type as old room
+        4. Update check_in.room_id to new room
+        5. Update old room status to 'cleaning'
+        6. Update new room status to 'occupied'
+        7. TODO Phase 5: Create housekeeping task for old room
+        8. TODO Phase 5: Send Telegram notification to housekeeping
+        9. Broadcast WebSocket events
+
+        Returns:
+            Tuple of (check_in, old_room, new_room)
+        """
+        # Get check-in with relationships
+        check_in = await self.get_check_in_by_id(check_in_id, include_relations=True)
+        if not check_in:
+            raise ValueError(f"ไม่พบการเช็คอิน ID {check_in_id}")
+
+        if check_in.status != CheckInStatusEnum.CHECKED_IN:
+            raise ValueError(
+                f"ไม่สามารถย้ายห้องได้ เนื่องจากสถานะการเช็คอินไม่ถูกต้อง "
+                f"(สถานะปัจจุบัน: {check_in.status})"
+            )
+
+        # Get old room
+        old_room = check_in.room
+        if not old_room:
+            raise ValueError("ไม่พบข้อมูลห้องเดิม")
+
+        # Validate new room exists and is available
+        new_room = await self._get_and_validate_room(new_room_id)
+
+        # Validate same room type
+        if old_room.room_type_id != new_room.room_type_id:
+            raise ValueError(
+                f"ไม่สามารถย้ายห้องได้ เนื่องจากประเภทห้องไม่ตรงกัน\n"
+                f"ห้องเดิม: {old_room.room_type.name} → ห้องใหม่: {new_room.room_type.name}\n"
+                f"สามารถย้ายได้เฉพาะห้องประเภทเดียวกันเท่านั้น"
+            )
+
+        # Prevent transfer to same room
+        if old_room.id == new_room.id:
+            raise ValueError("ไม่สามารถย้ายไปห้องเดิมได้")
+
+        # Update check-in to new room
+        check_in.room_id = new_room_id
+        if reason:
+            # Append transfer reason to notes
+            transfer_note = f"\n[ย้ายห้อง {now_thailand().strftime('%Y-%m-%d %H:%M')}] {old_room.room_number} → {new_room.room_number}: {reason}"
+            check_in.notes = (check_in.notes or "") + transfer_note
+
+        # Update room statuses
+        old_room.status = RoomStatus.CLEANING
+        new_room.status = RoomStatus.OCCUPIED
+
+        # Phase 5: Create housekeeping task for old room
+        from app.models import HousekeepingTask
+        from app.models.housekeeping_task import HousekeepingTaskStatusEnum, HousekeepingTaskPriorityEnum
+
+        housekeeping_task = HousekeepingTask(
+            room_id=old_room.id,
+            check_in_id=check_in_id,
+            title=f"ทำความสะอาดห้อง {old_room.room_number}",
+            description=f"ทำความสะอาดหลังย้ายห้อง (ลูกค้าย้ายไปห้อง {new_room.room_number})",
+            priority=HousekeepingTaskPriorityEnum.HIGH,
+            status=HousekeepingTaskStatusEnum.PENDING,
+            created_by=transferred_by_user_id,
+            notes=reason
+        )
+        self.db.add(housekeeping_task)
+
+        # Commit changes
+        await self.db.commit()
+        await self.db.refresh(check_in)
+        await self.db.refresh(old_room)
+        await self.db.refresh(new_room)
+        await self.db.refresh(housekeeping_task)
+
+        # Phase 5: Send Telegram notification (optional - can be implemented later)
+        # from app.services.telegram_service import TelegramService
+        # telegram_service = TelegramService()
+        # await telegram_service.send_housekeeping_task_notification(housekeeping_task)
+
+        # Broadcast WebSocket events
+        await self._broadcast_room_transfer_event(
+            check_in=check_in,
+            old_room=old_room,
+            new_room=new_room,
+            transferred_by_user_id=transferred_by_user_id,
+            reason=reason
+        )
+
+        return check_in, old_room, new_room
+
+    async def _broadcast_room_transfer_event(
+        self,
+        check_in: CheckIn,
+        old_room: Room,
+        new_room: Room,
+        transferred_by_user_id: int,
+        reason: Optional[str]
+    ):
+        """Broadcast room transfer event via WebSocket"""
+        # Room transfer event
+        await websocket_manager.broadcast({
+            "event": "room_transferred",
+            "data": {
+                "check_in_id": check_in.id,
+                "customer_name": check_in.customer.full_name if check_in.customer else None,
+                "old_room_id": old_room.id,
+                "old_room_number": old_room.room_number,
+                "new_room_id": new_room.id,
+                "new_room_number": new_room.room_number,
+                "transferred_by": transferred_by_user_id,
+                "reason": reason,
+                "timestamp": now_thailand().isoformat()
+            }
+        })
+
+        # Broadcast old room status change (occupied → cleaning)
+        await websocket_manager.broadcast_room_status_change(
+            room_id=old_room.id,
+            old_status="occupied",
+            new_status="cleaning"
+        )
+
+        # Broadcast new room status change (available → occupied)
+        await websocket_manager.broadcast_room_status_change(
+            room_id=new_room.id,
+            old_status="available",
+            new_status="occupied"
+        )

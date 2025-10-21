@@ -133,6 +133,7 @@
         @click="handleRoomClick"
         @checkIn="handleCheckInClick"
         @checkOut="handleCheckOutClick"
+        @transfer="handleTransferClick"
       />
     </div>
 
@@ -170,6 +171,15 @@
       @close="closeCheckOutModal"
       @success="handleCheckOutSuccess"
     />
+
+    <!-- Room Transfer Modal -->
+    <RoomTransferModal
+      :show="showTransferModal"
+      :currentRoom="selectedRoom"
+      :checkInId="selectedRoom?.check_in_id || null"
+      @update:show="showTransferModal = $event"
+      @success="handleTransferSuccess"
+    />
   </div>
 </template>
 
@@ -178,12 +188,14 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import { useNotificationStore } from '@/stores/notification'
 import { useRoomStore } from '@/stores/room'
+import { useBookingStore } from '@/stores/booking'
 import { storeToRefs } from 'pinia'
 import { useWebSocket } from '@/composables/useWebSocket'
 import RoomCard from '@/components/RoomCard.vue'
 import NotificationPanel from '@/components/NotificationPanel.vue'
 import CheckInModal from '@/components/CheckInModal.vue'
 import CheckOutModal from '@/components/CheckOutModal.vue'
+import RoomTransferModal from '@/components/RoomTransferModal.vue'
 import type { DashboardRoomCard, OvertimeAlert } from '@/types/dashboard'
 import type { Notification } from '@/types/notification'
 import dayjs from 'dayjs'
@@ -195,6 +207,7 @@ dayjs.locale('th')
 const dashboardStore = useDashboardStore()
 const notificationStore = useNotificationStore()
 const roomStore = useRoomStore()
+const bookingStore = useBookingStore()
 
 const {
   rooms,
@@ -217,6 +230,7 @@ const selectedStatus = ref<string | null>(null)
 const showNotificationPanel = ref(false)
 const showCheckInModal = ref(false)
 const showCheckOutModal = ref(false)
+const showTransferModal = ref(false)
 const selectedRoom = ref<DashboardRoomCard | null>(null)
 
 // Get room rates based on selected room
@@ -264,14 +278,36 @@ function handleRoomClick(room: DashboardRoomCard): void {
   // General room click - could show room details in future
 }
 
-function handleCheckInClick(room: DashboardRoomCard): void {
+async function handleCheckInClick(room: DashboardRoomCard): Promise<void> {
   selectedRoom.value = room
+
+  // Phase 7: Check if there's a booking for this room today
+  const today = new Date().toISOString().split('T')[0]
+  const booking = await bookingStore.getBookingByRoomAndDate(room.id, today)
+
+  if (booking) {
+    console.log('Found booking for room:', booking)
+    // TODO: Pre-fill CheckInModal with booking data
+    // This will be handled in CheckInModal component
+    // For now, just store the booking for CheckInModal to use
+    selectedRoom.value = {
+      ...room,
+      booking_id: booking.id,
+      booking_data: booking
+    } as any
+  }
+
   showCheckInModal.value = true
 }
 
 function handleCheckOutClick(room: DashboardRoomCard): void {
   selectedRoom.value = room
   showCheckOutModal.value = true
+}
+
+function handleTransferClick(room: DashboardRoomCard): void {
+  selectedRoom.value = room
+  showTransferModal.value = true
 }
 
 function closeCheckInModal(): void {
@@ -293,6 +329,12 @@ async function handleCheckInSuccess(checkInId: number): Promise<void> {
 async function handleCheckOutSuccess(): Promise<void> {
   console.log('Check-out successful')
   // Refresh dashboard to show updated room status
+  await dashboardStore.refresh()
+}
+
+async function handleTransferSuccess(): Promise<void> {
+  console.log('Room transfer successful')
+  // Refresh dashboard to show updated room statuses
   await dashboardStore.refresh()
 }
 
@@ -355,6 +397,12 @@ function setupWebSocketHandlers(): void {
   on('check_out', (data) => {
     console.log('Check-out event:', data)
     dashboardStore.handleCheckOut(data)
+  })
+
+  // Room transfer
+  on('room_transferred', (data) => {
+    console.log('Room transferred event:', data)
+    dashboardStore.handleRoomTransfer(data)
   })
 
   // Notification

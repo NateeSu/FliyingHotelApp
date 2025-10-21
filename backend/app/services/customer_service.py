@@ -128,7 +128,10 @@ class CustomerService:
                     Customer.phone_number.like(search_pattern)
                 )
             )
-            .order_by(Customer.last_visit_date.desc().nullslast())
+            .order_by(
+                # MySQL compatible NULL handling: NULL values go last
+                func.coalesce(Customer.last_visit_date, '1900-01-01').desc()
+            )
             .limit(limit)
         )
 
@@ -220,7 +223,10 @@ class CustomerService:
         # Get customers
         stmt = (
             select(Customer)
-            .order_by(Customer.last_visit_date.desc().nullslast())
+            .order_by(
+                # MySQL compatible NULL handling: NULL values go last
+                func.coalesce(Customer.last_visit_date, '1900-01-01').desc()
+            )
             .limit(limit)
             .offset(offset)
         )

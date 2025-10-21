@@ -20,7 +20,9 @@ from app.schemas.check_in import (
     CheckInResponse,
     CheckInWithDetails,
     CheckOutRequest,
-    CheckOutSummary
+    CheckOutSummary,
+    RoomTransferRequest,
+    RoomTransferResponse
 )
 from app.schemas.customer import CustomerCreate
 
@@ -393,3 +395,74 @@ async def upload_payment_slip(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการอัปโหลดสลิป: {str(e)}")
+
+
+@router.post("/{check_in_id}/transfer-room", response_model=RoomTransferResponse)
+async def transfer_room(
+    check_in_id: int,
+    transfer_data: RoomTransferRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Transfer guest from current room to a new room
+
+    Requires authentication and Reception or Admin role.
+
+    Request Body:
+        - new_room_id: ID of the new room to transfer to
+        - reason: Optional reason for transfer
+
+    Returns:
+        Transfer details including old and new room information
+
+    Business Logic:
+        - Validates check-in is active
+        - Validates new room is available
+        - Validates new room is same room type (VIP → VIP only)
+        - Updates check_in.room_id to new room
+        - Updates old room status to 'cleaning'
+        - Updates new room status to 'occupied'
+        - TODO Phase 5: Creates housekeeping task for old room
+        - TODO Phase 5: Sends Telegram notification
+        - Broadcasts WebSocket events
+
+    Validation Rules:
+        - Can only transfer active check-ins (status = 'checked_in')
+        - New room must be 'available' or 'reserved'
+        - New room must be same room type as old room
+        - Cannot transfer to the same room
+    """
+    try:
+        service = CheckInService(db)
+        check_in, old_room, new_room = await service.transfer_room(
+            check_in_id=check_in_id,
+            new_room_id=transfer_data.new_room_id,
+            reason=transfer_data.reason,
+            transferred_by_user_id=current_user.id
+        )
+
+        from app.core.datetime_utils import now_thailand
+
+        return RoomTransferResponse(
+            check_in_id=check_in.id,
+            old_room_id=old_room.id,
+            old_room_number=old_room.room_number,
+            new_room_id=new_room.id,
+            new_room_number=new_room.room_number,
+            transferred_by=current_user.id,
+            transferred_at=now_thailand(),
+            reason=transfer_data.reason,
+            message=f"ย้ายห้องจาก {old_room.room_number} ไป {new_room.room_number} สำเร็จ"
+        )
+
+    except ValueError as e:
+        print(f"ValueError in room transfer: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Exception in room transfer: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")

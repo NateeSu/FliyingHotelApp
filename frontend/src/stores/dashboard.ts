@@ -117,26 +117,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
    * Handle room status change from WebSocket
    */
   function handleRoomStatusChange(data: RoomStatusChangedEventData): void {
-    const roomIndex = rooms.value.findIndex(room => room.id === data.room_id)
+    console.log('Room status change event received:', data)
 
-    if (roomIndex !== -1) {
-      // Update room status
-      rooms.value[roomIndex].status = data.new_status
-
-      // If room data is included, merge it
-      if (data.room_data) {
-        rooms.value[roomIndex] = {
-          ...rooms.value[roomIndex],
-          ...data.room_data
-        }
-      }
-
-      // Update last updated time
-      lastUpdated.value = new Date().toISOString()
-    }
-
-    // Refresh stats after status change
+    // Refresh rooms to get updated status and check-in info
+    // This ensures customer data is always up-to-date
+    fetchRooms()
     fetchStats()
+
+    // Update last updated time
+    lastUpdated.value = new Date().toISOString()
   }
 
   /**
@@ -209,6 +198,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   /**
+   * Handle room transfer event from WebSocket
+   */
+  function handleRoomTransfer(data: any): void {
+    console.log('Room transfer event received:', data)
+
+    // Refresh rooms to get updated status
+    fetchRooms()
+    fetchStats()
+  }
+
+  /**
    * Refresh all dashboard data
    */
   async function refresh(): Promise<void> {
@@ -244,6 +244,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     handleOvertimeAlert,
     handleCheckIn,
     handleCheckOut,
+    handleRoomTransfer,
     getRoomById,
     getRoomByNumber,
     clearError,

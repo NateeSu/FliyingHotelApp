@@ -9,3 +9,14 @@ from .payment import Payment
 from .notification import Notification, NotificationTypeEnum, TargetRoleEnum
 from .product import Product, ProductCategoryEnum
 from .order import Order, OrderSourceEnum, OrderStatusEnum
+from .housekeeping_task import (
+    HousekeepingTask,
+    HousekeepingTaskStatusEnum,
+    HousekeepingTaskPriorityEnum
+)
+from .maintenance_task import (
+    MaintenanceTask,
+    MaintenanceTaskStatusEnum,
+    MaintenanceTaskPriorityEnum,
+    MaintenanceTaskCategoryEnum
+)

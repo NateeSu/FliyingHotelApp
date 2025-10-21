@@ -66,3 +66,26 @@ from .dashboard import (
     OvertimeAlert,
     OvertimeAlertsResponse
 )
+from .housekeeping import (
+    HousekeepingTaskCreate,
+    HousekeepingTaskUpdate,
+    HousekeepingTaskResponse,
+    HousekeepingTaskWithDetails,
+    HousekeepingTaskListResponse,
+    HousekeepingTaskStartRequest,
+    HousekeepingTaskCompleteRequest,
+    HousekeepingStats
+)
+from .booking import (
+    BookingCreate,
+    BookingUpdate,
+    BookingResponse,
+    BookingListResponse,
+    BookingCalendarEvent,
+    PublicHoliday,
+    RoomAvailabilityCheck,
+    RoomAvailabilityResponse,
+    BookingConfirmRequest,
+    BookingStats,
+    BookingReminderData
+)

@@ -36,5 +36,15 @@ class User(Base):
     created_check_ins = relationship("CheckIn", back_populates="creator", foreign_keys="[CheckIn.created_by]")
     checked_out_check_ins = relationship("CheckIn", back_populates="checkout_user", foreign_keys="[CheckIn.checked_out_by]")
 
+    # Phase 5: Housekeeping relationships
+    assigned_housekeeping_tasks = relationship("HousekeepingTask", back_populates="assigned_user", foreign_keys="[HousekeepingTask.assigned_to]")
+    created_housekeeping_tasks = relationship("HousekeepingTask", back_populates="creator", foreign_keys="[HousekeepingTask.created_by]")
+    completed_housekeeping_tasks = relationship("HousekeepingTask", back_populates="completer", foreign_keys="[HousekeepingTask.completed_by]")
+
+    # Phase 6: Maintenance relationships
+    assigned_maintenance_tasks = relationship("MaintenanceTask", back_populates="assigned_user", foreign_keys="[MaintenanceTask.assigned_to]")
+    created_maintenance_tasks = relationship("MaintenanceTask", back_populates="creator", foreign_keys="[MaintenanceTask.created_by]")
+    completed_maintenance_tasks = relationship("MaintenanceTask", back_populates="completer", foreign_keys="[MaintenanceTask.completed_by]")
+
     def __repr__(self):
         return f"<User {self.username} ({self.role})>"
