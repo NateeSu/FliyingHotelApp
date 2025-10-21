@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useMessage } from 'naive-ui'
-import axios from 'axios'
+import apiClient from '@/api/client'
 
 const message = useMessage()
 
@@ -260,7 +260,7 @@ async function searchOrders() {
       dateTo = to.toISOString().split('T')[0]
     }
 
-    const response = await axios.get('/api/v1/orders', {
+    const response = await apiClient.get('/orders', {
       params: {
         skip: (pagination.value.page - 1) * pagination.value.pageSize,
         limit: pagination.value.pageSize,
@@ -310,7 +310,7 @@ async function updateOrderStatus() {
   if (!selectedOrderId.value || !selectedStatus.value) return
 
   try {
-    await axios.put(`/api/v1/orders/${selectedOrderId.value}/status?new_status=${selectedStatus.value}`)
+    await apiClient.put(`/orders/${selectedOrderId.value}/status?new_status=${selectedStatus.value}`)
     message.success('อัปเดตสถานะเรียบร้อย')
     showStatusModal.value = false
     searchOrders()
@@ -322,7 +322,7 @@ async function updateOrderStatus() {
 // Complete order
 async function completeOrder(orderId: number) {
   try {
-    await axios.post(`/api/v1/orders/${orderId}/complete`)
+    await apiClient.post(`/orders/${orderId}/complete`)
     message.success('ทำเครื่องหมายเสร็จสิ้นเรียบร้อย')
     searchOrders()
   } catch (error: any) {
