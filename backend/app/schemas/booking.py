@@ -3,7 +3,7 @@ Booking Schemas (Phase 7)
 Pydantic models for booking system
 """
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, List
+from typing import Optional, List, Union
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -16,8 +16,8 @@ class BookingBase(BaseModel):
     room_id: int = Field(..., description="Room ID")
     check_in_date: date = Field(..., description="Check-in date")
     check_out_date: date = Field(..., description="Check-out date")
-    total_amount: Decimal = Field(..., ge=0, description="Total booking amount")
-    deposit_amount: Decimal = Field(default=Decimal(0), ge=0, description="Deposit amount")
+    total_amount: Union[int, float, Decimal] = Field(..., ge=0, description="Total booking amount")
+    deposit_amount: Union[int, float, Decimal] = Field(default=Decimal(0), ge=0, description="Deposit amount")
     notes: Optional[str] = Field(None, max_length=1000, description="Booking notes")
 
     @field_validator('check_out_date')
@@ -46,8 +46,8 @@ class BookingUpdate(BaseModel):
     """Schema for updating a booking"""
     check_in_date: Optional[date] = None
     check_out_date: Optional[date] = None
-    total_amount: Optional[Decimal] = Field(None, ge=0)
-    deposit_amount: Optional[Decimal] = Field(None, ge=0)
+    total_amount: Optional[Union[int, float, Decimal]] = Field(None, ge=0)
+    deposit_amount: Optional[Union[int, float, Decimal]] = Field(None, ge=0)
     notes: Optional[str] = Field(None, max_length=1000)
 
     @field_validator('check_out_date')

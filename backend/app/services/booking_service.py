@@ -4,6 +4,7 @@ Business logic for booking management
 """
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func, Date, cast
+from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import date, datetime, timedelta
 import httpx
@@ -107,6 +108,8 @@ class BookingService:
             # Broadcast room status change
             await self._broadcast_room_status_change(room.id, RoomStatus.AVAILABLE, RoomStatus.RESERVED)
 
+        # 7. Reload booking with eager-loaded relationships
+        booking = await self.get_booking_by_id(booking.id, include_relations=True)
         return booking
 
     async def get_booking_by_id(
@@ -130,6 +133,7 @@ class BookingService:
         else:
             return await self.db.get(Booking, booking_id)
 
+
     async def get_bookings(
         self,
         status: Optional[BookingStatusEnum] = None,
@@ -146,8 +150,6 @@ class BookingService:
         Returns:
             Tuple of (bookings list, total count)
         """
-        from sqlalchemy.orm import selectinload
-
         # Base query
         stmt = select(Booking).options(
             selectinload(Booking.customer),
