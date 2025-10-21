@@ -15,7 +15,8 @@ from . import (
     housekeeping,
     maintenance,
     settings,
-    public
+    public,
+    products
 )
 
 __all__ = [
@@ -32,5 +33,6 @@ __all__ = [
     "housekeeping",
     "maintenance",
     "settings",
-    "public"
+    "public",
+    "products"
 ]

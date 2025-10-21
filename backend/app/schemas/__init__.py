@@ -89,3 +89,8 @@ from .booking import (
     BookingStats,
     BookingReminderData
 )
+from .product import (
+    ProductCreate,
+    ProductUpdate,
+    ProductResponse
+)
