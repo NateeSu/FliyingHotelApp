@@ -134,7 +134,16 @@ async function refreshQRCodes() {
     const response = await axios.get('/api/v1/public/qrcode/all-rooms')
     console.log('QR Codes Response:', response.data)
     console.log('First QR Code:', response.data[0])
-    qrCodes.value = response.data
+
+    // Sort by floor then room_number for correct display order
+    const sorted = response.data.sort((a, b) => {
+      if (a.floor !== b.floor) {
+        return a.floor - b.floor
+      }
+      return parseInt(a.room_number) - parseInt(b.room_number)
+    })
+
+    qrCodes.value = sorted
   } catch (error: any) {
     message.error('ไม่สามารถโหลด QR codes ได้')
     console.error('Error loading QR codes:', error)
