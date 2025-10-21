@@ -56,8 +56,9 @@
       >
         <!-- Room Info -->
         <div class="w-full mb-4 text-center">
-          <h3 class="text-lg font-bold text-gray-900">ห้อง {{ qr.room_number }}</h3>
-          <p class="text-sm text-gray-500">ชั้น {{ qr.floor }}</p>
+          <h3 class="text-lg font-bold text-gray-900">ห้อง {{ qr.room_number || 'ไม่พบ' }}</h3>
+          <p class="text-sm text-gray-500">ชั้น {{ qr.floor || '-' }}</p>
+          <p class="text-xs text-gray-400 mt-1">ID: {{ qr.room_id }}</p>
         </div>
 
         <!-- QR Code Image -->
@@ -131,6 +132,8 @@ async function refreshQRCodes() {
   try {
     loading.value = true
     const response = await axios.get('/api/v1/public/qrcode/all-rooms')
+    console.log('QR Codes Response:', response.data)
+    console.log('First QR Code:', response.data[0])
     qrCodes.value = response.data
   } catch (error: any) {
     message.error('ไม่สามารถโหลด QR codes ได้')
