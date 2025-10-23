@@ -182,28 +182,89 @@
 
           <!-- Menu -->
           <nav class="mt-4 px-4 space-y-2">
-            <router-link
-              v-for="item in menuItems"
-              :key="item.path"
-              :to="item.path"
-              v-slot="{ isActive }"
-              custom
-            >
-              <a
-                @click="navigateTo(item.path); showMobileMenu = false"
-                :class="[
-                  'flex items-center px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer',
-                  isActive
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50'
-                ]"
+            <template v-for="item in menuItems" :key="item.label">
+              <!-- Submenu (with children) -->
+              <div v-if="item.children">
+                <button
+                  @click="toggleSubmenu(item.label)"
+                  class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-200 cursor-pointer"
+                >
+                  <div class="flex items-center">
+                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path :d="item.icon"/>
+                    </svg>
+                    <span class="ml-3 font-medium">{{ item.label }}</span>
+                  </div>
+                  <svg
+                    class="w-5 h-5 transition-transform duration-200"
+                    :class="{ 'rotate-180': expandedMenus.includes(item.label) }"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                  </svg>
+                </button>
+
+                <!-- Submenu items -->
+                <transition
+                  enter-active-class="transition-all duration-200 ease-out"
+                  leave-active-class="transition-all duration-200 ease-in"
+                  enter-from-class="opacity-0 max-h-0"
+                  enter-to-class="opacity-100 max-h-96"
+                  leave-from-class="opacity-100 max-h-96"
+                  leave-to-class="opacity-0 max-h-0"
+                >
+                  <div v-if="expandedMenus.includes(item.label)" class="overflow-hidden">
+                    <router-link
+                      v-for="subitem in item.children"
+                      :key="subitem.path"
+                      :to="subitem.path!"
+                      v-slot="{ isActive }"
+                      custom
+                    >
+                      <a
+                        @click="navigateTo(subitem.path!); showMobileMenu = false"
+                        :class="[
+                          'flex items-center px-4 py-3 ml-4 rounded-lg transition-all duration-200 cursor-pointer mt-1',
+                          isActive
+                            ? 'bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border-l-4 border-indigo-600'
+                            : 'text-gray-600 hover:bg-indigo-50 border-l-4 border-transparent'
+                        ]"
+                      >
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                          <path :d="subitem.icon"/>
+                        </svg>
+                        <span class="ml-3 font-medium text-sm">{{ subitem.label }}</span>
+                      </a>
+                    </router-link>
+                  </div>
+                </transition>
+              </div>
+
+              <!-- Regular menu item -->
+              <router-link
+                v-else
+                :to="item.path!"
+                v-slot="{ isActive }"
+                custom
               >
-                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path :d="item.icon"/>
-                </svg>
-                <span class="ml-3 font-medium">{{ item.label }}</span>
-              </a>
-            </router-link>
+                <a
+                  @click="navigateTo(item.path!); showMobileMenu = false"
+                  :class="[
+                    'flex items-center px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer',
+                    isActive
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50'
+                  ]"
+                >
+                  <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path :d="item.icon"/>
+                  </svg>
+                  <span class="ml-3 font-medium">{{ item.label }}</span>
+                </a>
+              </router-link>
+            </template>
           </nav>
 
           <!-- Logout -->
@@ -240,7 +301,7 @@
         <!-- User Menu -->
         <div class="relative">
           <button
-            @click="showUserMenu = !showUserMenu; console.log('User menu toggled:', showUserMenu)"
+            @click="showUserMenu = !showUserMenu"
             class="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-all"
           >
             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
@@ -269,7 +330,7 @@
               </div>
 
               <button
-                @click="openEditProfile(); console.log('Edit profile clicked')"
+                @click="openEditProfile"
                 class="w-full text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-colors flex items-center space-x-2 border-b border-gray-100"
               >
                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
