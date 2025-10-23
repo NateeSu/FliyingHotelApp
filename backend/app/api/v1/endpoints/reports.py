@@ -14,7 +14,8 @@ from app.schemas.reports import (
     OccupancyReportResponse,
     BookingReportResponse,
     CustomerReportResponse,
-    SummaryReportResponse
+    SummaryReportResponse,
+    CheckInsListResponse
 )
 
 router = APIRouter()
@@ -157,3 +158,28 @@ async def get_summary_report(
 
     service = ReportsService(db)
     return await service.get_summary_report(start_date, end_date)
+
+
+@router.get("/check-ins", response_model=CheckInsListResponse)
+async def get_checkins_list(
+    start_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: date = Query(..., description="End date (YYYY-MM-DD)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(["ADMIN", "RECEPTION"]))
+):
+    """
+    Get list of all check-ins within date range
+
+    **Permissions**: Admin, Reception
+
+    **Query Parameters**:
+    - start_date: Start date for report (YYYY-MM-DD)
+    - end_date: End date for report (YYYY-MM-DD)
+
+    **Returns**:
+    - List of check-ins with customer and room details
+    - Total count and revenue
+    - Sortable and filterable table data
+    """
+    service = ReportsService(db)
+    return await service.get_checkins_list(start_date, end_date)

@@ -111,6 +111,31 @@ export interface SummaryReport {
   end_date: string
 }
 
+export interface CheckInListItem {
+  id: number
+  room_number: string
+  room_type_name: string
+  customer_name: string
+  customer_phone: string
+  stay_type: 'overnight' | 'temporary'
+  check_in_time: string
+  expected_check_out_time: string | null
+  check_out_time: string | null
+  total_amount: number
+  payment_method: string
+  status: 'checked_in' | 'checked_out'
+  number_of_nights: number | null
+  number_of_guests: number
+}
+
+export interface CheckInsListResponse {
+  check_ins: CheckInListItem[]
+  total_count: number
+  total_revenue: number
+  start_date: string
+  end_date: string
+}
+
 // ============================================================================
 // API Functions
 // ============================================================================
@@ -184,6 +209,22 @@ export const reportsApi = {
     endDate?: string
   ): Promise<SummaryReport> {
     const response = await apiClient.get<SummaryReport>('/reports/summary', {
+      params: {
+        start_date: startDate,
+        end_date: endDate
+      }
+    })
+    return response.data
+  },
+
+  /**
+   * Get check-ins list for reports table
+   */
+  async getCheckInsList(
+    startDate: string,
+    endDate: string
+  ): Promise<CheckInsListResponse> {
+    const response = await apiClient.get<CheckInsListResponse>('/reports/check-ins', {
       params: {
         start_date: startDate,
         end_date: endDate

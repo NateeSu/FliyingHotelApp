@@ -25,7 +25,9 @@ from app.schemas.reports import (
     CustomerReportResponse,
     TopCustomer,
     SummaryReportResponse,
-    QuickStat
+    QuickStat,
+    CheckInsListResponse,
+    CheckInListItem
 )
 
 
@@ -437,6 +439,78 @@ class ReportsService:
             total_customers=total_customers,
             new_customers=new_customers,
             quick_stats=quick_stats,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+    async def get_checkins_list(
+        self,
+        start_date: date,
+        end_date: date
+    ) -> CheckInsListResponse:
+        """
+        Get list of all check-ins within date range for reports table
+
+        Args:
+            start_date: Start date for report
+            end_date: End date for report
+
+        Returns:
+            CheckInsListResponse with list of check-ins and summary
+        """
+        from app.models.room_type import RoomType
+
+        # Query all check-ins within date range (both checked_in and checked_out)
+        stmt = (
+            select(CheckIn)
+            .options(
+                selectinload(CheckIn.customer),
+                selectinload(CheckIn.room).selectinload(Room.room_type)
+            )
+            .where(
+                and_(
+                    cast(CheckIn.check_in_time, Date) >= start_date,
+                    cast(CheckIn.check_in_time, Date) <= end_date
+                )
+            )
+            .order_by(CheckIn.check_in_time.desc())
+        )
+
+        result = await self.db.execute(stmt)
+        check_ins = result.unique().scalars().all()
+
+        # Build check-in list items
+        check_in_items = []
+        total_revenue = Decimal("0.00")
+
+        for check_in in check_ins:
+            # Calculate total amount
+            total_amount = Decimal(str(check_in.total_amount or 0))
+            total_revenue += total_amount
+
+            check_in_items.append(
+                CheckInListItem(
+                    id=check_in.id,
+                    room_number=check_in.room.room_number,
+                    room_type_name=check_in.room.room_type.name,
+                    customer_name=check_in.customer.full_name,
+                    customer_phone=check_in.customer.phone_number,
+                    stay_type=check_in.stay_type.value,
+                    check_in_time=check_in.check_in_time,
+                    expected_check_out_time=check_in.expected_check_out_time,
+                    check_out_time=check_in.check_out_time,
+                    total_amount=total_amount,
+                    payment_method=check_in.payment_method.value,
+                    status=check_in.status.value,
+                    number_of_nights=check_in.number_of_nights,
+                    number_of_guests=check_in.number_of_guests
+                )
+            )
+
+        return CheckInsListResponse(
+            check_ins=check_in_items,
+            total_count=len(check_in_items),
+            total_revenue=total_revenue,
             start_date=start_date,
             end_date=end_date
         )

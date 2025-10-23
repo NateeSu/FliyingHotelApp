@@ -153,3 +153,34 @@ class SummaryReportResponse(BaseModel):
     # Date range
     start_date: date
     end_date: date
+
+
+# ============================================================================
+# Check-Ins List Report Schemas
+# ============================================================================
+
+class CheckInListItem(BaseModel):
+    """Check-in list item for reports table"""
+    id: int
+    room_number: str
+    room_type_name: str
+    customer_name: str
+    customer_phone: str
+    stay_type: str  # "overnight" | "temporary"
+    check_in_time: datetime
+    expected_check_out_time: Optional[datetime]
+    check_out_time: Optional[datetime]
+    total_amount: Decimal
+    payment_method: str
+    status: str  # "checked_in" | "checked_out"
+    number_of_nights: Optional[int]
+    number_of_guests: int
+
+
+class CheckInsListResponse(BaseModel):
+    """Check-ins list response for reports"""
+    check_ins: List[CheckInListItem]
+    total_count: int
+    total_revenue: Decimal
+    start_date: date
+    end_date: date
