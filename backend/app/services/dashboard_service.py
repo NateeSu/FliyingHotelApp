@@ -9,12 +9,13 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from app.models import Room, RoomType, CheckIn, Customer, RoomRate
+from app.models import Room, RoomType, CheckIn, Customer, RoomRate, Booking
 from app.models.room import RoomStatus
 from app.models.check_in import CheckInStatusEnum, StayTypeEnum
 from app.models.room_rate import StayType
+from app.models.booking import BookingStatusEnum
 from app.schemas.dashboard import DashboardRoomCard, DashboardStats, OvertimeAlert
-from app.core.datetime_utils import now_thailand
+from app.core.datetime_utils import now_thailand, today_thailand
 
 
 class DashboardService:
@@ -53,10 +54,10 @@ class DashboardService:
 
     async def get_all_rooms_with_details(self) -> List[DashboardRoomCard]:
         """
-        Get all rooms with check-in details for dashboard display
+        Get all rooms with check-in details and booking information for dashboard display
 
         Returns:
-            List of DashboardRoomCard with full information
+            List of DashboardRoomCard with full information including bookings
         """
         # Query rooms with room_type and current check_in
         stmt = (
@@ -72,6 +73,9 @@ class DashboardService:
         result = await self.db.execute(stmt)
         rooms = result.unique().scalars().all()
 
+        # Get today's date in Thailand timezone
+        today = today_thailand()
+
         room_cards = []
         for room in rooms:
             # Get current check-in (status = checked_in)
@@ -79,6 +83,23 @@ class DashboardService:
                 (ci for ci in room.check_ins if ci.status == CheckInStatusEnum.CHECKED_IN),
                 None
             )
+
+            # Get active booking for this room (if reserved)
+            current_booking = None
+            if room.status == RoomStatus.RESERVED:
+                booking_stmt = (
+                    select(Booking)
+                    .options(joinedload(Booking.customer))
+                    .where(
+                        and_(
+                            Booking.room_id == room.id,
+                            Booking.status == BookingStatusEnum.CONFIRMED,
+                            Booking.check_in_date == today
+                        )
+                    )
+                )
+                booking_result = await self.db.execute(booking_stmt)
+                current_booking = booking_result.unique().scalar_one_or_none()
 
             # Calculate overtime if applicable using Thailand timezone
             is_overtime = False
@@ -109,6 +130,13 @@ class DashboardService:
                 stay_type=current_check_in.stay_type if current_check_in else None,
                 check_in_time=current_check_in.check_in_time if current_check_in else None,
                 expected_check_out_time=current_check_in.expected_check_out_time if current_check_in else None,
+                # Booking information (Phase 7)
+                booking_id=current_booking.id if current_booking else None,
+                booking_customer_name=current_booking.customer.full_name if current_booking else None,
+                booking_customer_phone=current_booking.customer.phone_number if current_booking else None,
+                booking_check_in_date=current_booking.check_in_date.isoformat() if current_booking else None,
+                booking_check_out_date=current_booking.check_out_date.isoformat() if current_booking else None,
+                booking_deposit_amount=current_booking.deposit_amount if current_booking else None,
                 is_overtime=is_overtime,
                 overtime_minutes=overtime_minutes,
                 qr_code=room.qr_code,

@@ -240,7 +240,7 @@
         <!-- User Menu -->
         <div class="relative">
           <button
-            @click="showUserMenu = !showUserMenu"
+            @click="showUserMenu = !showUserMenu; console.log('User menu toggled:', showUserMenu)"
             class="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-all"
           >
             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
@@ -260,7 +260,8 @@
             <div
               v-if="showUserMenu"
               v-click-outside="() => showUserMenu = false"
-              class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 border border-gray-100"
+              class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 border border-gray-100 z-50"
+              style="z-index: 9999;"
             >
               <div class="px-4 py-3 border-b border-gray-100">
                 <div class="font-semibold text-gray-900">{{ authStore.user?.full_name }}</div>
@@ -268,7 +269,7 @@
               </div>
 
               <button
-                @click="openEditProfile"
+                @click="openEditProfile(); console.log('Edit profile clicked')"
                 class="w-full text-left px-4 py-3 text-gray-700 hover:bg-indigo-50 transition-colors flex items-center space-x-2 border-b border-gray-100"
               >
                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">

@@ -32,6 +32,14 @@ export interface DashboardRoomCard {
   check_in_time: string | null
   expected_check_out_time: string | null
 
+  // Booking information (if reserved) - Phase 7
+  booking_id: number | null
+  booking_customer_name: string | null
+  booking_customer_phone: string | null
+  booking_check_in_date: string | null
+  booking_check_out_date: string | null
+  booking_deposit_amount: number | null
+
   // Overtime information
   is_overtime: boolean
   overtime_minutes: number | null

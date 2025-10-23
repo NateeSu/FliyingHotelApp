@@ -36,6 +36,14 @@ class DashboardRoomCard(BaseModel):
     check_in_time: Optional[datetime] = None
     expected_check_out_time: Optional[datetime] = None
 
+    # Booking information (if reserved)
+    booking_id: Optional[int] = None
+    booking_customer_name: Optional[str] = None
+    booking_customer_phone: Optional[str] = None
+    booking_check_in_date: Optional[str] = None  # Date string (YYYY-MM-DD)
+    booking_check_out_date: Optional[str] = None  # Date string (YYYY-MM-DD)
+    booking_deposit_amount: Optional[Decimal] = None
+
     # Overtime information
     is_overtime: bool = False
     overtime_minutes: Optional[int] = None

@@ -6,6 +6,19 @@
         <button class="close-btn" @click="handleClose">×</button>
       </div>
 
+      <!-- Booking Info Alert -->
+      <div v-if="bookingId" class="booking-alert">
+        <div class="alert-icon">📋</div>
+        <div class="alert-content">
+          <div class="alert-title">เช็คอินจากการจอง</div>
+          <div class="alert-message">
+            ข้อมูลถูกนำมาจากการจอง #{{ bookingId }} |
+            เงินมัดจำ: ฿{{ bookingDepositAmount?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00' }}
+            (จะหักออกจากยอดรวม)
+          </div>
+        </div>
+      </div>
+
       <div class="modal-body">
         <!-- Step 1: Customer Information -->
         <section class="form-section">
@@ -212,10 +225,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import { checkInApi, type CheckInCreateData, type CustomerData } from '@/api/check-ins'
 import { customerApi, type CustomerSearchResult } from '@/api/customers'
+import dayjs from 'dayjs'
 
 const toast = useToast()
 
@@ -225,6 +239,13 @@ interface Props {
   roomNumber: string
   ratePerNight?: number // For overnight
   ratePerSession?: number // For temporary
+  // Booking data (Phase 7) - for prefilling when checking in from booking
+  bookingId?: number | null
+  bookingCustomerName?: string | null
+  bookingCustomerPhone?: string | null
+  bookingCheckInDate?: string | null
+  bookingCheckOutDate?: string | null
+  bookingDepositAmount?: number | null
 }
 
 const props = defineProps<Props>()
@@ -237,8 +258,8 @@ const emit = defineEmits<{
 // Form data
 const formData = ref({
   customer: {
-    full_name: '',
-    phone_number: '',
+    full_name: props.bookingCustomerName || '',
+    phone_number: props.bookingCustomerPhone || '',
     email: '',
     id_card_number: '',
     address: '',
@@ -250,7 +271,8 @@ const formData = ref({
     number_of_nights: 1,
     number_of_guests: 1,
     payment_method: 'cash' as 'cash' | 'transfer' | 'credit_card',
-    notes: ''
+    notes: '',
+    booking_id: props.bookingId || undefined
   } as CheckInCreateData
 })
 
@@ -386,6 +408,43 @@ const resetForm = () => {
   searchResults.value = []
 }
 
+// Prefill form data from booking when modal opens
+onMounted(() => {
+  prefillFromBooking()
+})
+
+// Watch for show prop to prefill when modal opens
+watch(() => props.show, (isShowing) => {
+  if (isShowing) {
+    prefillFromBooking()
+  }
+})
+
+const prefillFromBooking = () => {
+  if (props.bookingId && props.bookingCustomerName && props.bookingCustomerPhone) {
+    // Prefill customer data
+    formData.value.customer.full_name = props.bookingCustomerName
+    formData.value.customer.phone_number = props.bookingCustomerPhone
+    searchQuery.value = props.bookingCustomerName
+
+    // Calculate number of nights from booking dates
+    if (props.bookingCheckInDate && props.bookingCheckOutDate) {
+      const checkInDate = dayjs(props.bookingCheckInDate)
+      const checkOutDate = dayjs(props.bookingCheckOutDate)
+      const nights = checkOutDate.diff(checkInDate, 'day')
+
+      formData.value.checkIn.number_of_nights = nights > 0 ? nights : 1
+      formData.value.checkIn.stay_type = 'overnight'
+    }
+
+    // Set booking_id for linking
+    formData.value.checkIn.booking_id = props.bookingId
+
+    // Show toast to inform user
+    toast.info(`📋 นำข้อมูลจากการจองมาใส่ให้แล้ว (เงินมัดจำ: ฿${props.bookingDepositAmount?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'})`)
+  }
+}
+
 // Watch for room changes
 watch(() => props.roomId, (newRoomId) => {
   formData.value.checkIn.room_id = newRoomId
@@ -452,6 +511,38 @@ watch(() => props.roomId, (newRoomId) => {
 .close-btn:hover {
   background: #f3f4f6;
   color: #111827;
+}
+
+/* Booking Alert */
+.booking-alert {
+  display: flex;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  border-bottom: 2px solid #3b82f6;
+  align-items: flex-start;
+}
+
+.alert-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e40af;
+  margin-bottom: 4px;
+}
+
+.alert-message {
+  font-size: 13px;
+  color: #1e3a8a;
+  line-height: 1.4;
 }
 
 .modal-body {

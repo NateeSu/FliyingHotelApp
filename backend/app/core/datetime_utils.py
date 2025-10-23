@@ -26,6 +26,16 @@ def now_thailand() -> datetime:
     return datetime.now(BANGKOK_TZ).replace(tzinfo=None)
 
 
+def today_thailand():
+    """
+    Get current date in Thailand timezone (Asia/Bangkok)
+
+    Returns:
+        date object representing today in Bangkok timezone
+    """
+    return now_thailand().date()
+
+
 def to_thailand_tz(dt: datetime) -> datetime:
     """
     Convert any datetime to Thailand timezone

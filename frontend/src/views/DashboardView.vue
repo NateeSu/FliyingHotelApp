@@ -134,6 +134,7 @@
         @checkIn="handleCheckInClick"
         @checkOut="handleCheckOutClick"
         @transfer="handleTransferClick"
+        @cancelBooking="handleCancelBookingClick"
       />
     </div>
 
@@ -160,6 +161,12 @@
       :roomNumber="selectedRoom.room_number"
       :ratePerNight="ratePerNight"
       :ratePerSession="ratePerSession"
+      :bookingId="selectedRoom.booking_id"
+      :bookingCustomerName="selectedRoom.booking_customer_name"
+      :bookingCustomerPhone="selectedRoom.booking_customer_phone"
+      :bookingCheckInDate="selectedRoom.booking_check_in_date"
+      :bookingCheckOutDate="selectedRoom.booking_check_out_date"
+      :bookingDepositAmount="selectedRoom.booking_deposit_amount"
       @close="closeCheckInModal"
       @success="handleCheckInSuccess"
     />
@@ -281,23 +288,41 @@ function handleRoomClick(room: DashboardRoomCard): void {
 async function handleCheckInClick(room: DashboardRoomCard): Promise<void> {
   selectedRoom.value = room
 
-  // Phase 7: Check if there's a booking for this room today
-  const today = new Date().toISOString().split('T')[0]
-  const booking = await bookingStore.getBookingByRoomAndDate(room.id, today)
+  // Phase 7: For reserved rooms, booking data is already in the room object
+  // No need to fetch separately
+  showCheckInModal.value = true
+}
 
-  if (booking) {
-    console.log('Found booking for room:', booking)
-    // TODO: Pre-fill CheckInModal with booking data
-    // This will be handled in CheckInModal component
-    // For now, just store the booking for CheckInModal to use
-    selectedRoom.value = {
-      ...room,
-      booking_id: booking.id,
-      booking_data: booking
-    } as any
+async function handleCancelBookingClick(room: DashboardRoomCard): Promise<void> {
+  if (!room.booking_id) {
+    console.error('No booking ID found for room:', room)
+    return
   }
 
-  showCheckInModal.value = true
+  // Confirm cancellation
+  const confirmed = window.confirm(
+    `ยืนยันการยกเลิกการจองห้อง ${room.room_number}?\n\n` +
+    `ผู้จอง: ${room.booking_customer_name}\n` +
+    `เข้าพัก: ${room.booking_check_in_date} - ${room.booking_check_out_date}\n` +
+    `มัดจำ: ฿${room.booking_deposit_amount?.toLocaleString('th-TH', { minimumFractionDigits: 2 }) || '0.00'}\n\n` +
+    `หมายเหตุ: เงินมัดจำจะไม่สามารถคืนได้`
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    await bookingStore.cancelBooking(room.booking_id)
+
+    // Refresh dashboard to show updated room status
+    await dashboardStore.refresh()
+
+    alert(`ยกเลิกการจองห้อง ${room.room_number} สำเร็จ`)
+  } catch (error: any) {
+    console.error('Error cancelling booking:', error)
+    alert(`เกิดข้อผิดพลาดในการยกเลิกการจอง: ${error.message || 'Unknown error'}`)
+  }
 }
 
 function handleCheckOutClick(room: DashboardRoomCard): void {

@@ -13,7 +13,7 @@ from app.db.session import AsyncSessionLocal
 from app.models.booking import Booking, BookingStatusEnum
 from app.models.room import Room, RoomStatus
 from app.models.check_in import CheckIn
-from app.core.datetime_utils import now_thailand
+from app.core.datetime_utils import now_thailand, today_thailand
 from app.core.websocket import websocket_manager
 
 
@@ -37,7 +37,8 @@ async def _async_check_bookings_for_today():
     """Async implementation of check_bookings_for_today"""
     async with AsyncSessionLocal() as db:
         try:
-            today = date.today()
+            # Use Thailand timezone for accurate date
+            today = today_thailand()
 
             # Find confirmed bookings for today
             stmt = select(Booking).where(
@@ -120,7 +121,8 @@ async def _async_check_booking_check_in_times():
 
     async with AsyncSessionLocal() as db:
         try:
-            today = date.today()
+            # Use Thailand timezone for accurate date and time
+            today = today_thailand()
             now = now_thailand()
 
             # Typical check-in time is 14:00

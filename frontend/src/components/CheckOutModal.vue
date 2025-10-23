@@ -97,6 +97,12 @@
             <small class="hint">เช่น มินิบาร์, ค่าเสียหาย</small>
           </div>
 
+          <!-- Show extra charges in breakdown if > 0 -->
+          <div v-if="formData.extra_charges && formData.extra_charges > 0" class="breakdown-row">
+            <span>ค่าใช้จ่ายเพิ่มเติม:</span>
+            <span class="amount">{{ formatCurrency(formData.extra_charges) }}</span>
+          </div>
+
           <!-- Discount Input -->
           <div class="form-group">
             <label>ส่วนลด (ถ้ามี)</label>
@@ -118,6 +124,12 @@
               class="form-input"
               placeholder="ระบุเหตุผล..."
             />
+          </div>
+
+          <!-- Show discount in breakdown if > 0 -->
+          <div v-if="formData.discount_amount && formData.discount_amount > 0" class="breakdown-row discount">
+            <span>ส่วนลด:</span>
+            <span class="amount">-{{ formatCurrency(formData.discount_amount) }}</span>
           </div>
 
           <div class="breakdown-divider"></div>
@@ -167,7 +179,7 @@
         </section>
       </div>
 
-      <div class="modal-footer">
+      <div v-if="!checkoutSuccess" class="modal-footer">
         <button class="btn btn-cancel" @click="handleClose" :disabled="loading">
           ยกเลิก
         </button>
@@ -216,12 +228,14 @@ const formData = ref<CheckOutRequest>({
 const finalTotal = computed(() => {
   if (!summary.value) return 0
 
-  return (
-    summary.value.base_amount +
-    summary.value.overtime_charge +
-    (formData.value.extra_charges || 0) -
-    (formData.value.discount_amount || 0)
-  )
+  const baseAmount = Number(summary.value.base_amount) || 0
+  const overtimeCharge = Number(summary.value.overtime_charge) || 0
+  const extraCharges = Number(formData.value.extra_charges) || 0
+  const discountAmount = Number(formData.value.discount_amount) || 0
+
+  const total = baseAmount + overtimeCharge + extraCharges - discountAmount
+
+  return Math.max(0, total) // Ensure non-negative
 })
 
 // Load checkout summary
@@ -637,6 +651,15 @@ onMounted(() => {
 .breakdown-row.highlight {
   color: #dc2626;
   font-weight: 600;
+}
+
+.breakdown-row.discount {
+  color: #059669;
+  font-weight: 600;
+}
+
+.breakdown-row.discount .amount {
+  color: #059669;
 }
 
 .breakdown-row .amount {

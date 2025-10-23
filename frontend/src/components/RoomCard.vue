@@ -23,6 +23,30 @@
       <span class="type-name">{{ room.room_type_name }}</span>
     </div>
 
+    <!-- Booking Info (if reserved) -->
+    <div v-if="room.status === 'reserved' && room.booking_customer_name" class="booking-info">
+      <div class="customer-info">
+        <span class="label">ผู้จอง:</span>
+        <span class="value">{{ room.booking_customer_name }}</span>
+      </div>
+
+      <div class="booking-dates">
+        <div class="date-info">
+          <span class="label">เข้าพัก:</span>
+          <span class="value">{{ formatDate(room.booking_check_in_date) }}</span>
+        </div>
+        <div class="date-info">
+          <span class="label">ออก:</span>
+          <span class="value">{{ formatDate(room.booking_check_out_date) }}</span>
+        </div>
+      </div>
+
+      <div v-if="room.booking_deposit_amount" class="deposit-info">
+        <span class="label">มัดจำ:</span>
+        <span class="value">฿{{ formatCurrency(room.booking_deposit_amount) }}</span>
+      </div>
+    </div>
+
     <!-- Check-in Info (if occupied) -->
     <div v-if="room.status === 'occupied' && room.customer_name" class="check-in-info">
       <div class="customer-info">
@@ -72,6 +96,27 @@
         <span class="text">เช็คอิน</span>
       </button>
 
+      <!-- Reserved Room Actions -->
+      <template v-if="room.status === 'reserved'">
+        <!-- Check-In from Booking Button -->
+        <button
+          class="action-btn check-in-btn"
+          @click="handleCheckIn"
+        >
+          <span class="icon">✓</span>
+          <span class="text">เช็คอิน</span>
+        </button>
+
+        <!-- Cancel Booking Button -->
+        <button
+          class="action-btn cancel-btn"
+          @click="handleCancelBooking"
+        >
+          <span class="icon">✕</span>
+          <span class="text">ยกเลิกจอง</span>
+        </button>
+      </template>
+
       <!-- Occupied Room Actions -->
       <template v-if="room.status === 'occupied'">
         <!-- Transfer Room Button -->
@@ -117,6 +162,7 @@ const emit = defineEmits<{
   checkIn: [room: DashboardRoomCard]
   checkOut: [room: DashboardRoomCard]
   transfer: [room: DashboardRoomCard]
+  cancelBooking: [room: DashboardRoomCard]
 }>()
 
 // Computed
@@ -143,6 +189,17 @@ function formatTime(time: string | null): string {
   return dayjs(time).format('DD/MM/YYYY HH:mm')
 }
 
+function formatDate(date: string | null): string {
+  if (!date) return '-'
+  // Show date only in Thai format
+  return dayjs(date).format('DD/MM/YYYY')
+}
+
+function formatCurrency(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  return num.toLocaleString('th-TH', { minimumFractionDigits: 2 })
+}
+
 function handleClick(): void {
   emit('click', props.room)
 }
@@ -157,6 +214,10 @@ function handleCheckOut(): void {
 
 function handleTransfer(): void {
   emit('transfer', props.room)
+}
+
+function handleCancelBooking(): void {
+  emit('cancelBooking', props.room)
 }
 </script>
 
@@ -277,6 +338,39 @@ function handleTransfer(): void {
   font-size: 14px;
   font-weight: 500;
   opacity: 0.9;
+}
+
+/* Booking Info (for reserved rooms) */
+.booking-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+.booking-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.deposit-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Check-in Info */
@@ -432,6 +526,15 @@ function handleTransfer(): void {
 
 .transfer-btn:hover {
   background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
 
 /* Responsive */
