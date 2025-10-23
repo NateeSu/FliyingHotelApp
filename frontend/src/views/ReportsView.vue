@@ -15,7 +15,18 @@
         <!-- Period Type Selector -->
         <div class="flex-1">
           <label class="block text-sm font-semibold text-gray-700 mb-2">ช่วงเวลา</label>
-          <div class="grid grid-cols-3 gap-2">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <button
+              @click="setPeriodType('last_night')"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-all',
+                periodType === 'last_night'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ]"
+            >
+              คืนล่าสุด
+            </button>
             <button
               @click="setPeriodType('day')"
               :class="[
@@ -346,7 +357,7 @@ import dayjs from 'dayjs'
 
 // State
 const loading = ref(false)
-const periodType = ref<'day' | 'week' | 'month'>('week')
+const periodType = ref<'last_night' | 'day' | 'week' | 'month'>('last_night')
 const dateRange = ref({
   start: '',
   end: ''
@@ -363,22 +374,27 @@ const checkInsData = ref<CheckInsListResponse>({
 const selectedCheckIn = ref<CheckInListItem | null>(null)
 
 // Set period type and auto-adjust dates
-function setPeriodType(type: 'day' | 'week' | 'month') {
+function setPeriodType(type: 'last_night' | 'day' | 'week' | 'month') {
   periodType.value = type
-  const today = dayjs()
+  const now = dayjs()
 
-  if (type === 'day') {
+  if (type === 'last_night') {
+    // Last night: from 12:00 yesterday to 12:00 today
+    const yesterday = now.subtract(1, 'day')
+    dateRange.value.start = yesterday.format('YYYY-MM-DD')
+    dateRange.value.end = now.format('YYYY-MM-DD')
+  } else if (type === 'day') {
     // Today only
-    dateRange.value.start = today.format('YYYY-MM-DD')
-    dateRange.value.end = today.format('YYYY-MM-DD')
+    dateRange.value.start = now.format('YYYY-MM-DD')
+    dateRange.value.end = now.format('YYYY-MM-DD')
   } else if (type === 'week') {
     // Last 7 days
-    dateRange.value.start = today.subtract(6, 'day').format('YYYY-MM-DD')
-    dateRange.value.end = today.format('YYYY-MM-DD')
+    dateRange.value.start = now.subtract(6, 'day').format('YYYY-MM-DD')
+    dateRange.value.end = now.format('YYYY-MM-DD')
   } else if (type === 'month') {
     // Current month
-    dateRange.value.start = today.startOf('month').format('YYYY-MM-DD')
-    dateRange.value.end = today.format('YYYY-MM-DD')
+    dateRange.value.start = now.startOf('month').format('YYYY-MM-DD')
+    dateRange.value.end = now.format('YYYY-MM-DD')
   }
 
   loadData()
@@ -449,7 +465,7 @@ function formatDateTime(datetime: string | null): string {
 
 // Initialize
 onMounted(() => {
-  setPeriodType('week')
+  setPeriodType('last_night')
 })
 </script>
 

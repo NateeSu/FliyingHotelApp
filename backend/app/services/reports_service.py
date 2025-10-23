@@ -451,6 +451,12 @@ class ReportsService:
         """
         Get list of all check-ins within date range for reports table
 
+        For "last night" reports (yesterday to today):
+        - Filters check-ins from 12:00 (noon) of start_date to 12:00 (noon) of end_date
+
+        For other reports:
+        - Filters check-ins within the full day range
+
         Args:
             start_date: Start date for report
             end_date: End date for report
@@ -459,22 +465,46 @@ class ReportsService:
             CheckInsListResponse with list of check-ins and summary
         """
         from app.models.room_type import RoomType
+        from app.core.datetime_utils import now_thailand
 
-        # Query all check-ins within date range (both checked_in and checked_out)
-        stmt = (
-            select(CheckIn)
-            .options(
-                selectinload(CheckIn.customer),
-                selectinload(CheckIn.room).selectinload(Room.room_type)
-            )
-            .where(
-                and_(
-                    cast(CheckIn.check_in_time, Date) >= start_date,
-                    cast(CheckIn.check_in_time, Date) <= end_date
+        # Check if this is a "last night" query (1 day difference)
+        is_last_night = (end_date - start_date).days == 1
+
+        if is_last_night:
+            # Last night: from 12:00 of start_date to 12:00 of end_date
+            start_datetime = datetime.combine(start_date, datetime.min.time()).replace(hour=12, minute=0, second=0)
+            end_datetime = datetime.combine(end_date, datetime.min.time()).replace(hour=12, minute=0, second=0)
+
+            stmt = (
+                select(CheckIn)
+                .options(
+                    selectinload(CheckIn.customer),
+                    selectinload(CheckIn.room).selectinload(Room.room_type)
                 )
+                .where(
+                    and_(
+                        CheckIn.check_in_time >= start_datetime,
+                        CheckIn.check_in_time < end_datetime
+                    )
+                )
+                .order_by(CheckIn.check_in_time.desc())
             )
-            .order_by(CheckIn.check_in_time.desc())
-        )
+        else:
+            # Other periods: full day range
+            stmt = (
+                select(CheckIn)
+                .options(
+                    selectinload(CheckIn.customer),
+                    selectinload(CheckIn.room).selectinload(Room.room_type)
+                )
+                .where(
+                    and_(
+                        cast(CheckIn.check_in_time, Date) >= start_date,
+                        cast(CheckIn.check_in_time, Date) <= end_date
+                    )
+                )
+                .order_by(CheckIn.check_in_time.desc())
+            )
 
         result = await self.db.execute(stmt)
         check_ins = result.unique().scalars().all()
