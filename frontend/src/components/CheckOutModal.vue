@@ -221,7 +221,11 @@ const formData = ref<CheckOutRequest>({
   discount_amount: 0,
   discount_reason: '',
   payment_method: 'cash',
-  payment_notes: ''
+  payment_notes: '',
+  customer_name: undefined,
+  phone_number: undefined,
+  customer_email: undefined,
+  customer_address: undefined
 })
 
 // Calculate final total
@@ -354,7 +358,11 @@ const resetForm = () => {
     discount_amount: 0,
     discount_reason: '',
     payment_method: 'cash',
-    payment_notes: ''
+    payment_notes: '',
+    customer_name: undefined,
+    phone_number: undefined,
+    customer_email: undefined,
+    customer_address: undefined
   }
   summary.value = null
   checkoutSuccess.value = false

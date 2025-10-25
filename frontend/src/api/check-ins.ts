@@ -63,6 +63,11 @@ export interface CheckOutRequest {
   discount_reason?: string
   payment_method: 'cash' | 'transfer' | 'credit_card'
   payment_notes?: string
+  // Optional customer data for creating/updating customer during checkout
+  customer_name?: string
+  phone_number?: string
+  customer_email?: string
+  customer_address?: string
 }
 
 export interface CheckOutSummary {
