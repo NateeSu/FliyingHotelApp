@@ -24,32 +24,6 @@
         <section class="form-section">
           <h3>ข้อมูลลูกค้า</h3>
 
-          <!-- Customer Search -->
-          <div class="form-group">
-            <label>ค้นหาลูกค้า (ชื่อหรือเบอร์โทร)</label>
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="form-input"
-              placeholder="พิมพ์ชื่อหรือเบอร์โทรศัพท์"
-              @input="handleSearchInput"
-            />
-
-            <!-- Search Results Dropdown -->
-            <div v-if="searchResults.length > 0" class="search-results">
-              <div
-                v-for="customer in searchResults"
-                :key="customer.id"
-                class="search-result-item"
-                @click="selectCustomer(customer)"
-              >
-                <div class="customer-name">{{ customer.full_name }}</div>
-                <div class="customer-phone">{{ customer.phone_number }}</div>
-                <div class="customer-stats">เข้าพัก {{ customer.total_visits }} ครั้ง</div>
-              </div>
-            </div>
-          </div>
-
           <!-- Customer Form Fields -->
           <div class="form-row">
             <div class="form-group">
@@ -69,8 +43,12 @@
                 type="tel"
                 class="form-input"
                 placeholder="0812345678"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                @input="sanitizePhoneNumber"
                 required
               />
+              <div v-if="phoneNumberError" class="error-message">{{ phoneNumberError }}</div>
             </div>
           </div>
 
@@ -276,36 +254,26 @@ const formData = ref({
   } as CheckInCreateData
 })
 
-// Customer search
-const searchQuery = ref('')
-const searchResults = ref<CustomerSearchResult[]>([])
-let searchTimeout: NodeJS.Timeout | null = null
+// Phone number validation
+const phoneNumberError = ref('')
 
-const handleSearchInput = () => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
+const sanitizePhoneNumber = () => {
+  const phone = formData.value.customer.phone_number
+  const phoneDigitsOnly = phone.replace(/\D/g, '')
+
+  if (phoneDigitsOnly !== phone) {
+    formData.value.customer.phone_number = phoneDigitsOnly
   }
 
-  if (searchQuery.value.length < 2) {
-    searchResults.value = []
-    return
+  // Validate phone number
+  if (phoneDigitsOnly && phoneDigitsOnly.length < 9) {
+    phoneNumberError.value = 'เบอร์โทรศัพท์ต้องมีอย่างน้อย 9 หลัก'
+  } else if (phoneDigitsOnly && phoneDigitsOnly.length > 15) {
+    formData.value.customer.phone_number = phoneDigitsOnly.slice(0, 15)
+    phoneNumberError.value = 'เบอร์โทรศัพท์ไม่ต้องเกิน 15 หลัก'
+  } else {
+    phoneNumberError.value = ''
   }
-
-  searchTimeout = setTimeout(async () => {
-    try {
-      searchResults.value = await customerApi.searchCustomers(searchQuery.value, 5)
-    } catch (error) {
-      console.error('Customer search error:', error)
-    }
-  }, 300)
-}
-
-const selectCustomer = (customer: CustomerSearchResult) => {
-  formData.value.customer.full_name = customer.full_name
-  formData.value.customer.phone_number = customer.phone_number
-  formData.value.customer.email = customer.email || ''
-  searchQuery.value = customer.full_name
-  searchResults.value = []
 }
 
 // Calculated amount
@@ -404,8 +372,7 @@ const resetForm = () => {
       notes: ''
     }
   }
-  searchQuery.value = ''
-  searchResults.value = []
+  phoneNumberError.value = ''
 }
 
 // Prefill form data from booking when modal opens
@@ -425,7 +392,6 @@ const prefillFromBooking = () => {
     // Prefill customer data
     formData.value.customer.full_name = props.bookingCustomerName
     formData.value.customer.phone_number = props.bookingCustomerPhone
-    searchQuery.value = props.bookingCustomerName
 
     // Calculate number of nights from booking dates
     if (props.bookingCheckInDate && props.bookingCheckOutDate) {
@@ -606,59 +572,19 @@ textarea.form-input {
   min-height: 80px;
 }
 
+.error-message {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 6px;
+  display: block;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-/* Customer Search Results */
-.search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  margin-top: 4px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.search-result-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.search-result-item:hover {
-  background: #f9fafb;
-}
-
-.search-result-item:last-child {
-  border-bottom: none;
-}
-
-.customer-name {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
-}
-
-.customer-phone {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.customer-stats {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 4px;
-}
 
 /* Stay Type Selector */
 .stay-type-selector {
