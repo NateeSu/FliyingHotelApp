@@ -159,9 +159,8 @@ class CheckOutService:
             customer.phone_number = check_in.customer.phone_number
             customer.email = check_in.customer.email
             customer.address = check_in.customer.address
-            customer.visit_count = (customer.visit_count or 0) + 1
-            customer.last_visit_date = actual_checkout_time
-            customer.total_spent = (customer.total_spent or Decimal(0)) + total_amount
+            customer.total_visits = (customer.total_visits or 0) + 1
+            customer.last_visit_date = actual_checkout_time.date()
             self.db.add(customer)
         else:
             # Create new customer record if customer data is provided in checkout request
@@ -171,9 +170,9 @@ class CheckOutService:
                     phone_number=checkout_data.phone_number,
                     email=checkout_data.customer_email,
                     address=checkout_data.customer_address,
-                    visit_count=1,
-                    last_visit_date=actual_checkout_time,
-                    total_spent=total_amount
+                    total_visits=1,
+                    first_visit_date=actual_checkout_time.date(),
+                    last_visit_date=actual_checkout_time.date()
                 )
                 self.db.add(new_customer)
                 check_in.customer_id = new_customer.id
