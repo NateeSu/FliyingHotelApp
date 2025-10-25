@@ -16,14 +16,21 @@ class TelegramSettings(BaseModel):
     enabled: bool = Field(default=False, description="Enable/Disable Telegram notifications")
 
 
+class GeneralSettings(BaseModel):
+    """General system settings"""
+    frontend_domain: str = Field(default="http://localhost:5173", description="Frontend domain URL for Telegram links")
+
+
 class SystemSettingsResponse(BaseModel):
     """System settings response"""
     telegram: TelegramSettings
+    general: GeneralSettings
 
 
 class SystemSettingsUpdate(BaseModel):
     """System settings update request"""
     telegram: Optional[TelegramSettings] = None
+    general: Optional[GeneralSettings] = None
 
 
 class TelegramTestResponse(BaseModel):

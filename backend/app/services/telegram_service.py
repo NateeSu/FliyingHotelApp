@@ -69,14 +69,19 @@ class TelegramService:
         task_id: int,
         room_number: str,
         room_type: str,
-        frontend_url: str = "http://localhost:5173"
+        frontend_url: str = None
     ):
         """Send notification for new housekeeping task"""
         settings = await self.settings_service.get_telegram_settings()
+        general_settings = await self.settings_service.get_general_settings()
 
         if not settings.housekeeping_chat_id:
             print("Housekeeping chat ID not configured")
             return False
+
+        # Use frontend domain from settings if not provided
+        if frontend_url is None:
+            frontend_url = general_settings.frontend_domain
 
         # Use public task detail page (no login required)
         task_url = f"{frontend_url}/public/housekeeping/tasks/{task_id}"
@@ -98,14 +103,19 @@ class TelegramService:
         room_number: str,
         category: str,
         priority: str,
-        frontend_url: str = "http://localhost:5173"
+        frontend_url: str = None
     ):
         """Send notification for new maintenance task"""
         settings = await self.settings_service.get_telegram_settings()
+        general_settings = await self.settings_service.get_general_settings()
 
         if not settings.maintenance_chat_id:
             print("Maintenance chat ID not configured")
             return False
+
+        # Use frontend domain from settings if not provided
+        if frontend_url is None:
+            frontend_url = general_settings.frontend_domain
 
         # Use public task detail page (no login required)
         task_url = f"{frontend_url}/public/maintenance/tasks/{task_id}"

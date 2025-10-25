@@ -46,6 +46,10 @@ async def update_settings(
     if settings_update.telegram:
         await service.update_telegram_settings(settings_update.telegram)
 
+    # Update General settings if provided
+    if settings_update.general:
+        await service.update_general_settings(settings_update.general)
+
     # Return updated settings
     settings = await service.get_all_settings()
     return settings

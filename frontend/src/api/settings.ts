@@ -9,8 +9,13 @@ export interface TelegramSettings {
   enabled: boolean
 }
 
+export interface GeneralSettings {
+  frontend_domain: string
+}
+
 export interface SystemSettings {
   telegram: TelegramSettings
+  general: GeneralSettings
 }
 
 export interface TelegramTestResponse {

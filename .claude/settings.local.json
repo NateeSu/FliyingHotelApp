@@ -52,7 +52,8 @@
       "Bash(findstr:*)",
       "Bash(dir:*)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYxMTIyNDAwfQ.8gCG2-i5Vc3Dt6SVMADVTWicLMGAGTKvS0-B11rZ0Vo\")",
-      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYxMTIyOTMwfQ.A2zVPoQG4kDFaNLBZuJbwVcETrTqbGf2TY6Tyv1IMtM\")"
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYxMTIyOTMwfQ.A2zVPoQG4kDFaNLBZuJbwVcETrTqbGf2TY6Tyv1IMtM\")",
+      "Bash(npx vue-tsc:*)"
     ],
     "deny": [],
     "ask": []

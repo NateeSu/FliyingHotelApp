@@ -8,7 +8,7 @@ from typing import Dict, Optional
 import json
 
 from app.models.system_setting import SystemSetting, SettingDataTypeEnum
-from app.schemas.settings import TelegramSettings, SystemSettingsResponse
+from app.schemas.settings import TelegramSettings, GeneralSettings, SystemSettingsResponse
 
 
 class SettingsService:
@@ -75,10 +75,24 @@ class SettingsService:
         await self.set_setting("telegram_maintenance_chat_id", settings.maintenance_chat_id, SettingDataTypeEnum.STRING)
         await self.set_setting("telegram_enabled", "true" if settings.enabled else "false", SettingDataTypeEnum.BOOLEAN)
 
+    async def get_general_settings(self) -> GeneralSettings:
+        """Get general system settings"""
+        frontend_domain = await self.get_setting("frontend_domain") or "http://localhost:5173"
+
+        return GeneralSettings(
+            frontend_domain=frontend_domain
+        )
+
+    async def update_general_settings(self, settings: GeneralSettings):
+        """Update general system settings"""
+        await self.set_setting("frontend_domain", settings.frontend_domain, SettingDataTypeEnum.STRING)
+
     async def get_all_settings(self) -> SystemSettingsResponse:
         """Get all system settings"""
         telegram = await self.get_telegram_settings()
+        general = await self.get_general_settings()
 
         return SystemSettingsResponse(
-            telegram=telegram
+            telegram=telegram,
+            general=general
         )

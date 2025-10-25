@@ -20,6 +20,22 @@
       <div class="border-b border-gray-200">
         <nav class="flex space-x-8 px-8 pt-6">
           <button
+            @click="activeTab = 'general'"
+            :class="[
+              'pb-4 px-1 border-b-2 font-semibold text-sm transition-colors',
+              activeTab === 'general'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            ]"
+          >
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+              </svg>
+              <span>ตั้งค่าทั่วไป</span>
+            </div>
+          </button>
+          <button
             @click="activeTab = 'telegram'"
             :class="[
               'pb-4 px-1 border-b-2 font-semibold text-sm transition-colors',
@@ -41,6 +57,43 @@
 
       <!-- Tab Content -->
       <div class="p-8">
+        <!-- General Settings Tab -->
+        <div v-if="activeTab === 'general'" class="space-y-6">
+          <!-- Frontend Domain -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Frontend Domain URL
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="formValue.general.frontend_domain"
+              type="url"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all font-mono text-sm"
+              placeholder="https://example.com หรือ http://localhost:5173"
+            />
+            <p class="mt-2 text-xs text-gray-500">
+              URL นี้จะใช้ในลิงก์ Telegram เพื่อให้สามารถเข้าถึงระบบได้จากข้อความแจ้งเตือน
+            </p>
+          </div>
+
+          <!-- Info Box -->
+          <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+            <div class="flex items-start space-x-3">
+              <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+              <div class="text-sm text-blue-800">
+                <p class="font-semibold mb-1">ตัวอย่าง Domain:</p>
+                <ul class="list-disc list-inside space-y-1 ml-2">
+                  <li>Production: <code class="bg-blue-100 px-1 rounded">https://hotel.example.com</code></li>
+                  <li>Localhost: <code class="bg-blue-100 px-1 rounded">http://localhost:5173</code></li>
+                  <li>IP Address: <code class="bg-blue-100 px-1 rounded">http://192.168.1.100:5173</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Telegram Settings Tab -->
         <div v-if="activeTab === 'telegram'" class="space-y-6">
           <!-- Enable/Disable Toggle -->
@@ -282,6 +335,9 @@ const formValue = ref<SystemSettings>({
     housekeeping_chat_id: '',
     maintenance_chat_id: '',
     enabled: false
+  },
+  general: {
+    frontend_domain: 'http://localhost:5173'
   }
 })
 
