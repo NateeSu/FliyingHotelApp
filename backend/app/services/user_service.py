@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from fastapi import HTTPException, status
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -13,11 +13,27 @@ class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all_users(self, skip: int = 0, limit: int = 100) -> List[User]:
-        """Get all users with pagination"""
-        result = await self.db.execute(
-            select(User).offset(skip).limit(limit).order_by(User.created_at.desc())
-        )
+    async def get_all_users(self, skip: int = 0, limit: int = 100, include_inactive: bool = False) -> List[User]:
+        """
+        Get all users with pagination
+
+        Args:
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+            include_inactive: Whether to include inactive (deleted) users
+
+        Returns:
+            List of User objects
+        """
+        query = select(User).order_by(User.created_at.desc())
+
+        # Filter active users by default (is_active=True)
+        if not include_inactive:
+            query = query.where(User.is_active == True)
+
+        query = query.offset(skip).limit(limit)
+
+        result = await self.db.execute(query)
         return list(result.scalars().all())
 
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
