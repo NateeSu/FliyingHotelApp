@@ -128,6 +128,24 @@
         </div>
       </div>
 
+      <!-- Daily Check-ins Chart -->
+      <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+        <div class="mb-6">
+          <h2 class="text-xl font-bold text-gray-900">📊 สถิติการเข้าพักรายวัน</h2>
+          <p class="text-sm text-gray-500 mt-1">จำนวนการเข้าพักแยกตามประเภท (ค้างคืน/ชั่วคราว)</p>
+        </div>
+        <div class="flex justify-center">
+          <div v-if="chartData.daily_stats.length > 0" style="width: 100%; max-width: 900px; height: 400px">
+            <Bar :data="chartConfig" :options="chartOptions" />
+          </div>
+          <div v-else class="text-center py-12 w-full">
+            <div class="text-4xl mb-4">📭</div>
+            <div class="text-lg font-semibold text-gray-700">ไม่มีข้อมูล</div>
+            <div class="text-gray-500">ไม่มีการเข้าพักในช่วงเวลาที่เลือก</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Check-ins Table -->
       <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div class="p-6 border-b border-gray-200">
@@ -351,9 +369,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { reportsApi, type CheckInListItem, type CheckInsListResponse } from '@/api/reports'
+import { ref, onMounted, computed } from 'vue'
+import { reportsApi, type CheckInListItem, type CheckInsListResponse, type CheckInStatsResponse } from '@/api/reports'
 import dayjs from 'dayjs'
+import { Bar } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 // State
 const loading = ref(false)
@@ -371,7 +401,102 @@ const checkInsData = ref<CheckInsListResponse>({
   end_date: ''
 })
 
+const chartData = ref<CheckInStatsResponse>({
+  daily_stats: [],
+  total_overnight: 0,
+  total_temporary: 0,
+  total_checkins: 0,
+  start_date: '',
+  end_date: ''
+})
+
 const selectedCheckIn = ref<CheckInListItem | null>(null)
+
+// Computed chart data
+const chartConfig = computed(() => ({
+  labels: chartData.value.daily_stats.map(stat => dayjs(stat.date).format('DD/MM')),
+  datasets: [
+    {
+      label: 'ค้างคืน',
+      data: chartData.value.daily_stats.map(stat => stat.overnight),
+      backgroundColor: '#3B82F6',
+      borderColor: '#1E40AF',
+      borderWidth: 1,
+      borderRadius: 4
+    },
+    {
+      label: 'ชั่วคราว',
+      data: chartData.value.daily_stats.map(stat => stat.temporary),
+      backgroundColor: '#8B5CF6',
+      borderColor: '#6D28D9',
+      borderWidth: 1,
+      borderRadius: 4
+    }
+  ]
+}))
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: {
+    legend: {
+      position: 'top' as const,
+      labels: {
+        font: {
+          size: 13,
+          family: "'Prompt', 'Sarabun', sans-serif"
+        },
+        color: '#374151',
+        padding: 15,
+        usePointStyle: true
+      }
+    },
+    tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      padding: 12,
+      titleFont: {
+        size: 13,
+        family: "'Prompt', 'Sarabun', sans-serif"
+      },
+      bodyFont: {
+        size: 12,
+        family: "'Prompt', 'Sarabun', sans-serif"
+      },
+      borderColor: '#E5E7EB',
+      borderWidth: 1
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        font: {
+          size: 12,
+          family: "'Prompt', 'Sarabun', sans-serif"
+        },
+        color: '#6B7280',
+        stepSize: 1
+      },
+      grid: {
+        color: '#F3F4F6',
+        drawBorder: false
+      }
+    },
+    x: {
+      ticks: {
+        font: {
+          size: 12,
+          family: "'Prompt', 'Sarabun', sans-serif"
+        },
+        color: '#6B7280'
+      },
+      grid: {
+        display: false,
+        drawBorder: false
+      }
+    }
+  }
+}
 
 // Set period type and auto-adjust dates
 function setPeriodType(type: 'last_night' | 'day' | 'week' | 'month') {
@@ -404,12 +529,14 @@ function setPeriodType(type: 'last_night' | 'day' | 'week' | 'month') {
 async function loadData() {
   try {
     loading.value = true
-    checkInsData.value = await reportsApi.getCheckInsList(
-      dateRange.value.start,
-      dateRange.value.end
-    )
+    const [checkInsResponse, statsResponse] = await Promise.all([
+      reportsApi.getCheckInsList(dateRange.value.start, dateRange.value.end),
+      reportsApi.getCheckInStats(dateRange.value.start, dateRange.value.end)
+    ])
+    checkInsData.value = checkInsResponse
+    chartData.value = statsResponse
   } catch (error) {
-    console.error('Error loading check-ins list:', error)
+    console.error('Error loading reports data:', error)
   } finally {
     loading.value = false
   }
