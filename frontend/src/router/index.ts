@@ -152,8 +152,21 @@ router.beforeEach((to, from, next) => {
     // Redirect to login if not authenticated
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.name === 'Login' && authStore.isAuthenticated) {
-    // Redirect to home if already authenticated and trying to access login
-    next({ name: 'Home' })
+    // Redirect based on role
+    // Reception users go to dashboard directly
+    if (authStore.hasRole(['RECEPTION'])) {
+      next({ name: 'Dashboard' })
+    } else {
+      // Admin and other roles go to home
+      next({ name: 'Home' })
+    }
+  } else if (to.name === 'Home' && authStore.isAuthenticated) {
+    // Reception users trying to access home are redirected to dashboard
+    if (authStore.hasRole(['RECEPTION'])) {
+      next({ name: 'Dashboard' })
+    } else {
+      next()
+    }
   } else if (to.meta.roles && Array.isArray(to.meta.roles)) {
     // Check role-based access
     if (authStore.hasRole(to.meta.roles as string[])) {

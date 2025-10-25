@@ -510,13 +510,16 @@ const menuItems = computed(() => {
     children?: MenuItem[]
   }
 
-  const items: MenuItem[] = [
-    {
+  const items: MenuItem[] = []
+
+  // Home page - for Admin only (Reception goes straight to Dashboard)
+  if (authStore.isAdmin) {
+    items.push({
       label: 'หน้าแรก',
       path: '/',
       icon: 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'
-    }
-  ]
+    })
+  }
 
   // Dashboard - for Admin and Reception
   if (authStore.isAdmin || authStore.hasRole(['RECEPTION'])) {
