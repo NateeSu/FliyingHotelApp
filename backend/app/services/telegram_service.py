@@ -42,8 +42,16 @@ class TelegramService:
         """Send a message to a Telegram chat"""
         settings = await self.settings_service.get_telegram_settings()
 
-        if not settings.enabled or not settings.bot_token or not chat_id:
-            print("Telegram not enabled or missing configuration")
+        if not settings.enabled:
+            print("❌ Telegram notifications are DISABLED in settings")
+            return False
+
+        if not settings.bot_token:
+            print("❌ Telegram Bot Token is NOT SET")
+            return False
+
+        if not chat_id:
+            print("❌ Chat ID is empty")
             return False
 
         url = f"https://api.telegram.org/bot{settings.bot_token}/sendMessage"
@@ -55,13 +63,26 @@ class TelegramService:
             "disable_web_page_preview": disable_web_page_preview
         }
 
+        print(f"📤 Sending Telegram message to chat_id: {chat_id}")
+
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     data = await response.json()
-                    return data.get("ok", False)
+
+                    if data.get("ok"):
+                        print(f"✅ Telegram message sent successfully!")
+                        return True
+                    else:
+                        error_desc = data.get("description", "Unknown error")
+                        print(f"❌ Telegram API error: {error_desc}")
+                        print(f"Full response: {data}")
+                        return False
+
             except Exception as e:
-                print(f"Error sending Telegram message: {e}")
+                print(f"❌ Error sending Telegram message: {e}")
+                import traceback
+                traceback.print_exc()
                 return False
 
     async def send_housekeeping_notification(
@@ -72,16 +93,22 @@ class TelegramService:
         frontend_url: str = None
     ):
         """Send notification for new housekeeping task"""
+        print(f"🔔 Preparing housekeeping notification for task #{task_id}, room {room_number}")
+
         settings = await self.settings_service.get_telegram_settings()
         general_settings = await self.settings_service.get_general_settings()
 
         if not settings.housekeeping_chat_id:
-            print("Housekeeping chat ID not configured")
+            print("❌ Housekeeping chat ID not configured")
             return False
+
+        print(f"✅ Housekeeping chat ID: {settings.housekeeping_chat_id}")
 
         # Use frontend domain from settings if not provided
         if frontend_url is None:
             frontend_url = general_settings.frontend_domain
+
+        print(f"🌐 Using frontend domain: {frontend_url}")
 
         # Use public task detail page (no login required)
         task_url = f"{frontend_url}/public/housekeeping/tasks/{task_id}"
@@ -106,16 +133,22 @@ class TelegramService:
         frontend_url: str = None
     ):
         """Send notification for new maintenance task"""
+        print(f"🔧 Preparing maintenance notification for task #{task_id}: {title}")
+
         settings = await self.settings_service.get_telegram_settings()
         general_settings = await self.settings_service.get_general_settings()
 
         if not settings.maintenance_chat_id:
-            print("Maintenance chat ID not configured")
+            print("❌ Maintenance chat ID not configured")
             return False
+
+        print(f"✅ Maintenance chat ID: {settings.maintenance_chat_id}")
 
         # Use frontend domain from settings if not provided
         if frontend_url is None:
             frontend_url = general_settings.frontend_domain
+
+        print(f"🌐 Using frontend domain: {frontend_url}")
 
         # Use public task detail page (no login required)
         task_url = f"{frontend_url}/public/maintenance/tasks/{task_id}"
