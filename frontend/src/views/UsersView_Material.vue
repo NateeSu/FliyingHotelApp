@@ -123,13 +123,16 @@
               </div>
 
               <!-- Password -->
-              <div v-if="!editingUser">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">รหัสผ่าน</label>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  รหัสผ่าน
+                  <span v-if="editingUser" class="text-xs text-gray-500 font-normal">(เว้นว่างเพื่อไม่เปลี่ยน)</span>
+                </label>
                 <input
                   v-model="formValue.password"
                   type="password"
                   class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition-all"
-                  placeholder="กรอกรหัสผ่าน"
+                  :placeholder="editingUser ? 'เว้นว่างเพื่อไม่เปลี่ยน หรือกรอกรหัสผ่านใหม่' : 'กรอกรหัสผ่าน'"
                 />
               </div>
 
@@ -383,6 +386,7 @@ async function handleSaveUser() {
     return
   }
 
+  // For new users, password is required
   if (!editingUser.value && !formValue.value.password) {
     showToast('error', 'กรุณากรอกรหัสผ่าน')
     return
@@ -398,7 +402,11 @@ async function handleSaveUser() {
       is_active: formValue.value.is_active
     }
 
-    if (!editingUser.value && formValue.value.password) {
+    // For new users, always include password
+    if (!editingUser.value) {
+      payload.password = formValue.value.password
+    } else if (editingUser.value && formValue.value.password) {
+      // For editing users, only include password if provided (non-empty)
       payload.password = formValue.value.password
     }
 
