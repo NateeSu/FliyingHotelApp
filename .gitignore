@@ -90,3 +90,14 @@ celerybeat.pid
 .dmypy.json
 dmypy.json
 .ruff_cache/
+
+# Database backups
+*.sql
+!clear_test_data.sql
+
+# Troubleshooting docs (temporary)
+TELEGRAM_TROUBLESHOOTING.md
+
+# Claude settings (local)
+.claude/settings.local.json
+
