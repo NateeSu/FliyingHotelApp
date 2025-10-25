@@ -13,7 +13,7 @@ from datetime import datetime
 
 from app.core.dependencies import get_db, get_current_user
 from app.models import User, CheckIn, Customer, Room, RoomType
-from app.services import CheckInService, CheckOutService, CustomerService, PDFService
+from app.services import CheckInService, CheckOutService, CustomerService, PDFService, SettingsService
 from app.schemas.check_in import (
     CheckInCreate,
     CheckInCreateWithCustomer,
@@ -287,6 +287,10 @@ async def generate_receipt(
             total_amount=check_in.total_amount
         )
 
+        # Fetch hotel info from settings
+        settings_service = SettingsService(db)
+        general_settings = await settings_service.get_general_settings()
+
         # Generate PDF
         pdf_service = PDFService()
         pdf_buffer = pdf_service.generate_receipt(
@@ -296,9 +300,9 @@ async def generate_receipt(
             room_type=check_in.room.room_type,
             checkout_summary=checkout_summary,
             checked_out_by=check_in.checkout_user,
-            hotel_name="Flying Hotel",  # TODO: Get from settings
-            hotel_address="123 ถนนสุขุมวิท กรุงเทพฯ 10110",  # TODO: Get from settings
-            hotel_phone="02-123-4567"  # TODO: Get from settings
+            hotel_name=general_settings.hotel_name or "Flying Hotel",
+            hotel_address=general_settings.hotel_address or "123 ถนนสุขุมวิท กรุงเทพฯ 10110",
+            hotel_phone=general_settings.hotel_phone or "02-123-4567"
         )
 
         # Create filename

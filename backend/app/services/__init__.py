@@ -8,6 +8,7 @@ from .check_in_service import CheckInService
 from .check_out_service import CheckOutService
 from .customer_service import CustomerService
 from .pdf_service import PDFService
+from .settings_service import SettingsService
 
 __all__ = [
     "DashboardService",
@@ -15,5 +16,6 @@ __all__ = [
     "CheckInService",
     "CheckOutService",
     "CustomerService",
-    "PDFService"
+    "PDFService",
+    "SettingsService"
 ]
