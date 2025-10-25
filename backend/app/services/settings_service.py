@@ -78,14 +78,23 @@ class SettingsService:
     async def get_general_settings(self) -> GeneralSettings:
         """Get general system settings"""
         frontend_domain = await self.get_setting("frontend_domain") or "http://localhost:5173"
+        hotel_name = await self.get_setting("hotel_name") or ""
+        hotel_address = await self.get_setting("hotel_address") or ""
+        hotel_phone = await self.get_setting("hotel_phone") or ""
 
         return GeneralSettings(
-            frontend_domain=frontend_domain
+            frontend_domain=frontend_domain,
+            hotel_name=hotel_name,
+            hotel_address=hotel_address,
+            hotel_phone=hotel_phone
         )
 
     async def update_general_settings(self, settings: GeneralSettings):
         """Update general system settings"""
         await self.set_setting("frontend_domain", settings.frontend_domain, SettingDataTypeEnum.STRING)
+        await self.set_setting("hotel_name", settings.hotel_name, SettingDataTypeEnum.STRING)
+        await self.set_setting("hotel_address", settings.hotel_address, SettingDataTypeEnum.STRING)
+        await self.set_setting("hotel_phone", settings.hotel_phone, SettingDataTypeEnum.STRING)
 
     async def get_all_settings(self) -> SystemSettingsResponse:
         """Get all system settings"""

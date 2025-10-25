@@ -59,7 +59,62 @@
       <div class="p-8">
         <!-- General Settings Tab -->
         <div v-if="activeTab === 'general'" class="space-y-6">
-          <!-- Frontend Domain -->
+          <!-- Hotel Information Section -->
+          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-2 border-blue-200">
+            <div class="mb-6">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M11 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-6m-7-4h.01M17 3H7"/>
+                </svg>
+                <span>ข้อมูลโรงแรม</span>
+              </h3>
+              <p class="text-sm text-gray-600 mt-1">ข้อมูลจะปรากฏในใบเสร็จเป็น PDF</p>
+            </div>
+
+            <!-- Hotel Name -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                ชื่อโรงแรม
+                <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="formValue.general.hotel_name"
+                type="text"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
+                placeholder="เช่น โรงแรมกระดึง ริเวอร์ไซด์"
+              />
+            </div>
+
+            <!-- Hotel Address -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                ที่อยู่
+                <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                v-model="formValue.general.hotel_address"
+                rows="3"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all resize-none"
+                placeholder="เช่น 123 หมู่ 4 ซ.ลาดพร้าว ต.บางกะปิ อ.บางกะปิ กทม. 10240"
+              />
+            </div>
+
+            <!-- Hotel Phone -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                เบอร์โทรศัพท์
+                <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="formValue.general.hotel_phone"
+                type="tel"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
+                placeholder="เช่น +66-2-XXXXXXX หรือ 02-XXXXXXX"
+              />
+            </div>
+          </div>
+
+          <!-- Frontend Domain Section -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">
               Frontend Domain URL
@@ -358,7 +413,10 @@ const formValue = ref<SystemSettings>({
     enabled: false
   },
   general: {
-    frontend_domain: 'http://localhost:5173'
+    frontend_domain: 'http://localhost:5173',
+    hotel_name: '',
+    hotel_address: '',
+    hotel_phone: ''
   }
 })
 

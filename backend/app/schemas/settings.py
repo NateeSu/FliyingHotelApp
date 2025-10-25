@@ -19,6 +19,9 @@ class TelegramSettings(BaseModel):
 class GeneralSettings(BaseModel):
     """General system settings"""
     frontend_domain: str = Field(default="http://localhost:5173", description="Frontend domain URL for Telegram links")
+    hotel_name: str = Field(default="", description="Hotel name for receipts and documents")
+    hotel_address: str = Field(default="", description="Hotel address for receipts and documents")
+    hotel_phone: str = Field(default="", description="Hotel phone number for receipts and documents")
 
 
 class SystemSettingsResponse(BaseModel):

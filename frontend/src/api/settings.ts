@@ -11,6 +11,9 @@ export interface TelegramSettings {
 
 export interface GeneralSettings {
   frontend_domain: string
+  hotel_name: string
+  hotel_address: string
+  hotel_phone: string
 }
 
 export interface SystemSettings {
