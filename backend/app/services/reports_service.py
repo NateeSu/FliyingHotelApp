@@ -528,7 +528,7 @@ class ReportsService:
                     stay_type=check_in.stay_type.value,
                     check_in_time=check_in.check_in_time,
                     expected_check_out_time=check_in.expected_check_out_time,
-                    check_out_time=check_in.check_out_time,
+                    check_out_time=check_in.actual_check_out_time,
                     total_amount=total_amount,
                     payment_method=check_in.payment_method.value,
                     status=check_in.status.value,
