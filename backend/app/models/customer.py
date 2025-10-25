@@ -2,9 +2,10 @@
 Customer Model (Phase 3 - Basic, Full implementation in Phase 4)
 Mini CRM for customer data
 """
-from sqlalchemy import Column, Integer, String, DateTime, Date
+from sqlalchemy import Column, Integer, String, DateTime, Date, Numeric
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from decimal import Decimal
 
 from app.db.base import Base
 
@@ -30,6 +31,7 @@ class Customer(Base):
     first_visit_date = Column(Date, nullable=True)
     last_visit_date = Column(Date, nullable=True)
     total_visits = Column(Integer, nullable=False, default=0)
+    total_spent = Column(Numeric(12, 2), nullable=False, default=Decimal(0))
 
     # Timestamps
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

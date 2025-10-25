@@ -160,6 +160,7 @@ class CheckOutService:
             customer.email = check_in.customer.email
             customer.address = check_in.customer.address
             customer.total_visits = (customer.total_visits or 0) + 1
+            customer.total_spent = (customer.total_spent or Decimal(0)) + total_amount
             customer.last_visit_date = actual_checkout_time.date()
             self.db.add(customer)
         else:
@@ -171,6 +172,7 @@ class CheckOutService:
                     email=checkout_data.customer_email,
                     address=checkout_data.customer_address,
                     total_visits=1,
+                    total_spent=total_amount,
                     first_visit_date=actual_checkout_time.date(),
                     last_visit_date=actual_checkout_time.date()
                 )
