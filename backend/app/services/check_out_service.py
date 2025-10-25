@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from app.models import CheckIn, Room, Payment, RoomStatus
+from app.models import CheckIn, Room, Payment, RoomStatus, Customer
 from app.models.check_in import CheckInStatusEnum
 from app.models.notification import NotificationTypeEnum, TargetRoleEnum
 from app.schemas.check_in import CheckOutRequest, CheckOutSummary
@@ -150,6 +150,34 @@ class CheckOutService:
         check_in.total_amount = total_amount
         check_in.status = CheckInStatusEnum.CHECKED_OUT
         check_in.checked_out_by = processed_by_user_id  # Set who processed the checkout
+
+        # Save or update customer data (add customer to database if not exists)
+        if check_in.customer:
+            # Update existing customer record
+            customer = check_in.customer
+            customer.full_name = check_in.customer.full_name
+            customer.phone_number = check_in.customer.phone_number
+            customer.email = check_in.customer.email
+            customer.address = check_in.customer.address
+            customer.visit_count = (customer.visit_count or 0) + 1
+            customer.last_visit_date = actual_checkout_time
+            customer.total_spent = (customer.total_spent or Decimal(0)) + total_amount
+            self.db.add(customer)
+        else:
+            # Create new customer record if customer data is provided in checkout request
+            if (checkout_data.customer_name and checkout_data.phone_number):
+                new_customer = Customer(
+                    full_name=checkout_data.customer_name,
+                    phone_number=checkout_data.phone_number,
+                    email=checkout_data.customer_email,
+                    address=checkout_data.customer_address,
+                    visit_count=1,
+                    last_visit_date=actual_checkout_time,
+                    total_spent=total_amount
+                )
+                self.db.add(new_customer)
+                check_in.customer_id = new_customer.id
+                check_in.customer = new_customer
 
         # Create payment record
         payment = Payment(

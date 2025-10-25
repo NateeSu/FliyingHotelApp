@@ -110,6 +110,11 @@ class CheckOutRequest(BaseModel):
     discount_reason: Optional[str] = None
     payment_method: PaymentMethodEnum
     payment_notes: Optional[str] = None
+    # Optional customer data for creating/updating customer during checkout
+    customer_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    customer_email: Optional[str] = None
+    customer_address: Optional[str] = None
 
 
 class CheckOutSummary(BaseModel):
