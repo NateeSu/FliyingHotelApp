@@ -136,6 +136,22 @@ export interface CheckInsListResponse {
   end_date: string
 }
 
+export interface DailyCheckInStats {
+  date: string  // "2025-10-25"
+  overnight: number
+  temporary: number
+  total: number
+}
+
+export interface CheckInStatsResponse {
+  daily_stats: DailyCheckInStats[]
+  total_overnight: number
+  total_temporary: number
+  total_checkins: number
+  start_date: string
+  end_date: string
+}
+
 // ============================================================================
 // API Functions
 // ============================================================================
@@ -225,6 +241,22 @@ export const reportsApi = {
     endDate: string
   ): Promise<CheckInsListResponse> {
     const response = await apiClient.get<CheckInsListResponse>('/reports/check-ins', {
+      params: {
+        start_date: startDate,
+        end_date: endDate
+      }
+    })
+    return response.data
+  },
+
+  /**
+   * Get daily check-in statistics by stay type for chart
+   */
+  async getCheckInStats(
+    startDate: string,
+    endDate: string
+  ): Promise<CheckInStatsResponse> {
+    const response = await apiClient.get<CheckInStatsResponse>('/reports/check-ins/stats', {
       params: {
         start_date: startDate,
         end_date: endDate

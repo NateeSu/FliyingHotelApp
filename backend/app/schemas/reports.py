@@ -177,6 +177,28 @@ class CheckInListItem(BaseModel):
     number_of_guests: int
 
 
+# ============================================================================
+# Check-Ins Statistics Schemas
+# ============================================================================
+
+class DailyCheckInStats(BaseModel):
+    """Daily check-in statistics by stay type"""
+    date: str  # "2025-10-25"
+    overnight: int  # Count of overnight stays
+    temporary: int  # Count of temporary stays
+    total: int  # Total check-ins for the day
+
+
+class CheckInStatsResponse(BaseModel):
+    """Check-in statistics response for charts"""
+    daily_stats: List[DailyCheckInStats]
+    total_overnight: int
+    total_temporary: int
+    total_checkins: int
+    start_date: date
+    end_date: date
+
+
 class CheckInsListResponse(BaseModel):
     """Check-ins list response for reports"""
     check_ins: List[CheckInListItem]

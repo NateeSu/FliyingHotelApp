@@ -27,7 +27,9 @@ from app.schemas.reports import (
     SummaryReportResponse,
     QuickStat,
     CheckInsListResponse,
-    CheckInListItem
+    CheckInListItem,
+    CheckInStatsResponse,
+    DailyCheckInStats
 )
 
 
@@ -541,6 +543,104 @@ class ReportsService:
             check_ins=check_in_items,
             total_count=len(check_in_items),
             total_revenue=total_revenue,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+    async def get_checkin_stats(
+        self,
+        start_date: date,
+        end_date: date
+    ) -> CheckInStatsResponse:
+        """
+        Get daily check-in statistics by stay type
+
+        Args:
+            start_date: Start date for report
+            end_date: End date for report
+
+        Returns:
+            CheckInStatsResponse with daily stats
+        """
+        # Query check-ins grouped by date and stay type
+        stmt = (
+            select(
+                cast(CheckIn.check_in_time, Date).label("date"),
+                CheckIn.stay_type,
+                func.count(CheckIn.id).label("count")
+            )
+            .where(
+                and_(
+                    cast(CheckIn.check_in_time, Date) >= start_date,
+                    cast(CheckIn.check_in_time, Date) <= end_date
+                )
+            )
+            .group_by(cast(CheckIn.check_in_time, Date), CheckIn.stay_type)
+            .order_by(cast(CheckIn.check_in_time, Date))
+        )
+
+        result = await self.db.execute(stmt)
+        rows = result.all()
+
+        # Process results into daily stats
+        daily_stats_dict = {}
+        total_overnight = 0
+        total_temporary = 0
+
+        for row in rows:
+            day = row[0]
+            stay_type = row[1]
+            count = row[2]
+
+            day_str = day.isoformat()
+
+            if day_str not in daily_stats_dict:
+                daily_stats_dict[day_str] = {
+                    "overnight": 0,
+                    "temporary": 0
+                }
+
+            if stay_type == StayTypeEnum.OVERNIGHT:
+                daily_stats_dict[day_str]["overnight"] = count
+                total_overnight += count
+            elif stay_type == StayTypeEnum.TEMPORARY:
+                daily_stats_dict[day_str]["temporary"] = count
+                total_temporary += count
+
+        # Build daily stats list
+        daily_stats = []
+        current_date = start_date
+        while current_date <= end_date:
+            day_str = current_date.isoformat()
+            if day_str in daily_stats_dict:
+                stats = daily_stats_dict[day_str]
+                daily_stats.append(
+                    DailyCheckInStats(
+                        date=day_str,
+                        overnight=stats["overnight"],
+                        temporary=stats["temporary"],
+                        total=stats["overnight"] + stats["temporary"]
+                    )
+                )
+            else:
+                # Add empty stats for days with no check-ins
+                daily_stats.append(
+                    DailyCheckInStats(
+                        date=day_str,
+                        overnight=0,
+                        temporary=0,
+                        total=0
+                    )
+                )
+            current_date += timedelta(days=1)
+
+        total_checkins = total_overnight + total_temporary
+
+        return CheckInStatsResponse(
+            daily_stats=daily_stats,
+            total_overnight=total_overnight,
+            total_temporary=total_temporary,
+            total_checkins=total_checkins,
             start_date=start_date,
             end_date=end_date
         )
