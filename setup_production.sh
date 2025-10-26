@@ -122,8 +122,7 @@ async def create_admin():
             admin = User(
                 username='admin',
                 full_name='System Admin',
-                email='admin@flyinghotel.com',
-                hashed_password=get_password_hash('admin123'),
+                password_hash=get_password_hash('admin123'),
                 role='ADMIN',
                 is_active=True
             )

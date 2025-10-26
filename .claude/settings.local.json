@@ -53,7 +53,9 @@
       "Bash(dir:*)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYxMTIyNDAwfQ.8gCG2-i5Vc3Dt6SVMADVTWicLMGAGTKvS0-B11rZ0Vo\")",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYxMTIyOTMwfQ.A2zVPoQG4kDFaNLBZuJbwVcETrTqbGf2TY6Tyv1IMtM\")",
-      "Bash(npx vue-tsc:*)"
+      "Bash(npx vue-tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzYxMTI5MzIwfQ.fWIDkSzU5QCh9DW5NdMSChbvYNu2VDKx3SH9JnDKVQo\")"
     ],
     "deny": [],
     "ask": []
