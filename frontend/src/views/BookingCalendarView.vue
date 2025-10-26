@@ -187,21 +187,27 @@ async function fetchCalendarData(startDate: string, endDate: string) {
  * Handle booking saved (created or updated)
  */
 async function handleBookingSaved() {
+  // Close modal immediately
   showFormModal.value = false
   showCreateModal.value = false
   selectedBooking.value = null
   preselectedDate.value = null
 
-  // Refresh calendar
-  const calendarApi = calendarRef.value?.getApi()
-  if (calendarApi) {
-    const view = calendarApi.view
-    const start = view.currentStart.toISOString().split('T')[0]
-    const end = view.currentEnd.toISOString().split('T')[0]
-    await fetchCalendarData(start, end)
-  }
-
-  message.success('บันทึกการจองเรียบร้อยแล้ว')
+  // Refresh calendar in the background
+  // Use setTimeout to prevent blocking UI
+  setTimeout(async () => {
+    try {
+      const calendarApi = calendarRef.value?.getApi()
+      if (calendarApi) {
+        const view = calendarApi.view
+        const start = view.currentStart.toISOString().split('T')[0]
+        const end = view.currentEnd.toISOString().split('T')[0]
+        await fetchCalendarData(start, end)
+      }
+    } catch (error) {
+      console.error('Error refreshing calendar:', error)
+    }
+  }, 100)
 }
 
 /**

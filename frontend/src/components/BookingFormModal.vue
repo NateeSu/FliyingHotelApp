@@ -491,13 +491,11 @@ async function handleSubmit() {
       message.success('สร้างการจองเรียบร้อยแล้ว')
     }
 
-    // Close modal BEFORE emitting saved
-    // This prevents DatePicker watchers from running after component unmounts
-    showModal.value = false
-
-    // Then reset form and emit
-    resetForm()
+    // Emit saved event first so parent can start refresh
     emit('saved')
+
+    // Close modal - this will trigger the watch below to reset form
+    showModal.value = false
   } catch (error: any) {
     console.error('❌ Booking error:', error)
     if (error?.errors) {
@@ -513,7 +511,7 @@ async function handleSubmit() {
 
 function handleCancel() {
   showModal.value = false
-  resetForm()
+  // resetForm will be called by the watch below
 }
 
 function resetForm() {
@@ -532,9 +530,10 @@ function resetForm() {
   conflictingBookings.value = []
 }
 
-// Watch for modal open
-watch(() => props.show, (newVal) => {
+// Watch for modal open/close
+watch(() => props.show, (newVal, oldVal) => {
   if (newVal) {
+    // Modal opening
     if (props.booking) {
       // Edit mode
       formData.value = {
@@ -567,6 +566,11 @@ watch(() => props.show, (newVal) => {
       // Create mode with preselected date
       formData.value.check_in_date = props.preselectedDate
     }
+  } else if (oldVal && !newVal) {
+    // Modal closing - reset form after a delay to let components unmount cleanly
+    setTimeout(() => {
+      resetForm()
+    }, 300) // Wait for modal transition to complete
   }
 })
 
