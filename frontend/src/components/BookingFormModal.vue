@@ -491,8 +491,11 @@ async function handleSubmit() {
       message.success('สร้างการจองเรียบร้อยแล้ว')
     }
 
-    // Don't close modal immediately - let parent handle it
-    // This prevents component destruction while async operations are still running
+    // Close modal BEFORE emitting saved
+    // This prevents DatePicker watchers from running after component unmounts
+    showModal.value = false
+
+    // Then reset form and emit
     resetForm()
     emit('saved')
   } catch (error: any) {

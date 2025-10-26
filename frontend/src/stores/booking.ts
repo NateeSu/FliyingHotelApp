@@ -210,29 +210,34 @@ export const useBookingStore = defineStore('booking', () => {
 
       // Convert to FullCalendar format with proper date handling
       calendarEvents.value = events.map(event => {
-        // Ensure date strings are in valid ISO format
-        const start = formatDateForCalendar(event.start)
-        const end = formatDateForCalendar(event.end)
+        try {
+          // Ensure date strings are in valid ISO format
+          const start = formatDateForCalendar(event.start)
+          const end = formatDateForCalendar(event.end)
 
-        return {
-          id: event.id,
-          title: event.title,
-          start: start,
-          end: end,
-          backgroundColor: event.color,
-          borderColor: event.color,
-          textColor: '#ffffff',
-          extendedProps: {
-            bookingId: event.id,
-            status: event.status,
-            roomNumber: event.room_number,
-            customerName: event.customer_name,
-            depositAmount: event.deposit_amount,
-            totalAmount: event.total_amount,
-            isHoliday: false
+          return {
+            id: event.id,
+            title: event.title,
+            start: start,
+            end: end,
+            backgroundColor: event.color,
+            borderColor: event.color,
+            textColor: '#ffffff',
+            extendedProps: {
+              bookingId: event.id,
+              status: event.status,
+              roomNumber: event.room_number,
+              customerName: event.customer_name,
+              depositAmount: event.deposit_amount,
+              totalAmount: event.total_amount,
+              isHoliday: false
+            }
           }
+        } catch (mapError) {
+          console.warn('Error mapping calendar event:', event, mapError)
+          return null
         }
-      })
+      }).filter((e) => e !== null) as CalendarEvent[]
 
       return calendarEvents.value
     } catch (err: any) {
@@ -257,23 +262,28 @@ export const useBookingStore = defineStore('booking', () => {
 
       // Add to calendar events with proper date handling
       const holidayEvents: CalendarEvent[] = holidays.map(holiday => {
-        const dateStr = formatDateForCalendar(holiday.date)
-        return {
-          id: `holiday-${holiday.date}`,
-          title: `🎉 ${holiday.name}`,
-          start: dateStr,
-          end: dateStr,
-          backgroundColor: '#DC2626',
-          borderColor: '#DC2626',
-          textColor: '#ffffff',
-          allDay: true,
-          display: 'background',
-          extendedProps: {
-            isHoliday: true,
-            holidayName: holiday.name
+        try {
+          const dateStr = formatDateForCalendar(holiday.date)
+          return {
+            id: `holiday-${holiday.date}`,
+            title: `🎉 ${holiday.name}`,
+            start: dateStr,
+            end: dateStr,
+            backgroundColor: '#DC2626',
+            borderColor: '#DC2626',
+            textColor: '#ffffff',
+            allDay: true,
+            display: 'background',
+            extendedProps: {
+              isHoliday: true,
+              holidayName: holiday.name
+            }
           }
+        } catch (mapError) {
+          console.warn('Error mapping holiday event:', holiday, mapError)
+          return null
         }
-      })
+      }).filter((e) => e !== null) as CalendarEvent[]
 
       // Merge with existing calendar events
       calendarEvents.value = [...calendarEvents.value, ...holidayEvents]

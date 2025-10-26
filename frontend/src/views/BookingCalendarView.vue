@@ -161,14 +161,25 @@ async function handleDatesSet(dateInfo: any) {
 async function fetchCalendarData(startDate: string, endDate: string) {
   try {
     // Fetch bookings
-    await bookingStore.fetchCalendarEvents(startDate, endDate)
+    try {
+      await bookingStore.fetchCalendarEvents(startDate, endDate)
+    } catch (error) {
+      console.warn('Failed to fetch calendar events:', error)
+      // Don't throw - continue to fetch holidays
+    }
 
     // Fetch holidays for current year
-    const currentYear = new Date().getFullYear()
-    await bookingStore.fetchPublicHolidays(currentYear)
+    try {
+      const currentYear = new Date().getFullYear()
+      await bookingStore.fetchPublicHolidays(currentYear)
+    } catch (error) {
+      console.warn('Failed to fetch public holidays:', error)
+      // Don't throw - calendar can work without holidays
+    }
 
   } catch (error) {
-    message.error('ไม่สามารถโหลดข้อมูลปฏิทินได้')
+    console.error('Error fetching calendar data:', error)
+    // Don't show error to user if partial data loads
   }
 }
 
