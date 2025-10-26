@@ -419,7 +419,10 @@ async function handleCreateCustomer() {
 async function handleRoomChange(roomId: number) {
   const room = dashboardStore.rooms.find(r => r.id === roomId)
   if (room) {
-    roomRate.value = room.overnight_rate || 0
+    // Convert to number if it's a string
+    roomRate.value = typeof room.overnight_rate === 'string'
+      ? parseFloat(room.overnight_rate)
+      : (room.overnight_rate || 0)
     calculateTotalAmount()
   }
 }
@@ -488,8 +491,10 @@ async function handleSubmit() {
       message.success('สร้างการจองเรียบร้อยแล้ว')
     }
 
-    emit('saved')
+    // Don't close modal immediately - let parent handle it
+    // This prevents component destruction while async operations are still running
     resetForm()
+    emit('saved')
   } catch (error: any) {
     console.error('❌ Booking error:', error)
     if (error?.errors) {
@@ -550,7 +555,10 @@ watch(() => props.show, (newVal) => {
       // Load room rate
       const room = dashboardStore.rooms.find(r => r.id === props.booking!.room_id)
       if (room) {
-        roomRate.value = room.overnight_rate || 0
+        // Convert to number if it's a string
+        roomRate.value = typeof room.overnight_rate === 'string'
+          ? parseFloat(room.overnight_rate)
+          : (room.overnight_rate || 0)
       }
     } else if (props.preselectedDate) {
       // Create mode with preselected date

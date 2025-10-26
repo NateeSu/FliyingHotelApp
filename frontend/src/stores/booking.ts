@@ -16,6 +16,40 @@ import type {
   RoomAvailabilityCheck
 } from '@/types/booking'
 
+/**
+ * Format date string to ensure it's in valid ISO format
+ * Handles various date formats and returns YYYY-MM-DD format
+ */
+function formatDateForCalendar(dateStr: string | Date): string {
+  try {
+    // If already a Date object, convert to ISO string
+    if (dateStr instanceof Date) {
+      return dateStr.toISOString().split('T')[0]
+    }
+
+    // If string is already in YYYY-MM-DD format, return as-is
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      // Validate it's a real date
+      const testDate = new Date(dateStr + 'T00:00:00')
+      if (!isNaN(testDate.getTime())) {
+        return dateStr
+      }
+    }
+
+    // Try parsing the date string
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) {
+      console.warn(`Invalid date format: ${dateStr}, using today's date`)
+      return new Date().toISOString().split('T')[0]
+    }
+
+    return date.toISOString().split('T')[0]
+  } catch (error) {
+    console.warn(`Error formatting date: ${dateStr}`, error)
+    return new Date().toISOString().split('T')[0]
+  }
+}
+
 export const useBookingStore = defineStore('booking', () => {
   // State
   const bookings = ref<Booking[]>([])
@@ -174,25 +208,31 @@ export const useBookingStore = defineStore('booking', () => {
     try {
       const events = await bookingApi.getCalendarEvents(startDate, endDate)
 
-      // Convert to FullCalendar format
-      calendarEvents.value = events.map(event => ({
-        id: event.id,
-        title: event.title,
-        start: event.start,
-        end: event.end,
-        backgroundColor: event.color,
-        borderColor: event.color,
-        textColor: '#ffffff',
-        extendedProps: {
-          bookingId: event.id,
-          status: event.status,
-          roomNumber: event.room_number,
-          customerName: event.customer_name,
-          depositAmount: event.deposit_amount,
-          totalAmount: event.total_amount,
-          isHoliday: false
+      // Convert to FullCalendar format with proper date handling
+      calendarEvents.value = events.map(event => {
+        // Ensure date strings are in valid ISO format
+        const start = formatDateForCalendar(event.start)
+        const end = formatDateForCalendar(event.end)
+
+        return {
+          id: event.id,
+          title: event.title,
+          start: start,
+          end: end,
+          backgroundColor: event.color,
+          borderColor: event.color,
+          textColor: '#ffffff',
+          extendedProps: {
+            bookingId: event.id,
+            status: event.status,
+            roomNumber: event.room_number,
+            customerName: event.customer_name,
+            depositAmount: event.deposit_amount,
+            totalAmount: event.total_amount,
+            isHoliday: false
+          }
         }
-      }))
+      })
 
       return calendarEvents.value
     } catch (err: any) {
@@ -215,22 +255,25 @@ export const useBookingStore = defineStore('booking', () => {
       const holidays = await bookingApi.getPublicHolidays(year)
       publicHolidays.value = holidays
 
-      // Add to calendar events
-      const holidayEvents: CalendarEvent[] = holidays.map(holiday => ({
-        id: `holiday-${holiday.date}`,
-        title: `🎉 ${holiday.name}`,
-        start: holiday.date,
-        end: holiday.date,
-        backgroundColor: '#DC2626',
-        borderColor: '#DC2626',
-        textColor: '#ffffff',
-        allDay: true,
-        display: 'background',
-        extendedProps: {
-          isHoliday: true,
-          holidayName: holiday.name
+      // Add to calendar events with proper date handling
+      const holidayEvents: CalendarEvent[] = holidays.map(holiday => {
+        const dateStr = formatDateForCalendar(holiday.date)
+        return {
+          id: `holiday-${holiday.date}`,
+          title: `🎉 ${holiday.name}`,
+          start: dateStr,
+          end: dateStr,
+          backgroundColor: '#DC2626',
+          borderColor: '#DC2626',
+          textColor: '#ffffff',
+          allDay: true,
+          display: 'background',
+          extendedProps: {
+            isHoliday: true,
+            holidayName: holiday.name
+          }
         }
-      }))
+      })
 
       // Merge with existing calendar events
       calendarEvents.value = [...calendarEvents.value, ...holidayEvents]
