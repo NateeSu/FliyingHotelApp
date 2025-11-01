@@ -32,7 +32,8 @@ class MaintenanceTaskCategoryEnum(str, enum.Enum):
 
 
 class MaintenanceTaskBase(BaseModel):
-    """Base maintenance task schema"\n    room_id: int = Field(..., description="Room ID")
+    """Base maintenance task schema"""
+    room_id: int = Field(..., description="Room ID")
     category: MaintenanceTaskCategoryEnum = Field(..., description="Maintenance category")
     title: str = Field(..., min_length=1, max_length=255, description="Task title")
     description: Optional[str] = Field(None, max_length=1000, description="Task description")
