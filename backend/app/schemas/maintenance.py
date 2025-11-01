@@ -6,34 +6,33 @@ import enum
 
 class MaintenanceTaskStatusEnum(str, enum.Enum):
     """Maintenance task status"""
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 class MaintenanceTaskPriorityEnum(str, enum.Enum):
     """Maintenance task priority"""
-    URGENT = "urgent"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
+    URGENT = "URGENT"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 
 class MaintenanceTaskCategoryEnum(str, enum.Enum):
     """Maintenance task category"""
-    PLUMBING = "plumbing"
-    ELECTRICAL = "electrical"
-    HVAC = "hvac"
-    FURNITURE = "furniture"
-    APPLIANCE = "appliance"
-    BUILDING = "building"
-    OTHER = "other"
+    PLUMBING = "PLUMBING"
+    ELECTRICAL = "ELECTRICAL"
+    HVAC = "HVAC"
+    FURNITURE = "FURNITURE"
+    APPLIANCE = "APPLIANCE"
+    BUILDING = "BUILDING"
+    OTHER = "OTHER"
 
 
 class MaintenanceTaskBase(BaseModel):
-    """Base maintenance task schema"""
-    room_id: int = Field(..., description="Room ID")
+    """Base maintenance task schema"\n    room_id: int = Field(..., description="Room ID")
     category: MaintenanceTaskCategoryEnum = Field(..., description="Maintenance category")
     title: str = Field(..., min_length=1, max_length=255, description="Task title")
     description: Optional[str] = Field(None, max_length=1000, description="Task description")
@@ -43,6 +42,7 @@ class MaintenanceTaskBase(BaseModel):
     )
     assigned_to: Optional[int] = Field(None, description="Assigned user ID")
     notes: Optional[str] = Field(None, max_length=1000, description="Task notes")
+    photos: Optional[list[str]] = Field(None, description="List of photo URLs")
 
     @field_validator("title")
     @classmethod

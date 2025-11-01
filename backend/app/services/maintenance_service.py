@@ -53,6 +53,11 @@ class MaintenanceService:
                 raise ValueError(f"ไม่พบผู้ใช้ ID {task_data.assigned_to}")
 
         # Create task
+        import json
+        photos_json = None
+        if task_data.photos:
+            photos_json = json.dumps(task_data.photos)
+
         task = MaintenanceTask(
             room_id=task_data.room_id,
             category=task_data.category,
@@ -61,6 +66,7 @@ class MaintenanceService:
             priority=task_data.priority,
             assigned_to=task_data.assigned_to,
             notes=task_data.notes,
+            photos=photos_json,
             status=MaintenanceTaskStatusEnum.PENDING,
             created_by=created_by_user_id
         )

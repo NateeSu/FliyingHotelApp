@@ -12,29 +12,29 @@ from app.db.base import Base
 
 class MaintenanceTaskStatusEnum(str, enum.Enum):
     """Maintenance task status enumeration"""
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 class MaintenanceTaskPriorityEnum(str, enum.Enum):
     """Maintenance task priority enumeration"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    URGENT = "urgent"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    URGENT = "URGENT"
 
 
 class MaintenanceTaskCategoryEnum(str, enum.Enum):
     """Maintenance task category enumeration"""
-    PLUMBING = "plumbing"
-    ELECTRICAL = "electrical"
-    HVAC = "hvac"
-    FURNITURE = "furniture"
-    APPLIANCE = "appliance"
-    BUILDING = "building"
-    OTHER = "other"
+    PLUMBING = "PLUMBING"
+    ELECTRICAL = "ELECTRICAL"
+    HVAC = "HVAC"
+    FURNITURE = "FURNITURE"
+    APPLIANCE = "APPLIANCE"
+    BUILDING = "BUILDING"
+    OTHER = "OTHER"
 
 
 class MaintenanceTask(Base):
@@ -72,6 +72,7 @@ class MaintenanceTask(Base):
     description = Column(Text, nullable=False)
     notes = Column(Text, nullable=True)
     resolution_notes = Column(Text, nullable=True)
+    photos = Column(Text, nullable=True)  # JSON array of photo URLs
 
     # Time tracking
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

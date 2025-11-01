@@ -1,6 +1,9 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Form, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+import json
+import os
+from datetime import datetime
 
 from app.core.dependencies import get_db, get_current_user
 from app.models.user import User
@@ -53,15 +56,56 @@ def _map_task_to_details(task) -> MaintenanceTaskWithDetails:
 
 @router.post("/", response_model=MaintenanceTaskResponse)
 async def create_maintenance_task(
-    task_data: MaintenanceTaskCreate,
+    room_id: int = Form(...),
+    category: str = Form(...),
+    title: str = Form(...),
+    description: Optional[str] = Form(None),
+    priority: Optional[str] = Form("MEDIUM"),
+    assigned_to: Optional[int] = Form(None),
+    notes: Optional[str] = Form(None),
+    photos: list[UploadFile] = File(default=[]),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Create a new maintenance task
+    Create a new maintenance task with optional photo uploads
 
     Required role: ADMIN, RECEPTION, MAINTENANCE
     """
+    # Create uploads directory if it doesn't exist
+    uploads_dir = "uploads/maintenance"
+    os.makedirs(uploads_dir, exist_ok=True)
+    
+    # Handle photo uploads
+    photo_urls = []
+    if photos:
+        for photo in photos:
+            if photo.filename:
+                # Generate unique filename
+                timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+                filename = f"maintenance_{timestamp}_{photo.filename}"
+                file_path = os.path.join(uploads_dir, filename)
+                
+                # Save file
+                with open(file_path, 'wb') as f:
+                    content_data = await photo.read()
+                    f.write(content_data)
+                
+                # Store relative URL
+                photo_urls.append(f"/uploads/maintenance/{filename}")
+    
+    # Create task data
+    task_data = MaintenanceTaskCreate(
+        room_id=room_id,
+        category=category,
+        title=title,
+        description=description,
+        priority=priority,
+        assigned_to=assigned_to,
+        notes=notes,
+        photos=photo_urls
+    )
+    
     service = MaintenanceService(db)
     task = await service.create_task(task_data, current_user.id)
     return MaintenanceTaskResponse.model_validate(task)
