@@ -29,6 +29,15 @@ router = APIRouter()
 
 def _map_task_to_details(task) -> MaintenanceTaskWithDetails:
     """Map MaintenanceTask model to MaintenanceTaskWithDetails schema"""
+    # Parse photos from JSON if stored
+    import json
+    photos = []
+    if task.photos:
+        try:
+            photos = json.loads(task.photos)
+        except (json.JSONDecodeError, TypeError):
+            photos = []
+
     return MaintenanceTaskWithDetails(
         id=task.id,
         room_id=task.room_id,
@@ -46,6 +55,7 @@ def _map_task_to_details(task) -> MaintenanceTaskWithDetails:
         completed_by=task.completed_by,
         completer_name=task.completer.full_name if task.completer else None,
         notes=task.notes,
+        photos=photos if photos else None,
         created_at=task.created_at,
         updated_at=task.updated_at,
         started_at=task.started_at,
@@ -54,7 +64,7 @@ def _map_task_to_details(task) -> MaintenanceTaskWithDetails:
     )
 
 
-@router.post("/", response_model=MaintenanceTaskResponse)
+@router.post("/", response_model=MaintenanceTaskWithDetails)
 async def create_maintenance_task(
     room_id: int = Form(...),
     category: str = Form(...),
@@ -75,7 +85,7 @@ async def create_maintenance_task(
     # Create uploads directory if it doesn't exist
     uploads_dir = "uploads/maintenance"
     os.makedirs(uploads_dir, exist_ok=True)
-    
+
     # Handle photo uploads
     photo_urls = []
     if photos:
@@ -85,15 +95,15 @@ async def create_maintenance_task(
                 timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
                 filename = f"maintenance_{timestamp}_{photo.filename}"
                 file_path = os.path.join(uploads_dir, filename)
-                
+
                 # Save file
                 with open(file_path, 'wb') as f:
                     content_data = await photo.read()
                     f.write(content_data)
-                
+
                 # Store relative URL
                 photo_urls.append(f"/uploads/maintenance/{filename}")
-    
+
     # Create task data
     task_data = MaintenanceTaskCreate(
         room_id=room_id,
@@ -105,10 +115,10 @@ async def create_maintenance_task(
         notes=notes,
         photos=photo_urls
     )
-    
+
     service = MaintenanceService(db)
     task = await service.create_task(task_data, current_user.id)
-    return MaintenanceTaskResponse.model_validate(task)
+    return _map_task_to_details(task)
 
 
 @router.get("/", response_model=MaintenanceTaskListResponse)
@@ -183,7 +193,7 @@ async def update_maintenance_task(
     return MaintenanceTaskResponse.model_validate(task)
 
 
-@router.post("/{task_id}/start", response_model=MaintenanceTaskResponse)
+@router.post("/{task_id}/start", response_model=MaintenanceTaskWithDetails)
 async def start_maintenance_task(
     task_id: int,
     request: MaintenanceTaskStartRequest = MaintenanceTaskStartRequest(),
@@ -197,10 +207,10 @@ async def start_maintenance_task(
     """
     service = MaintenanceService(db)
     task = await service.start_task(task_id, current_user.id, request.started_at)
-    return MaintenanceTaskResponse.model_validate(task)
+    return _map_task_to_details(task)
 
 
-@router.post("/{task_id}/complete", response_model=MaintenanceTaskResponse)
+@router.post("/{task_id}/complete", response_model=MaintenanceTaskWithDetails)
 async def complete_maintenance_task(
     task_id: int,
     request: MaintenanceTaskCompleteRequest = MaintenanceTaskCompleteRequest(),
@@ -219,7 +229,7 @@ async def complete_maintenance_task(
         request.completed_at,
         request.notes
     )
-    return MaintenanceTaskResponse.model_validate(task)
+    return _map_task_to_details(task)
 
 
 @router.post("/{task_id}/cancel", response_model=MaintenanceTaskResponse)

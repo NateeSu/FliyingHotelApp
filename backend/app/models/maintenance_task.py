@@ -69,7 +69,7 @@ class MaintenanceTask(Base):
         default=MaintenanceTaskCategoryEnum.OTHER
     )
     title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
     resolution_notes = Column(Text, nullable=True)
     photos = Column(Text, nullable=True)  # JSON array of photo URLs

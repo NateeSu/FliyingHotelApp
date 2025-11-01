@@ -323,11 +323,9 @@ async function handleSubmit() {
     })
 
     // Call API to create maintenance task
-    const response = await api.post('/api/v1/maintenance/', formDataWithFiles, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    // Note: Don't set Content-Type header manually for FormData
+    // Browser will automatically set it with the correct boundary parameter
+    const response = await api.post('/api/v1/maintenance/', formDataWithFiles)
 
     message.success('เพิ่มงานซ่อมบำรุงสำเร็จ')
     emit('created')

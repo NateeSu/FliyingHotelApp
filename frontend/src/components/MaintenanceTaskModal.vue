@@ -104,8 +104,18 @@
         <div class="notes-content">{{ task.notes }}</div>
       </div>
 
+      <!-- Photos -->
+      <div v-if="task.photos && task.photos.length > 0" class="section">
+        <div class="section-title">รูปภาพ</div>
+        <div class="photo-grid">
+          <div v-for="(photo, index) in task.photos" :key="index" class="photo-item">
+            <img :src="`http://localhost:8000${photo}`" :alt="`Photo ${index + 1}`" class="photo-image" @click="viewPhoto(`http://localhost:8000${photo}`)" />
+          </div>
+        </div>
+      </div>
+
       <!-- Completion Notes Input (for completing task) -->
-      <div v-if="task.status === 'in_progress' && showCompletionNotes" class="section">
+      <div v-if="task.status === 'IN_PROGRESS' && showCompletionNotes" class="section">
         <div class="section-title">บันทึกการทำงาน</div>
         <n-input
           v-model:value="completionNotes"
@@ -125,7 +135,7 @@
         </n-button>
 
         <n-button
-          v-if="task && task.status === 'pending'"
+          v-if="task && task.status === 'PENDING'"
           type="primary"
           @click="handleStart"
           :loading="isLoading"
@@ -134,7 +144,7 @@
         </n-button>
 
         <n-button
-          v-if="task && task.status === 'in_progress'"
+          v-if="task && task.status === 'IN_PROGRESS'"
           type="success"
           @click="handleComplete"
           :loading="isLoading"
@@ -182,53 +192,53 @@ const isVisible = computed({
 
 function getStatusLabel(status: string): string {
   const statusMap: Record<string, string> = {
-    pending: 'รอดำเนินการ',
-    in_progress: 'กำลังทำ',
-    completed: 'เสร็จสิ้น',
-    cancelled: 'ยกเลิก'
+    PENDING: 'รอดำเนินการ',
+    IN_PROGRESS: 'กำลังทำ',
+    COMPLETED: 'เสร็จสิ้น',
+    CANCELLED: 'ยกเลิก'
   }
   return statusMap[status] || status
 }
 
 function getStatusType(status: string): 'warning' | 'info' | 'success' | 'default' {
   const typeMap: Record<string, 'warning' | 'info' | 'success' | 'default'> = {
-    pending: 'warning',
-    in_progress: 'info',
-    completed: 'success',
-    cancelled: 'default'
+    PENDING: 'warning',
+    IN_PROGRESS: 'info',
+    COMPLETED: 'success',
+    CANCELLED: 'default'
   }
   return typeMap[status] || 'default'
 }
 
 function getPriorityLabel(priority: string): string {
   const priorityMap: Record<string, string> = {
-    urgent: '🔴 ด่วนมาก',
-    high: '🟠 สูง',
-    medium: '🟡 ปานกลาง',
-    low: '🟢 ต่ำ'
+    URGENT: '🔴 ด่วนมาก',
+    HIGH: '🟠 สูง',
+    MEDIUM: '🟡 ปานกลาง',
+    LOW: '🟢 ต่ำ'
   }
   return priorityMap[priority] || priority
 }
 
 function getPriorityType(priority: string): 'error' | 'warning' | 'info' | 'success' {
   const typeMap: Record<string, 'error' | 'warning' | 'info' | 'success'> = {
-    urgent: 'error',
-    high: 'warning',
-    medium: 'info',
-    low: 'success'
+    URGENT: 'error',
+    HIGH: 'warning',
+    MEDIUM: 'info',
+    LOW: 'success'
   }
   return typeMap[priority] || 'info'
 }
 
 function getCategoryLabel(category: string): string {
   const categoryMap: Record<string, string> = {
-    plumbing: '🚰 ประปา',
-    electrical: '⚡ ไฟฟ้า',
-    hvac: '❄️ เครื่องปรับอากาศ',
-    furniture: '🪑 เฟอร์นิเจอร์',
-    appliance: '📺 เครื่องใช้ไฟฟ้า',
-    building: '🏢 อาคาร',
-    other: '🔧 อื่นๆ'
+    PLUMBING: '🚰 ประปา',
+    ELECTRICAL: '⚡ ไฟฟ้า',
+    HVAC: '❄️ เครื่องปรับอากาศ',
+    FURNITURE: '🪑 เฟอร์นิเจอร์',
+    APPLIANCE: '📺 เครื่องใช้ไฟฟ้า',
+    BUILDING: '🏢 อาคาร',
+    OTHER: '🔧 อื่นๆ'
   }
   return categoryMap[category] || category
 }
@@ -267,6 +277,10 @@ function handleClose() {
   showCompletionNotes.value = false
   completionNotes.value = ''
   emit('update:show', false)
+}
+
+function viewPhoto(url: string) {
+  window.open(url, '_blank')
 }
 
 watch(() => props.show, (newValue) => {
@@ -347,6 +361,36 @@ watch(() => props.show, (newValue) => {
   white-space: pre-wrap;
 }
 
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photo-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.photo-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 @media (max-width: 768px) {
   .info-grid {
     grid-template-columns: 1fr;
@@ -354,6 +398,10 @@ watch(() => props.show, (newValue) => {
 
   .info-item.full-width {
     grid-column: 1;
+  }
+
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }
 </style>

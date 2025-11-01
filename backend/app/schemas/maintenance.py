@@ -109,6 +109,7 @@ class MaintenanceTaskResponse(MaintenanceTaskBase):
     completed_at: Optional[datetime] = None
     completed_by: Optional[int] = None
     duration_minutes: Optional[int] = None
+    photos: Optional[list[str]] = None
 
     model_config = {"from_attributes": True, "use_enum_values": True}
 

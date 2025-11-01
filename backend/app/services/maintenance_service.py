@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from sqlalchemy import select, func, and_, cast, Date
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.maintenance_task import MaintenanceTask, MaintenanceTaskStatusEnum, MaintenanceTaskPriorityEnum, MaintenanceTaskCategoryEnum
 from app.models.room import Room
@@ -73,24 +73,33 @@ class MaintenanceService:
 
         self.db.add(task)
         await self.db.commit()
-        await self.db.refresh(task, ['room', 'assigned_user', 'creator'])
+
+        # Refresh with all needed relationships
+        await self.db.refresh(
+            task,
+            ['room', 'assigned_user', 'creator', 'completer']
+        )
+
+        # Load nested room_type relationship
+        if task.room:
+            await self.db.refresh(task.room, ['room_type'])
 
         # TODO: Broadcast WebSocket event
 
-        # Send Telegram notification
-        try:
-            from app.services.telegram_service import TelegramService
-            telegram_service = TelegramService(self.db)
-            await telegram_service.send_maintenance_notification(
-                task_id=task.id,
-                title=task.title,
-                room_number=room.room_number,
-                category=task.category.value,
-                priority=task.priority.value
-            )
-        except Exception as e:
-            print(f"Failed to send Telegram notification: {e}")
-            # Don't fail the task creation if notification fails
+        # Send Telegram notification (disabled for now - needs system_settings table)
+        # try:
+        #     from app.services.telegram_service import TelegramService
+        #     telegram_service = TelegramService(self.db)
+        #     await telegram_service.send_maintenance_notification(
+        #         task_id=task.id,
+        #         title=task.title,
+        #         room_number=room.room_number,
+        #         category=task.category.value,
+        #         priority=task.priority.value
+        #     )
+        # except Exception as e:
+        #     print(f"Failed to send Telegram notification: {e}")
+        #     # Don't fail the task creation if notification fails
 
         return task
 
@@ -261,7 +270,16 @@ class MaintenanceService:
             task.assigned_to = user_id
 
         await self.db.commit()
-        await self.db.refresh(task)
+
+        # Refresh with all needed relationships
+        await self.db.refresh(
+            task,
+            ['room', 'assigned_user', 'creator', 'completer']
+        )
+
+        # Load nested room_type relationship
+        if task.room:
+            await self.db.refresh(task.room, ['room_type'])
 
         # TODO: Broadcast WebSocket event
 
@@ -310,7 +328,16 @@ class MaintenanceService:
             task.duration_minutes = int(duration.total_seconds() / 60)
 
         await self.db.commit()
-        await self.db.refresh(task)
+
+        # Refresh with all needed relationships
+        await self.db.refresh(
+            task,
+            ['room', 'assigned_user', 'creator', 'completer']
+        )
+
+        # Load nested room_type relationship
+        if task.room:
+            await self.db.refresh(task.room, ['room_type'])
 
         # TODO: Broadcast WebSocket event
 
