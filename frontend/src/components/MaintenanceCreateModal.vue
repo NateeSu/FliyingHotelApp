@@ -64,17 +64,6 @@
           placeholder="เลือกลำดับความสำคัญ"
         />
       </n-form-item>
-
-      <!-- Assigned To (Optional) -->
-      <n-form-item label="มอบหมายให้ (ถ้ามี)" path="assigned_to">
-        <n-select
-          v-model:value="formData.assigned_to"
-          :options="maintenanceStaffOptions"
-          placeholder="ยังไม่มอบหมาย"
-          clearable
-          :loading="loadingUsers"
-        />
-      </n-form-item>
     </n-form>
 
     <template #footer>
@@ -126,16 +115,13 @@ const authStore = useAuthStore()
 const formRef = ref<FormInst | null>(null)
 const submitting = ref(false)
 const loadingRooms = ref(false)
-const loadingUsers = ref(false)
-const maintenanceUsers = ref<Array<{ id: number; full_name: string; username: string }>>([])
 
 const formData = ref<MaintenanceTaskCreate>({
   room_id: undefined as any,
   title: '',
   description: '',
   category: undefined as any,
-  priority: 'MEDIUM',
-  assigned_to: undefined
+  priority: 'MEDIUM'
 })
 
 // Computed
@@ -148,13 +134,6 @@ const roomOptions = computed(() => {
   return dashboardStore.rooms.map((room) => ({
     label: `${room.room_number} - ${room.room_type?.name || 'ไม่ระบุ'}`,
     value: room.id
-  }))
-})
-
-const maintenanceStaffOptions = computed(() => {
-  return maintenanceUsers.value.map((user) => ({
-    label: `${user.full_name} (${user.username})`,
-    value: user.id
   }))
 })
 
@@ -226,29 +205,13 @@ async function loadRooms() {
   }
 }
 
-async function loadMaintenanceUsers() {
-  loadingUsers.value = true
-  try {
-    const response = await api.get('/api/v1/users/')
-    // Filter only maintenance role users
-    maintenanceUsers.value = response.data.filter(
-      (user: any) => user.role === 'maintenance' && user.is_active
-    )
-  } catch (error) {
-    message.error('ไม่สามารถโหลดข้อมูลพนักงานซ่อมบำรุงได้')
-  } finally {
-    loadingUsers.value = false
-  }
-}
-
 function resetForm() {
   formData.value = {
     room_id: undefined as any,
     title: '',
     description: '',
     category: undefined as any,
-    priority: 'MEDIUM',
-    assigned_to: undefined
+    priority: 'MEDIUM'
   }
   formRef.value?.restoreValidation()
 }
@@ -288,7 +251,6 @@ watch(
   (newVal) => {
     if (newVal) {
       loadRooms()
-      loadMaintenanceUsers()
     }
   }
 )
