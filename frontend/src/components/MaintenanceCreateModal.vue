@@ -64,6 +64,36 @@
           placeholder="เลือกลำดับความสำคัญ"
         />
       </n-form-item>
+
+      <!-- Photos -->
+      <n-form-item label="รูปถ่าย" path="photos">
+        <div class="photo-upload-container">
+          <div class="photo-input-wrapper">
+            <input
+              ref="fileInputRef"
+              type="file"
+              multiple
+              accept="image/*"
+              style="display: none"
+              @change="handleFilesSelected"
+            />
+            <n-button @click="triggerFileInput" type="primary">
+              📷 เลือกรูปถ่าย
+            </n-button>
+            <p class="text-xs text-gray-500 mt-2">อนุญาตได้สูงสุด 5 รูป (JPG, PNG)</p>
+          </div>
+
+          <!-- Photo Preview -->
+          <div v-if="selectedPhotos.length > 0" class="photo-preview-grid">
+            <div v-for="(photo, index) in selectedPhotos" :key="index" class="photo-preview-item">
+              <img :src="photo.preview" :alt="`Photo ${index + 1}`" class="preview-image" />
+              <n-button type="error" size="small" @click="removePhoto(index)" style="position: absolute; top: 4px; right: 4px;">
+                ✕
+              </n-button>
+            </div>
+          </div>
+        </div>
+      </n-form-item>
     </n-form>
 
     <template #footer>
@@ -115,6 +145,8 @@ const authStore = useAuthStore()
 const formRef = ref<FormInst | null>(null)
 const submitting = ref(false)
 const loadingRooms = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const selectedPhotos = ref<Array<{ file: File; preview: string }>>([])
 
 const formData = ref<MaintenanceTaskCreate>({
   room_id: undefined as any,
@@ -205,6 +237,49 @@ async function loadRooms() {
   }
 }
 
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function handleFilesSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files || [])
+  
+  if (selectedPhotos.value.length + files.length > 5) {
+    message.error('อนุญาตได้สูงสุด 5 รูป')
+    return
+  }
+  
+  files.forEach((file) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      message.error('กรุณาเลือกเฉพาะไฟล์รูปภาพ')
+      return
+    }
+    
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      selectedPhotos.value.push({
+        file,
+        preview: e.target?.result as string
+      })
+    }
+    reader.readAsDataURL(file)
+  })
+  
+  // Reset input
+  if (input) input.value = ''
+}
+
+function removePhoto(index: number) {
+  const photo = selectedPhotos.value[index]
+  if (photo.preview.startsWith('blob:')) {
+    URL.revokeObjectURL(photo.preview)
+  }
+  selectedPhotos.value.splice(index, 1)
+}
+
 function resetForm() {
   formData.value = {
     room_id: undefined as any,
@@ -213,6 +288,13 @@ function resetForm() {
     category: undefined as any,
     priority: 'MEDIUM'
   }
+  // Clean up blob URLs
+  selectedPhotos.value.forEach((photo) => {
+    if (photo.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(photo.preview)
+    }
+  })
+  selectedPhotos.value = []
   formRef.value?.restoreValidation()
 }
 
@@ -227,8 +309,25 @@ async function handleSubmit() {
 
     submitting.value = true
 
+    // Prepare FormData for file upload
+    const formDataWithFiles = new FormData()
+    formDataWithFiles.append('room_id', String(formData.value.room_id))
+    formDataWithFiles.append('title', formData.value.title)
+    formDataWithFiles.append('description', formData.value.description || '')
+    formDataWithFiles.append('category', formData.value.category)
+    formDataWithFiles.append('priority', formData.value.priority)
+    
+    // Add photos
+    selectedPhotos.value.forEach((photo) => {
+      formDataWithFiles.append('photos', photo.file)
+    })
+
     // Call API to create maintenance task
-    const response = await api.post('/api/v1/maintenance/', formData.value)
+    const response = await api.post('/api/v1/maintenance/', formDataWithFiles, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
 
     message.success('เพิ่มงานซ่อมบำรุงสำเร็จ')
     emit('created')
@@ -277,5 +376,53 @@ onMounted(() => {
 :deep(.n-button) {
   border-radius: 8px;
   font-weight: 600;
+}
+
+.photo-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.text-xs {
+  font-size: 12px;
+}
+
+.text-gray-500 {
+  color: #999;
+}
+
+.mt-2 {
+  margin-top: 8px;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photo-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+  border: 2px solid #e0e0e0;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

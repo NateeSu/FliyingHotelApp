@@ -1,25 +1,25 @@
 export enum MaintenanceTaskStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
 }
 
 export enum MaintenanceTaskPriority {
-  URGENT = 'urgent',
-  HIGH = 'high',
-  MEDIUM = 'medium',
-  LOW = 'low'
+  URGENT = 'URGENT',
+  HIGH = 'HIGH',
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW'
 }
 
 export enum MaintenanceTaskCategory {
-  PLUMBING = 'plumbing',
-  ELECTRICAL = 'electrical',
-  HVAC = 'hvac',
-  FURNITURE = 'furniture',
-  APPLIANCE = 'appliance',
-  BUILDING = 'building',
-  OTHER = 'other'
+  PLUMBING = 'PLUMBING',
+  ELECTRICAL = 'ELECTRICAL',
+  HVAC = 'HVAC',
+  FURNITURE = 'FURNITURE',
+  APPLIANCE = 'APPLIANCE',
+  BUILDING = 'BUILDING',
+  OTHER = 'OTHER'
 }
 
 export interface MaintenanceTask {
@@ -50,13 +50,8 @@ export interface MaintenanceTaskWithDetails extends MaintenanceTask {
 }
 
 export interface MaintenanceTaskCreate {
-  room_id: number
-  category: MaintenanceTaskCategory
-  title: string
-  description?: string
-  priority?: MaintenanceTaskPriority
-  assigned_to?: number
-  notes?: string
+otes?: string
+  photos?: File[]
 }
 
 export interface MaintenanceTaskUpdate {
