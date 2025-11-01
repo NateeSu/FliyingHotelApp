@@ -1,0 +1,364 @@
+<template>
+  <n-modal
+    v-model:show="isVisible"
+    preset="card"
+    title="ปิดงานทำความสะอาด"
+    :style="{ maxWidth: '600px' }"
+    :bordered="false"
+    :segmented="true"
+  >
+    <div v-if="task" class="quick-complete-content">
+      <!-- Room Info -->
+      <div class="room-info-banner">
+        <div class="room-number">ห้อง {{ task.room_number }}</div>
+        <div class="room-type">{{ task.room_type_name }}</div>
+      </div>
+
+      <!-- Task Info -->
+      <div class="task-info">
+        <div class="info-row">
+          <span class="label">งาน:</span>
+          <span class="value">{{ task.title }}</span>
+        </div>
+        <div v-if="task.description" class="info-row">
+          <span class="label">รายละเอียด:</span>
+          <span class="value">{{ task.description }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">สถานะงาน:</span>
+          <span class="value status-badge" :class="`status-${task.status.toLowerCase()}`">
+            {{ task.status === 'PENDING' ? '🟡 รอดำเนินการ' : '🔵 กำลังทำ' }}
+          </span>
+        </div>
+        <div v-if="task.started_at" class="info-row">
+          <span class="label">เริ่มทำเมื่อ:</span>
+          <span class="value">{{ formatDateTime(task.started_at) }}</span>
+        </div>
+        <div v-if="task.assigned_user_name" class="info-row">
+          <span class="label">ผู้รับผิดชอบ:</span>
+          <span class="value">{{ task.assigned_user_name }}</span>
+        </div>
+      </div>
+
+      <!-- Completion Notes -->
+      <div class="notes-section">
+        <div class="section-title">บันทึกการทำงาน (ไม่บังคับ)</div>
+        <n-input
+          v-model:value="completionNotes"
+          type="textarea"
+          placeholder="บันทึกรายละเอียดการทำความสะอาด เช่น พบความเสียหาย, ของหาย, หรือสิ่งผิดปกติ"
+          :autosize="{ minRows: 3, maxRows: 5 }"
+          maxlength="500"
+          show-count
+        />
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div v-else class="loading-state">
+      <div class="spinner"></div>
+      <p>กำลังโหลดข้อมูลงาน...</p>
+    </div>
+
+    <template #footer>
+      <n-space justify="end">
+        <n-button @click="handleCancel" :disabled="isLoading">
+          ยกเลิก
+        </n-button>
+        <n-button
+          class="complete-btn"
+          @click="handleComplete"
+          :loading="isLoading"
+          :disabled="!task"
+        >
+          ✅ ยืนยันทำเสร็จ
+        </n-button>
+      </n-space>
+    </template>
+  </n-modal>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { NModal, NSpace, NButton, NInput, useMessage } from 'naive-ui'
+import { useHousekeepingStore } from '@/stores/housekeeping'
+import type { HousekeepingTaskWithDetails } from '@/types/housekeeping'
+import dayjs from 'dayjs'
+import 'dayjs/locale/th'
+
+dayjs.locale('th')
+
+interface Props {
+  show: boolean
+  roomId: number | null
+}
+
+const props = defineProps<Props>()
+
+interface Emits {
+  (e: 'update:show', value: boolean): void
+  (e: 'completed'): void
+}
+
+const emit = defineEmits<Emits>()
+
+const message = useMessage()
+const housekeepingStore = useHousekeepingStore()
+
+const isLoading = ref(false)
+const completionNotes = ref('')
+const task = ref<HousekeepingTaskWithDetails | null>(null)
+
+const isVisible = computed({
+  get: () => props.show,
+  set: (value) => emit('update:show', value)
+})
+
+// Fetch task when modal opens
+watch(() => props.show, async (newValue) => {
+  if (newValue && props.roomId) {
+    await fetchTaskForRoom(props.roomId)
+  } else {
+    // Reset when modal closes
+    task.value = null
+    completionNotes.value = ''
+  }
+})
+
+async function fetchTaskForRoom(roomId: number): Promise<void> {
+  try {
+    isLoading.value = true
+
+    // Fetch all PENDING or IN_PROGRESS tasks for this room
+    await housekeepingStore.fetchTasks({
+      room_id: roomId
+    })
+
+    // Get PENDING or IN_PROGRESS task for this room (prioritize IN_PROGRESS first)
+    const inProgressTasks = housekeepingStore.tasks.filter(
+      t => t.room_id === roomId && t.status === 'IN_PROGRESS'
+    )
+
+    const pendingTasks = housekeepingStore.tasks.filter(
+      t => t.room_id === roomId && t.status === 'PENDING'
+    )
+
+    // Use IN_PROGRESS if exists, otherwise use PENDING
+    const availableTasks = inProgressTasks.length > 0 ? inProgressTasks : pendingTasks
+
+    if (availableTasks.length > 0) {
+      task.value = availableTasks[0]
+    } else {
+      message.error('ไม่พบงานทำความสะอาดสำหรับห้องนี้')
+      handleCancel()
+    }
+  } catch (error: any) {
+    console.error('Error fetching housekeeping task:', error)
+    message.error('ไม่สามารถโหลดข้อมูลงานได้')
+    handleCancel()
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function formatDateTime(datetime: string | null): string {
+  if (!datetime) return '-'
+  return dayjs(datetime).format('DD/MM/YYYY HH:mm น.')
+}
+
+async function handleComplete(): Promise<void> {
+  if (!task.value) return
+
+  try {
+    isLoading.value = true
+
+    // If task is PENDING, start it first before completing
+    if (task.value.status === 'PENDING') {
+      await housekeepingStore.startTask(task.value.id)
+    }
+
+    // Complete the task
+    await housekeepingStore.completeTask(
+      task.value.id,
+      completionNotes.value || undefined
+    )
+
+    message.success(`ปิดงานทำความสะอาดห้อง ${task.value.room_number} สำเร็จ`)
+
+    // Emit completed event to refresh dashboard
+    emit('completed')
+
+    // Close modal
+    handleCancel()
+  } catch (error: any) {
+    console.error('Error completing housekeeping task:', error)
+    message.error(
+      error.response?.data?.detail || 'ไม่สามารถปิดงานทำความสะอาดได้'
+    )
+  } finally {
+    isLoading.value = false
+  }
+}
+
+function handleCancel(): void {
+  completionNotes.value = ''
+  task.value = null
+  emit('update:show', false)
+}
+</script>
+
+<style scoped>
+.quick-complete-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.room-info-banner {
+  background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  color: #333;
+}
+
+.room-number {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.room-type {
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f5f5f5;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+}
+
+.value.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.value.status-badge.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.value.status-badge.status-in_progress {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #FFC107;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Complete Button - Match CLEANING room card yellow theme */
+:deep(.complete-btn) {
+  background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%) !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.complete-btn:hover:not(:disabled)) {
+  background: linear-gradient(135deg, #FFB300 0%, #FFC107 100%) !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
+:deep(.complete-btn:active:not(:disabled)) {
+  transform: translateY(0) !important;
+}
+
+:deep(.complete-btn:disabled) {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+@media (max-width: 768px) {
+  .room-number {
+    font-size: 28px;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .label {
+    min-width: auto;
+  }
+
+  .value {
+    text-align: left;
+  }
+}
+</style>

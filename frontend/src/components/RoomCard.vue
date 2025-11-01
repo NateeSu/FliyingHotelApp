@@ -24,7 +24,7 @@
     </div>
 
     <!-- Booking Info (if reserved) -->
-    <div v-if="room.status === 'reserved' && room.booking_customer_name" class="booking-info">
+    <div v-if="room.status === 'RESERVED' && room.booking_customer_name" class="booking-info">
       <div class="customer-info">
         <span class="label">ผู้จอง:</span>
         <span class="value">{{ room.booking_customer_name }}</span>
@@ -48,7 +48,7 @@
     </div>
 
     <!-- Check-in Info (if occupied) -->
-    <div v-if="room.status === 'occupied' && room.customer_name" class="check-in-info">
+    <div v-if="room.status === 'OCCUPIED' && room.customer_name" class="check-in-info">
       <div class="customer-info">
         <span class="label">ผู้เข้าพัก:</span>
         <span class="value">{{ room.customer_name }}</span>
@@ -88,7 +88,7 @@
     <div class="action-buttons" @click.stop>
       <!-- Check-In Button (available rooms) -->
       <button
-        v-if="room.status === 'available'"
+        v-if="room.status === 'AVAILABLE'"
         class="action-btn check-in-btn"
         @click="handleCheckIn"
       >
@@ -97,7 +97,7 @@
       </button>
 
       <!-- Reserved Room Actions -->
-      <template v-if="room.status === 'reserved'">
+      <template v-if="room.status === 'RESERVED'">
         <!-- Check-In from Booking Button -->
         <button
           class="action-btn check-in-btn"
@@ -118,7 +118,7 @@
       </template>
 
       <!-- Occupied Room Actions -->
-      <template v-if="room.status === 'occupied'">
+      <template v-if="room.status === 'OCCUPIED'">
         <!-- Transfer Room Button -->
         <button
           class="action-btn transfer-btn"
@@ -135,6 +135,18 @@
         >
           <span class="icon">→</span>
           <span class="text">เช็คเอาท์</span>
+        </button>
+      </template>
+
+      <!-- Cleaning Room Actions -->
+      <template v-if="room.status === 'CLEANING'">
+        <!-- Complete Housekeeping Button -->
+        <button
+          class="action-btn complete-housekeeping-btn"
+          @click="handleCompleteHousekeeping"
+        >
+          <span class="icon">✅</span>
+          <span class="text">ปิดงานทำความสะอาด</span>
         </button>
       </template>
     </div>
@@ -163,23 +175,24 @@ const emit = defineEmits<{
   checkOut: [room: DashboardRoomCard]
   transfer: [room: DashboardRoomCard]
   cancelBooking: [room: DashboardRoomCard]
+  completeHousekeeping: [room: DashboardRoomCard]
 }>()
 
 // Computed
 const statusLabel = computed(() => {
   const statusMap: Record<string, string> = {
-    available: 'ว่าง',
-    occupied: 'มีผู้เข้าพัก',
-    cleaning: 'ทำความสะอาด',
-    reserved: 'จอง',
-    out_of_service: 'ไม่พร้อมใช้งาน'
+    AVAILABLE: 'ว่าง',
+    OCCUPIED: 'มีผู้เข้าพัก',
+    CLEANING: 'ทำความสะอาด',
+    RESERVED: 'จอง',
+    OUT_OF_SERVICE: 'ไม่พร้อมใช้งาน'
   }
   return statusMap[props.room.status] || props.room.status
 })
 
 const stayTypeLabel = computed(() => {
   if (!props.room.stay_type) return ''
-  return props.room.stay_type === 'overnight' ? 'ค้างคืน' : 'ชั่วคราว'
+  return props.room.stay_type === 'OVERNIGHT' ? 'ค้างคืน' : 'ชั่วคราว'
 })
 
 // Methods
@@ -219,6 +232,10 @@ function handleTransfer(): void {
 function handleCancelBooking(): void {
   emit('cancelBooking', props.room)
 }
+
+function handleCompleteHousekeeping(): void {
+  emit('completeHousekeeping', props.room)
+}
 </script>
 
 <style scoped>
@@ -257,24 +274,64 @@ function handleCancelBooking(): void {
 }
 
 /* Status Color Variations */
-.room-card.status-available {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+/* Status Color Variations - ตามมาตรฐาน PRD */
+
+/* ห้องว่าง - เขียวสดใส */
+.room-card.status-AVAILABLE {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
-.room-card.status-occupied {
-  background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+.room-card.status-AVAILABLE:hover {
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
 }
 
-.room-card.status-cleaning {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+/* ห้องมีผู้พัก - แดงสด */
+.room-card.status-OCCUPIED {
+  background: linear-gradient(135deg, #F44336 0%, #E57373 100%);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
 }
 
-.room-card.status-reserved {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.room-card.status-OCCUPIED:hover {
+  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
 }
 
-.room-card.status-out_of_service {
-  background: linear-gradient(135deg, #606c88 0%, #3f4c6b 100%);
+/* ห้องทำความสะอาด - เหลืองทอง */
+.room-card.status-CLEANING {
+  background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+  color: #333 !important;
+}
+
+.room-card.status-CLEANING:hover {
+  box-shadow: 0 8px 20px rgba(255, 193, 7, 0.4);
+}
+
+.room-card.status-CLEANING .status-badge,
+.room-card.status-CLEANING .floor-badge {
+  background: rgba(0, 0, 0, 0.15);
+  color: #333;
+}
+
+/* ห้องจอง - ฟ้าสดใส */
+.room-card.status-RESERVED {
+  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.room-card.status-RESERVED:hover {
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+}
+
+/* ห้องไม่พร้อมใช้ - เทา */
+.room-card.status-OUT_OF_SERVICE {
+  background: linear-gradient(135deg, #9E9E9E 0%, #BDBDBD 100%);
+  box-shadow: 0 4px 12px rgba(158, 158, 158, 0.3);
+  opacity: 0.85;
+}
+
+.room-card.status-OUT_OF_SERVICE:hover {
+  box-shadow: 0 8px 20px rgba(158, 158, 158, 0.4);
 }
 
 .room-card.is-overtime {
@@ -535,6 +592,19 @@ function handleCancelBooking(): void {
 
 .cancel-btn:hover {
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.complete-housekeeping-btn {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  color: white;
+  width: 100%;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.4);
+}
+
+.complete-housekeeping-btn:hover {
+  background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.6);
 }
 
 /* Responsive */

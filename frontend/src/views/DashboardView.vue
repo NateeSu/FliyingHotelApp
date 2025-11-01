@@ -94,7 +94,7 @@
           <div class="alert-room">ห้อง {{ alert.room_number }}</div>
           <div class="alert-details">
             <span class="customer">{{ alert.customer_name }}</span>
-            <span class="type">{{ alert.stay_type === 'overnight' ? 'ค้างคืน' : 'ชั่วคราว' }}</span>
+            <span class="type">{{ alert.stay_type === 'OVERNIGHT' ? 'ค้างคืน' : 'ชั่วคราว' }}</span>
           </div>
           <div class="alert-time">เกินเวลา {{ alert.overtime_minutes }} นาที</div>
         </div>
@@ -135,6 +135,7 @@
         @checkOut="handleCheckOutClick"
         @transfer="handleTransferClick"
         @cancelBooking="handleCancelBookingClick"
+        @completeHousekeeping="handleCompleteHousekeepingClick"
       />
     </div>
 
@@ -187,6 +188,14 @@
       @update:show="showTransferModal = $event"
       @success="handleTransferSuccess"
     />
+
+    <!-- Housekeeping Quick Complete Modal -->
+    <HousekeepingQuickCompleteModal
+      :show="showHousekeepingCompleteModal"
+      :roomId="selectedRoom?.id || null"
+      @update:show="showHousekeepingCompleteModal = $event"
+      @completed="handleHousekeepingCompleted"
+    />
   </div>
 </template>
 
@@ -203,6 +212,7 @@ import NotificationPanel from '@/components/NotificationPanel.vue'
 import CheckInModal from '@/components/CheckInModal.vue'
 import CheckOutModal from '@/components/CheckOutModal.vue'
 import RoomTransferModal from '@/components/RoomTransferModal.vue'
+import HousekeepingQuickCompleteModal from '@/components/HousekeepingQuickCompleteModal.vue'
 import type { DashboardRoomCard, OvertimeAlert } from '@/types/dashboard'
 import type { Notification } from '@/types/notification'
 import dayjs from 'dayjs'
@@ -238,6 +248,7 @@ const showNotificationPanel = ref(false)
 const showCheckInModal = ref(false)
 const showCheckOutModal = ref(false)
 const showTransferModal = ref(false)
+const showHousekeepingCompleteModal = ref(false)
 const selectedRoom = ref<DashboardRoomCard | null>(null)
 
 // Get room rates based on selected room
@@ -253,14 +264,14 @@ const ratePerSession = computed(() => {
   return matrix?.temporary_rate || 0
 })
 
-// Room Status Options
+// Room Status Options (UPPERCASE to match backend)
 const roomStatuses = [
   { value: null, label: 'ทั้งหมด', icon: '🏨' },
-  { value: 'available', label: 'ว่าง', icon: '✅' },
-  { value: 'occupied', label: 'มีผู้เข้าพัก', icon: '🛏️' },
-  { value: 'cleaning', label: 'ทำความสะอาด', icon: '🧹' },
-  { value: 'reserved', label: 'จอง', icon: '📅' },
-  { value: 'out_of_service', label: 'ไม่พร้อมใช้', icon: '⚠️' }
+  { value: 'AVAILABLE', label: 'ว่าง', icon: '✅' },
+  { value: 'OCCUPIED', label: 'มีผู้เข้าพัก', icon: '🛏️' },
+  { value: 'CLEANING', label: 'ทำความสะอาด', icon: '🧹' },
+  { value: 'RESERVED', label: 'จอง', icon: '📅' },
+  { value: 'OUT_OF_SERVICE', label: 'ไม่พร้อมใช้', icon: '⚠️' }
 ]
 
 // Computed
@@ -361,6 +372,18 @@ async function handleTransferSuccess(): Promise<void> {
   console.log('Room transfer successful')
   // Refresh dashboard to show updated room statuses
   await dashboardStore.refresh()
+}
+
+function handleCompleteHousekeepingClick(room: DashboardRoomCard): void {
+  selectedRoom.value = room
+  showHousekeepingCompleteModal.value = true
+}
+
+async function handleHousekeepingCompleted(): Promise<void> {
+  console.log('Housekeeping task completed')
+  // Refresh dashboard to show updated room status (should change from CLEANING to AVAILABLE)
+  await dashboardStore.refresh()
+  selectedRoom.value = null
 }
 
 function handleAlertClick(alert: OvertimeAlert): void {
