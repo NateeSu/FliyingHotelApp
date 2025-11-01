@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Booking Store (Phase 7)
  * State management for booking system
  */
@@ -62,11 +62,11 @@ export const useBookingStore = defineStore('booking', () => {
 
   // Computed
   const confirmedBookings = computed(() =>
-    bookings.value.filter(b => b.status === 'confirmed')
+    bookings.value.filter(b => b.status === 'CONFIRMED')
   )
 
   const pendingBookings = computed(() =>
-    bookings.value.filter(b => b.status === 'pending')
+    bookings.value.filter(b => b.status === 'PENDING')
   )
 
   const todayBookings = computed(() => {
@@ -88,7 +88,7 @@ export const useBookingStore = defineStore('booking', () => {
       bookings.value = response.data
       total.value = response.total
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถโหลดข้อมูลการจองได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฒเธฃเธเธญเธเนเธ”เน'
       console.error('Error fetching bookings:', err)
     } finally {
       loading.value = false
@@ -107,7 +107,7 @@ export const useBookingStore = defineStore('booking', () => {
       currentBooking.value = booking
       return booking
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถโหลดข้อมูลการจองได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธเธฒเธฃเธเธญเธเนเธ”เน'
       console.error('Error fetching booking:', err)
       throw err
     } finally {
@@ -128,7 +128,7 @@ export const useBookingStore = defineStore('booking', () => {
       total.value++
       return booking
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถสร้างการจองได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธชเธฃเนเธฒเธเธเธฒเธฃเธเธญเธเนเธ”เน'
       console.error('Error creating booking:', err)
       throw err
     } finally {
@@ -159,7 +159,7 @@ export const useBookingStore = defineStore('booking', () => {
 
       return booking
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถอัพเดทการจองได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธญเธฑเธเน€เธ”เธ—เธเธฒเธฃเธเธญเธเนเธ”เน'
       console.error('Error updating booking:', err)
       throw err
     } finally {
@@ -190,7 +190,7 @@ export const useBookingStore = defineStore('booking', () => {
 
       return booking
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถยกเลิกการจองได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธขเธเน€เธฅเธดเธเธเธฒเธฃเธเธญเธเนเธ”เน'
       console.error('Error cancelling booking:', err)
       throw err
     } finally {
@@ -241,7 +241,7 @@ export const useBookingStore = defineStore('booking', () => {
 
       return calendarEvents.value
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถโหลดปฏิทินได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธเธเธดเธ—เธดเธเนเธ”เน'
       console.error('Error fetching calendar events:', err)
       return []
     } finally {
@@ -266,7 +266,7 @@ export const useBookingStore = defineStore('booking', () => {
           const dateStr = formatDateForCalendar(holiday.date)
           return {
             id: `holiday-${holiday.date}`,
-            title: `🎉 ${holiday.name}`,
+            title: `๐ ${holiday.name}`,
             start: dateStr,
             end: dateStr,
             backgroundColor: '#DC2626',
@@ -290,7 +290,7 @@ export const useBookingStore = defineStore('booking', () => {
 
       return holidays
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถโหลดวันหยุดได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เนเธซเธฅเธ”เธงเธฑเธเธซเธขเธธเธ”เนเธ”เน'
       console.error('Error fetching public holidays:', err)
       return []
     } finally {
@@ -309,7 +309,7 @@ export const useBookingStore = defineStore('booking', () => {
       const result = await bookingApi.checkAvailability(data)
       return result
     } catch (err: any) {
-      error.value = err.response?.data?.detail || 'ไม่สามารถตรวจสอบความว่างได้'
+      error.value = err.response?.data?.detail || 'เนเธกเนเธชเธฒเธกเธฒเธฃเธ–เธ•เธฃเธงเธเธชเธญเธเธเธงเธฒเธกเธงเนเธฒเธเนเธ”เน'
       console.error('Error checking availability:', err)
       throw err
     } finally {

@@ -1,9 +1,9 @@
-/**
+﻿/**
  * Booking Types (Phase 7)
  * TypeScript interfaces for booking system
  */
 
-export type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled'
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'COMPLETED' | 'CANCELLED'
 
 export interface Booking {
   id: number

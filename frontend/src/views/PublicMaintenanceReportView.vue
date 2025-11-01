@@ -69,13 +69,13 @@
               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-500 transition-all text-lg"
             >
               <option value="">-- เลือกประเภทงาน --</option>
-              <option value="plumbing">🚰 ประปา</option>
-              <option value="electrical">⚡ ไฟฟ้า</option>
-              <option value="hvac">❄️ เครื่องปรับอากาศ</option>
-              <option value="furniture">🪑 เฟอร์นิเจอร์</option>
-              <option value="appliance">📺 เครื่องใช้ไฟฟ้า</option>
-              <option value="building">🏢 อาคาร</option>
-              <option value="other">🔧 อื่นๆ</option>
+              <option value="PLUMBING">🚰 ประปา</option>
+              <option value="ELECTRICAL">⚡ ไฟฟ้า</option>
+              <option value="HVAC">❄️ เครื่องปรับอากาศ</option>
+              <option value="FURNITURE">🪑 เฟอร์นิเจอร์</option>
+              <option value="APPLIANCE">📺 เครื่องใช้ไฟฟ้า</option>
+              <option value="BUILDING">🏢 อาคาร</option>
+              <option value="OTHER">🔧 อื่นๆ</option>
             </select>
           </div>
 
@@ -120,10 +120,10 @@
               required
               class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-200 focus:border-orange-500 transition-all text-lg"
             >
-              <option value="urgent">🔴 ด่วนมาก</option>
-              <option value="high">🟠 สูง</option>
-              <option value="medium">🟡 ปานกลาง</option>
-              <option value="low">🟢 ต่ำ</option>
+              <option value="URGENT">🔴 ด่วนมาก</option>
+              <option value="HIGH">🟠 สูง</option>
+              <option value="MEDIUM">🟡 ปานกลาง</option>
+              <option value="LOW">🟢 ต่ำ</option>
             </select>
           </div>
 
@@ -211,7 +211,7 @@ const formData = ref({
   title: '',
   description: '',
   category: '',
-  priority: 'high' // Default to high priority for housekeeping-reported issues
+  priority: 'HIGH' // Default to high priority for housekeeping-reported issues
 })
 
 const toast = ref({

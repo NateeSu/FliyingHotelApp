@@ -106,7 +106,7 @@ export const bookingApi = {
           room_id: roomId,
           start_date: date,
           end_date: date,
-          status: 'confirmed',
+          status: 'CONFIRMED',
           limit: 1
         }
       })

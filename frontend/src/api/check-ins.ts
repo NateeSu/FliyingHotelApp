@@ -8,13 +8,13 @@ const BASE_PATH = '/check-ins'
 
 export interface CheckInCreateData {
   room_id: number
-  stay_type: 'overnight' | 'temporary'
+  stay_type: 'OVERNIGHT' | 'TEMPORARY'
   number_of_nights?: number
   number_of_guests?: number
   check_in_time?: string // ISO datetime
   booking_id?: number
   deposit_amount?: number
-  payment_method: 'cash' | 'transfer' | 'credit_card'
+  payment_method: 'CASH' | 'TRANSFER' | 'CREDIT_CARD'
   notes?: string
 }
 
@@ -32,7 +32,7 @@ export interface CheckInResponse {
   room_id: number
   customer_id: number
   booking_id?: number
-  stay_type: 'overnight' | 'temporary'
+  stay_type: 'OVERNIGHT' | 'TEMPORARY'
   number_of_nights?: number
   number_of_guests: number
   check_in_time: string
@@ -46,9 +46,9 @@ export interface CheckInResponse {
   discount_amount: number
   discount_reason?: string
   total_amount: number
-  payment_method?: 'cash' | 'transfer' | 'credit_card'
+  payment_method?: 'CASH' | 'TRANSFER' | 'CREDIT_CARD'
   payment_slip_url?: string
-  status: 'checked_in' | 'checked_out'
+  status: 'CHECKED_IN' | 'CHECKED_OUT'
   notes?: string
   created_by: number
   checked_out_by?: number
@@ -61,7 +61,7 @@ export interface CheckOutRequest {
   extra_charges?: number
   discount_amount?: number
   discount_reason?: string
-  payment_method: 'cash' | 'transfer' | 'credit_card'
+  payment_method: 'CASH' | 'TRANSFER' | 'CREDIT_CARD'
   payment_notes?: string
   // Optional customer data for creating/updating customer during checkout
   customer_name?: string
@@ -74,7 +74,7 @@ export interface CheckOutSummary {
   check_in_id: number
   room_number: string
   customer_name: string
-  stay_type: 'overnight' | 'temporary'
+  stay_type: 'OVERNIGHT' | 'TEMPORARY'
   check_in_time: string
   expected_check_out_time: string
   actual_check_out_time: string

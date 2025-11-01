@@ -117,13 +117,13 @@ export interface CheckInListItem {
   room_type_name: string
   customer_name: string
   customer_phone: string
-  stay_type: 'overnight' | 'temporary'
+  stay_type: 'OVERNIGHT' | 'TEMPORARY'
   check_in_time: string
   expected_check_out_time: string | null
   check_out_time: string | null
   total_amount: number
   payment_method: string
-  status: 'checked_in' | 'checked_out'
+  status: 'CHECKED_IN' | 'CHECKED_OUT'
   number_of_nights: number | null
   number_of_guests: number
 }

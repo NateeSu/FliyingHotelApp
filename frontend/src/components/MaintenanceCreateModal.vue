@@ -134,7 +134,7 @@ const formData = ref<MaintenanceTaskCreate>({
   title: '',
   description: '',
   category: undefined as any,
-  priority: 'medium',
+  priority: 'MEDIUM',
   assigned_to: undefined
 })
 
@@ -159,20 +159,20 @@ const maintenanceStaffOptions = computed(() => {
 })
 
 const categoryOptions = [
-  { label: '🚰 ประปา', value: 'plumbing' },
-  { label: '⚡ ไฟฟ้า', value: 'electrical' },
-  { label: '❄️ เครื่องปรับอากาศ', value: 'hvac' },
-  { label: '🪑 เฟอร์นิเจอร์', value: 'furniture' },
-  { label: '📺 เครื่องใช้ไฟฟ้า', value: 'appliance' },
-  { label: '🏢 อาคาร', value: 'building' },
-  { label: '🔧 อื่นๆ', value: 'other' }
+  { label: '🚰 ประปา', value: 'PLUMBING' },
+  { label: '⚡ ไฟฟ้า', value: 'ELECTRICAL' },
+  { label: '❄️ เครื่องปรับอากาศ', value: 'HVAC' },
+  { label: '🪑 เฟอร์นิเจอร์', value: 'FURNITURE' },
+  { label: '📺 เครื่องใช้ไฟฟ้า', value: 'APPLIANCE' },
+  { label: '🏢 อาคาร', value: 'BUILDING' },
+  { label: '🔧 อื่นๆ', value: 'OTHER' }
 ]
 
 const priorityOptions = [
-  { label: '🔴 ด่วนมาก', value: 'urgent' },
-  { label: '🟠 สูง', value: 'high' },
-  { label: '🟡 ปานกลาง', value: 'medium' },
-  { label: '🟢 ต่ำ', value: 'low' }
+  { label: '🔴 ด่วนมาก', value: 'URGENT' },
+  { label: '🟠 สูง', value: 'HIGH' },
+  { label: '🟡 ปานกลาง', value: 'MEDIUM' },
+  { label: '🟢 ต่ำ', value: 'LOW' }
 ]
 
 // Validation Rules
@@ -247,7 +247,7 @@ function resetForm() {
     title: '',
     description: '',
     category: undefined as any,
-    priority: 'medium',
+    priority: 'MEDIUM',
     assigned_to: undefined
   }
   formRef.value?.restoreValidation()
