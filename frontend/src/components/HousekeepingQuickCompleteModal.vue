@@ -81,13 +81,11 @@
 
           <div class="form-group">
             <label class="form-label">ลำดับความสำคัญ</label>
-            <n-radio-group v-model:value="maintenancePriority">
-              <n-space>
-                <n-radio value="URGENT" label="🔴 ด่วนมาก" />
-                <n-radio value="HIGH" label="🟠 สูง" />
-                <n-radio value="MEDIUM" label="🟡 ปานกลาง" />
-              </n-space>
-            </n-radio-group>
+            <n-select
+              v-model:value="maintenancePriority"
+              :options="priorityOptions"
+              placeholder="เลือกลำดับความสำคัญ"
+            />
           </div>
 
           <!-- Photos -->
@@ -198,6 +196,14 @@ const categoryOptions = [
   { label: '🔌 เครื่องใช้ไฟฟ้า', value: 'APPLIANCE' },
   { label: '🏢 โครงสร้างอาคาร', value: 'BUILDING' },
   { label: '📝 อื่นๆ', value: 'OTHER' }
+]
+
+// Priority options (matching backend enums)
+const priorityOptions = [
+  { label: '🔴 ด่วนมาก', value: 'URGENT' },
+  { label: '🟠 สูง', value: 'HIGH' },
+  { label: '🟡 ปานกลาง', value: 'MEDIUM' },
+  { label: '🟢 ต่ำ', value: 'LOW' }
 ]
 
 const isVisible = computed({
@@ -345,13 +351,14 @@ async function handleComplete(): Promise<void> {
           formDataWithFiles.append('photos', photo.file)
         })
 
-        // Call maintenance API directly with FormData
+        // Call maintenance API with FormData (using correct path with v1)
         const api = (await import('@/api/client')).default
-        const response = await api.post('/maintenance/', formDataWithFiles)
+        await api.post('/api/v1/maintenance/', formDataWithFiles)
 
         message.success(`สร้างงานซ่อมห้อง ${task.value.room_number} สำเร็จ`)
       } catch (error: any) {
         console.error('Error creating maintenance task:', error)
+        console.error('Error response:', error.response?.data)
         message.warning(
           'ปิดงานทำความสะอาดสำเร็จ แต่ไม่สามารถสร้างงานซ่อมได้: ' +
           (error.response?.data?.detail || 'Unknown error')
