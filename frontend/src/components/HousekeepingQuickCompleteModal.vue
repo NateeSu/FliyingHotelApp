@@ -351,17 +351,29 @@ async function handleComplete(): Promise<void> {
           formDataWithFiles.append('photos', photo.file)
         })
 
-        // Call maintenance API with FormData (path will be prepended with /api/v1 by baseURL)
-        const api = (await import('@/api/client')).default
-        await api.post('/maintenance/', formDataWithFiles)
+        // Call maintenance API with FormData using axios.ts (has FormData interceptor)
+        const axiosInstance = (await import('@/api/axios')).default
+        await axiosInstance.post('/api/v1/maintenance/', formDataWithFiles)
 
         message.success(`สร้างงานซ่อมห้อง ${task.value.room_number} สำเร็จ`)
       } catch (error: any) {
         console.error('Error creating maintenance task:', error)
         console.error('Error response:', error.response?.data)
+
+        // Get detailed error message
+        let errorMsg = 'Unknown error'
+        if (Array.isArray(error.response?.data?.detail)) {
+          // Validation errors array
+          errorMsg = error.response.data.detail
+            .map((err: any) => `${err.loc?.join('.')} - ${err.msg}`)
+            .join('; ')
+        } else if (error.response?.data?.detail) {
+          errorMsg = error.response.data.detail
+        }
+
+        console.error('Formatted error:', errorMsg)
         message.warning(
-          'ปิดงานทำความสะอาดสำเร็จ แต่ไม่สามารถสร้างงานซ่อมได้: ' +
-          (error.response?.data?.detail || 'Unknown error')
+          'ปิดงานทำความสะอาดสำเร็จ แต่ไม่สามารถสร้างงานซ่อมได้: ' + errorMsg
         )
       }
     }
