@@ -351,9 +351,9 @@ async function handleComplete(): Promise<void> {
           formDataWithFiles.append('photos', photo.file)
         })
 
-        // Call maintenance API with FormData (using correct path with v1)
+        // Call maintenance API with FormData (path will be prepended with /api/v1 by baseURL)
         const api = (await import('@/api/client')).default
-        await api.post('/api/v1/maintenance/', formDataWithFiles)
+        await api.post('/maintenance/', formDataWithFiles)
 
         message.success(`สร้างงานซ่อมห้อง ${task.value.room_number} สำเร็จ`)
       } catch (error: any) {
