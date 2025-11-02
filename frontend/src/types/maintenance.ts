@@ -50,7 +50,13 @@ export interface MaintenanceTaskWithDetails extends MaintenanceTask {
 }
 
 export interface MaintenanceTaskCreate {
-otes?: string
+  room_id: number
+  category: MaintenanceTaskCategory
+  title: string
+  description?: string
+  priority: MaintenanceTaskPriority
+  assigned_to?: number | null
+  notes?: string
   photos?: File[]
 }
 

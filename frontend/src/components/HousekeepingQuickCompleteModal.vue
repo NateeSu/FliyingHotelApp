@@ -52,6 +52,45 @@
           show-count
         />
       </div>
+
+      <!-- Maintenance Request Section -->
+      <div class="maintenance-section">
+        <div class="section-title">พบความเสียหายหรือต้องซ่อม?</div>
+        <div class="maintenance-form">
+          <div class="form-group">
+            <label class="form-label">หมวดหมู่ความเสียหาย</label>
+            <n-select
+              v-model:value="maintenanceCategory"
+              :options="categoryOptions"
+              placeholder="เลือกหมวดหมู่ความเสียหาย"
+              clearable
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">รายละเอียดความเสียหาย</label>
+            <n-input
+              v-model:value="maintenanceDescription"
+              type="textarea"
+              placeholder="บรรยายความเสียหายที่พบ เช่น ท่อรั่วน้ำ, หลอดไฟเสีย, เก้าอี้หัก"
+              :autosize="{ minRows: 2, maxRows: 4 }"
+              maxlength="500"
+              show-count
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ลำดับความสำคัญ</label>
+            <n-radio-group v-model:value="maintenancePriority">
+              <n-space>
+                <n-radio value="URGENT" label="🔴 ด่วนมาก" />
+                <n-radio value="HIGH" label="🟠 สูง" />
+                <n-radio value="MEDIUM" label="🟡 ปานกลาง" />
+              </n-space>
+            </n-radio-group>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -80,9 +119,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { NModal, NSpace, NButton, NInput, useMessage } from 'naive-ui'
+import { NModal, NSpace, NButton, NInput, NSelect, NRadioGroup, NRadio, useMessage } from 'naive-ui'
 import { useHousekeepingStore } from '@/stores/housekeeping'
+import { useMaintenanceStore } from '@/stores/maintenance'
 import type { HousekeepingTaskWithDetails } from '@/types/housekeeping'
+import type { MaintenanceTaskCreate } from '@/types/maintenance'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
 
@@ -104,10 +145,27 @@ const emit = defineEmits<Emits>()
 
 const message = useMessage()
 const housekeepingStore = useHousekeepingStore()
+const maintenanceStore = useMaintenanceStore()
 
 const isLoading = ref(false)
 const completionNotes = ref('')
 const task = ref<HousekeepingTaskWithDetails | null>(null)
+
+// Maintenance request fields
+const maintenanceCategory = ref<string | null>(null)
+const maintenanceDescription = ref('')
+const maintenancePriority = ref<'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM')
+
+// Category options (matching backend enums)
+const categoryOptions = [
+  { label: '🔧 ท่อและปั้มน้ำ', value: 'PLUMBING' },
+  { label: '⚡ ระบบไฟฟ้า', value: 'ELECTRICAL' },
+  { label: '❄️ ระบบปรับอากาศ', value: 'HVAC' },
+  { label: '🛋️ เฟอร์นิเจอร์', value: 'FURNITURE' },
+  { label: '🔌 เครื่องใช้ไฟฟ้า', value: 'APPLIANCE' },
+  { label: '🏢 โครงสร้างอาคาร', value: 'BUILDING' },
+  { label: '📝 อื่นๆ', value: 'OTHER' }
+]
 
 const isVisible = computed({
   get: () => props.show,
@@ -122,6 +180,9 @@ watch(() => props.show, async (newValue) => {
     // Reset when modal closes
     task.value = null
     completionNotes.value = ''
+    maintenanceCategory.value = null
+    maintenanceDescription.value = ''
+    maintenancePriority.value = 'MEDIUM'
   }
 })
 
@@ -177,13 +238,36 @@ async function handleComplete(): Promise<void> {
       await housekeepingStore.startTask(task.value.id)
     }
 
-    // Complete the task
+    // Complete the housekeeping task
     await housekeepingStore.completeTask(
       task.value.id,
       completionNotes.value || undefined
     )
 
     message.success(`ปิดงานทำความสะอาดห้อง ${task.value.room_number} สำเร็จ`)
+
+    // Create maintenance task if category is selected
+    if (maintenanceCategory.value && maintenanceDescription.value.trim()) {
+      try {
+        const maintenanceData: MaintenanceTaskCreate = {
+          room_id: task.value.room_id,
+          title: maintenanceDescription.value.substring(0, 100), // Use first 100 chars as title
+          description: maintenanceDescription.value,
+          category: maintenanceCategory.value as any,
+          priority: maintenancePriority.value,
+          assigned_to: null // Will be assigned later by maintenance staff
+        }
+
+        await maintenanceStore.createTask(maintenanceData)
+        message.success(`สร้างงานซ่อมห้อง ${task.value.room_number} สำเร็จ`)
+      } catch (error: any) {
+        console.error('Error creating maintenance task:', error)
+        message.warning(
+          'ปิดงานทำความสะอาดสำเร็จ แต่ไม่สามารถสร้างงานซ่อมได้: ' +
+          (error.response?.data?.detail || 'Unknown error')
+        )
+      }
+    }
 
     // Emit completed event to refresh dashboard
     emit('completed')
@@ -202,6 +286,9 @@ async function handleComplete(): Promise<void> {
 
 function handleCancel(): void {
   completionNotes.value = ''
+  maintenanceCategory.value = null
+  maintenanceDescription.value = ''
+  maintenancePriority.value = 'MEDIUM'
   task.value = null
   emit('update:show', false)
 }
@@ -291,6 +378,34 @@ function handleCancel(): void {
 .section-title {
   font-size: 15px;
   font-weight: 600;
+  color: #333;
+}
+
+.maintenance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #fff8f0;
+  border-left: 4px solid #ff6b6b;
+  border-radius: 8px;
+}
+
+.maintenance-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
   color: #333;
 }
 
