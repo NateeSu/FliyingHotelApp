@@ -89,6 +89,37 @@
               </n-space>
             </n-radio-group>
           </div>
+
+          <!-- Photos -->
+          <div class="form-group">
+            <label class="form-label">รูปถ่ายความเสียหาย</label>
+            <div class="photo-upload-container">
+              <div class="photo-input-wrapper">
+                <input
+                  ref="fileInputRef"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style="display: none"
+                  @change="handleFilesSelected"
+                />
+                <n-button @click="triggerFileInput" type="primary" size="small">
+                  📷 เลือกรูปถ่าย
+                </n-button>
+                <p class="photo-hint">อนุญาตได้สูงสุด 5 รูป (JPG, PNG)</p>
+              </div>
+
+              <!-- Photo Preview -->
+              <div v-if="selectedMaintenancePhotos.length > 0" class="photo-preview-grid">
+                <div v-for="(photo, index) in selectedMaintenancePhotos" :key="index" class="photo-preview-item">
+                  <img :src="photo.preview" :alt="`Photo ${index + 1}`" class="preview-image" />
+                  <n-button type="error" size="small" @click="removeMaintenancePhoto(index)" class="remove-btn">
+                    ✕
+                  </n-button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -150,11 +181,13 @@ const maintenanceStore = useMaintenanceStore()
 const isLoading = ref(false)
 const completionNotes = ref('')
 const task = ref<HousekeepingTaskWithDetails | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // Maintenance request fields
 const maintenanceCategory = ref<string | null>(null)
 const maintenanceDescription = ref('')
 const maintenancePriority = ref<'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'>('MEDIUM')
+const selectedMaintenancePhotos = ref<Array<{ file: File; preview: string }>>([])
 
 // Category options (matching backend enums)
 const categoryOptions = [
@@ -183,6 +216,13 @@ watch(() => props.show, async (newValue) => {
     maintenanceCategory.value = null
     maintenanceDescription.value = ''
     maintenancePriority.value = 'MEDIUM'
+    // Clean up blob URLs
+    selectedMaintenancePhotos.value.forEach((photo) => {
+      if (photo.preview.startsWith('blob:')) {
+        URL.revokeObjectURL(photo.preview)
+      }
+    })
+    selectedMaintenancePhotos.value = []
   }
 })
 
@@ -227,6 +267,49 @@ function formatDateTime(datetime: string | null): string {
   return dayjs(datetime).format('DD/MM/YYYY HH:mm น.')
 }
 
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function handleFilesSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files || [])
+
+  if (selectedMaintenancePhotos.value.length + files.length > 5) {
+    message.error('อนุญาตได้สูงสุด 5 รูป')
+    return
+  }
+
+  files.forEach((file) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      message.error('กรุณาเลือกเฉพาะไฟล์รูปภาพ')
+      return
+    }
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      selectedMaintenancePhotos.value.push({
+        file,
+        preview: e.target?.result as string
+      })
+    }
+    reader.readAsDataURL(file)
+  })
+
+  // Reset input
+  if (input) input.value = ''
+}
+
+function removeMaintenancePhoto(index: number) {
+  const photo = selectedMaintenancePhotos.value[index]
+  if (photo.preview.startsWith('blob:')) {
+    URL.revokeObjectURL(photo.preview)
+  }
+  selectedMaintenancePhotos.value.splice(index, 1)
+}
+
 async function handleComplete(): Promise<void> {
   if (!task.value) return
 
@@ -249,16 +332,23 @@ async function handleComplete(): Promise<void> {
     // Create maintenance task if category is selected
     if (maintenanceCategory.value && maintenanceDescription.value.trim()) {
       try {
-        const maintenanceData: MaintenanceTaskCreate = {
-          room_id: task.value.room_id,
-          title: maintenanceDescription.value.substring(0, 100), // Use first 100 chars as title
-          description: maintenanceDescription.value,
-          category: maintenanceCategory.value as any,
-          priority: maintenancePriority.value,
-          assigned_to: null // Will be assigned later by maintenance staff
-        }
+        // Use FormData to support file uploads
+        const formDataWithFiles = new FormData()
+        formDataWithFiles.append('room_id', String(task.value.room_id))
+        formDataWithFiles.append('title', maintenanceDescription.value.substring(0, 100)) // Use first 100 chars as title
+        formDataWithFiles.append('description', maintenanceDescription.value)
+        formDataWithFiles.append('category', maintenanceCategory.value)
+        formDataWithFiles.append('priority', maintenancePriority.value)
 
-        await maintenanceStore.createTask(maintenanceData)
+        // Add photos
+        selectedMaintenancePhotos.value.forEach((photo) => {
+          formDataWithFiles.append('photos', photo.file)
+        })
+
+        // Call maintenance API directly with FormData
+        const api = (await import('@/api/client')).default
+        const response = await api.post('/maintenance/', formDataWithFiles)
+
         message.success(`สร้างงานซ่อมห้อง ${task.value.room_number} สำเร็จ`)
       } catch (error: any) {
         console.error('Error creating maintenance task:', error)
@@ -289,6 +379,13 @@ function handleCancel(): void {
   maintenanceCategory.value = null
   maintenanceDescription.value = ''
   maintenancePriority.value = 'MEDIUM'
+  // Clean up blob URLs
+  selectedMaintenancePhotos.value.forEach((photo) => {
+    if (photo.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(photo.preview)
+    }
+  })
+  selectedMaintenancePhotos.value = []
   task.value = null
   emit('update:show', false)
 }
@@ -407,6 +504,53 @@ function handleCancel(): void {
   font-size: 14px;
   font-weight: 500;
   color: #333;
+}
+
+.photo-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photo-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.photo-hint {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.photo-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e0e0e0;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-btn {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  padding: 2px 6px !important;
 }
 
 .loading-state {
