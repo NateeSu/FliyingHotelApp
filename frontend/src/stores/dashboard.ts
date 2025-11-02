@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { dashboardApi } from '@/api/dashboard'
+import { maintenanceApi } from '@/api/maintenance'
 import type {
   DashboardRoomCard,
   DashboardStats,
@@ -23,23 +24,23 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   // Computed
   const availableRooms = computed(() =>
-    rooms.value.filter(room => room.status === 'available')
+    rooms.value.filter(room => room.status === 'AVAILABLE')
   )
 
   const occupiedRooms = computed(() =>
-    rooms.value.filter(room => room.status === 'occupied')
+    rooms.value.filter(room => room.status === 'OCCUPIED')
   )
 
   const cleaningRooms = computed(() =>
-    rooms.value.filter(room => room.status === 'cleaning')
+    rooms.value.filter(room => room.status === 'CLEANING')
   )
 
   const reservedRooms = computed(() =>
-    rooms.value.filter(room => room.status === 'reserved')
+    rooms.value.filter(room => room.status === 'RESERVED')
   )
 
   const outOfServiceRooms = computed(() =>
-    rooms.value.filter(room => room.status === 'out_of_service')
+    rooms.value.filter(room => room.status === 'OUT_OF_SERVICE')
   )
 
   const overtimeRooms = computed(() =>
@@ -110,6 +111,24 @@ export const useDashboardStore = defineStore('dashboard', () => {
       error.value = err.response?.data?.detail || 'ไม่สามารถโหลดรายการเกินเวลาได้'
       console.error('Error fetching overtime alerts:', err)
       throw err
+    }
+  }
+
+  async function fetchMaintenanceStats(): Promise<void> {
+    try {
+      error.value = null
+
+      const maintenanceStats = await maintenanceApi.getStats()
+
+      // Add pending maintenance count to stats
+      if (stats.value) {
+        stats.value.pending_maintenance_count =
+          maintenanceStats.pending_tasks + maintenanceStats.in_progress_tasks
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.detail || 'ไม่สามารถโหลดข้อมูลงานซ่อมได้'
+      console.error('Error fetching maintenance stats:', err)
+      // Don't throw - maintenance stats is optional
     }
   }
 
@@ -213,7 +232,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
    */
   async function refresh(): Promise<void> {
     await fetchDashboard()
-    await fetchOvertimeAlerts()
+    await Promise.all([
+      fetchOvertimeAlerts(),
+      fetchMaintenanceStats()
+    ])
   }
 
   return {
@@ -240,6 +262,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     fetchRooms,
     fetchStats,
     fetchOvertimeAlerts,
+    fetchMaintenanceStats,
     handleRoomStatusChange,
     handleOvertimeAlert,
     handleCheckIn,

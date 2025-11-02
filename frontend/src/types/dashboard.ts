@@ -4,8 +4,8 @@
  */
 
 export enum StayType {
-  OVERNIGHT = 'overnight',
-  TEMPORARY = 'temporary'
+  OVERNIGHT = 'OVERNIGHT',
+  TEMPORARY = 'TEMPORARY'
 }
 
 export interface DashboardRoomCard {
@@ -66,6 +66,9 @@ export interface DashboardStats {
 
   // Revenue statistics (today)
   revenue_today: string // Decimal as string
+
+  // Maintenance statistics
+  pending_maintenance_count?: number // Tasks not completed
 }
 
 export interface DashboardResponse {

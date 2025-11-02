@@ -29,51 +29,57 @@
 
     <!-- Statistics Cards -->
     <div v-if="stats" class="stats-grid">
+      <!-- Total Rooms Card -->
       <div class="stat-card total">
         <div class="stat-icon">🏨</div>
         <div class="stat-content">
-          <div class="stat-label">ห้องทั้งหมด</div>
+          <div class="stat-label">ห้องพักทั้งหมด</div>
           <div class="stat-value">{{ stats.total_rooms }}</div>
         </div>
       </div>
 
+      <!-- Available Rooms Card -->
       <div class="stat-card available">
         <div class="stat-icon">✅</div>
         <div class="stat-content">
-          <div class="stat-label">ห้องว่าง</div>
+          <div class="stat-label">ห้องพักว่าง</div>
           <div class="stat-value">{{ stats.available_rooms }}</div>
         </div>
       </div>
 
-      <div class="stat-card occupied">
-        <div class="stat-icon">🛏️</div>
+      <!-- Overnight Stays Card -->
+      <div class="stat-card overnight">
+        <div class="stat-icon">🌙</div>
         <div class="stat-content">
-          <div class="stat-label">มีผู้เข้าพัก</div>
-          <div class="stat-value">{{ stats.occupied_rooms }}</div>
+          <div class="stat-label">พักค้างคืน</div>
+          <div class="stat-value">{{ stats.overnight_stays }}</div>
         </div>
       </div>
 
-      <div class="stat-card occupancy">
-        <div class="stat-icon">📊</div>
+      <!-- Temporary Stays Card -->
+      <div class="stat-card temporary">
+        <div class="stat-icon">⏰</div>
         <div class="stat-content">
-          <div class="stat-label">อัตราการเข้าพัก</div>
-          <div class="stat-value">{{ stats.occupancy_rate.toFixed(1) }}%</div>
+          <div class="stat-label">พักชั่วคราว</div>
+          <div class="stat-value">{{ stats.temporary_stays }}</div>
         </div>
       </div>
 
-      <div class="stat-card checkins">
-        <div class="stat-icon">📅</div>
+      <!-- Cleaning Rooms Card -->
+      <div class="stat-card cleaning">
+        <div class="stat-icon">🧹</div>
         <div class="stat-content">
-          <div class="stat-label">เช็คอินวันนี้</div>
-          <div class="stat-value">{{ stats.total_check_ins_today }}</div>
+          <div class="stat-label">ทำความสะอาด</div>
+          <div class="stat-value">{{ stats.cleaning_rooms }}</div>
         </div>
       </div>
 
-      <div class="stat-card revenue">
-        <div class="stat-icon">💰</div>
+      <!-- Pending Maintenance Card -->
+      <div class="stat-card maintenance">
+        <div class="stat-icon">🔧</div>
         <div class="stat-content">
-          <div class="stat-label">รายได้วันนี้</div>
-          <div class="stat-value">฿{{ formatCurrency(stats.revenue_today) }}</div>
+          <div class="stat-label">แจ้งซ่อม</div>
+          <div class="stat-value">{{ stats.pending_maintenance_count || 0 }}</div>
         </div>
       </div>
     </div>
@@ -466,6 +472,7 @@ onMounted(async () => {
   await Promise.all([
     dashboardStore.fetchDashboard(),
     dashboardStore.fetchOvertimeAlerts(),
+    dashboardStore.fetchMaintenanceStats(),
     notificationStore.fetchUnreadCount(),
     roomStore.fetchRateMatrix() // Load room rates
   ])
@@ -638,6 +645,31 @@ onUnmounted(() => {
   font-size: 32px;
   border-radius: 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Stat Card Colors */
+.stat-card.total .stat-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card.available .stat-icon {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+}
+
+.stat-card.overnight .stat-icon {
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+}
+
+.stat-card.temporary .stat-icon {
+  background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+}
+
+.stat-card.cleaning .stat-icon {
+  background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
+}
+
+.stat-card.maintenance .stat-icon {
+  background: linear-gradient(135deg, #F44336 0%, #EF5350 100%);
 }
 
 .stat-content {
