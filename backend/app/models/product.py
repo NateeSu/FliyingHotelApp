@@ -11,8 +11,8 @@ from app.db.base import Base
 
 class ProductCategoryEnum(str, enum.Enum):
     """Product category enumeration"""
-    ROOM_AMENITY = "room_amenity"
-    FOOD_BEVERAGE = "food_beverage"
+    ROOM_AMENITY = "ROOM_AMENITY"
+    FOOD_BEVERAGE = "FOOD_BEVERAGE"
 
 
 class Product(Base):

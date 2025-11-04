@@ -27,23 +27,23 @@ export const useHousekeepingStore = defineStore('housekeeping', () => {
 
   // Computed
   const pendingTasks = computed(() =>
-    tasks.value.filter(task => task.status === 'pending')
+    tasks.value.filter(task => task.status === 'PENDING')
   )
 
   const inProgressTasks = computed(() =>
-    tasks.value.filter(task => task.status === 'in_progress')
+    tasks.value.filter(task => task.status === 'IN_PROGRESS')
   )
 
   const completedTasks = computed(() =>
-    tasks.value.filter(task => task.status === 'completed')
+    tasks.value.filter(task => task.status === 'COMPLETED')
   )
 
   const urgentTasks = computed(() =>
-    tasks.value.filter(task => task.priority === 'urgent' && task.status !== 'completed')
+    tasks.value.filter(task => task.priority === 'URGENT' && task.status !== 'COMPLETED')
   )
 
   const highPriorityTasks = computed(() =>
-    tasks.value.filter(task => task.priority === 'high' && task.status !== 'completed')
+    tasks.value.filter(task => task.priority === 'HIGH' && task.status !== 'COMPLETED')
   )
 
   // Actions

@@ -12,14 +12,14 @@ from app.db.base import Base
 
 class NotificationTypeEnum(str, enum.Enum):
     """Notification type enumeration"""
-    ROOM_STATUS_CHANGE = "room_status_change"
-    OVERTIME_ALERT = "overtime_alert"
-    BOOKING_REMINDER = "booking_reminder"
-    HOUSEKEEPING_COMPLETE = "housekeeping_complete"
-    MAINTENANCE_REQUEST = "maintenance_request"
-    CHECK_IN = "check_in"
-    CHECK_OUT = "check_out"
-    ROOM_TRANSFER = "room_transfer"
+    ROOM_STATUS_CHANGE = "ROOM_STATUS_CHANGE"
+    OVERTIME_ALERT = "OVERTIME_ALERT"
+    BOOKING_REMINDER = "BOOKING_REMINDER"
+    HOUSEKEEPING_COMPLETE = "HOUSEKEEPING_COMPLETE"
+    MAINTENANCE_REQUEST = "MAINTENANCE_REQUEST"
+    CHECK_IN = "CHECK_IN"
+    CHECK_OUT = "CHECK_OUT"
+    ROOM_TRANSFER = "ROOM_TRANSFER"
 
 
 class TargetRoleEnum(str, enum.Enum):

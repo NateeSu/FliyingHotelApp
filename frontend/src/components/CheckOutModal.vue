@@ -40,7 +40,7 @@
             <span class="label">ประเภท:</span>
             <span class="value">
               <span class="badge" :class="summary.stay_type">
-                {{ summary.stay_type === 'overnight' ? 'ค้างคืน' : 'ชั่วคราว (3 ชม.)' }}
+                {{ summary.stay_type === 'OVERNIGHT' ? 'ค้างคืน' : 'ชั่วคราว (3 ชม.)' }}
               </span>
             </span>
           </div>
@@ -145,20 +145,20 @@
           <h3>วิธีชำระเงิน</h3>
           <div class="payment-method-selector">
             <button
-              :class="['payment-btn', { active: formData.payment_method === 'cash' }]"
-              @click="formData.payment_method = 'cash'"
+              :class="['payment-btn', { active: formData.payment_method === 'CASH' }]"
+              @click="formData.payment_method = 'CASH'"
             >
               💵 เงินสด
             </button>
             <button
-              :class="['payment-btn', { active: formData.payment_method === 'transfer' }]"
-              @click="formData.payment_method = 'transfer'"
+              :class="['payment-btn', { active: formData.payment_method === 'TRANSFER' }]"
+              @click="formData.payment_method = 'TRANSFER'"
             >
               🏦 โอนเงิน
             </button>
             <button
-              :class="['payment-btn', { active: formData.payment_method === 'credit_card' }]"
-              @click="formData.payment_method = 'credit_card'"
+              :class="['payment-btn', { active: formData.payment_method === 'CREDIT_CARD' }]"
+              @click="formData.payment_method = 'CREDIT_CARD'"
             >
               💳 บัตรเครดิต
             </button>
@@ -220,7 +220,7 @@ const formData = ref<CheckOutRequest>({
   extra_charges: 0,
   discount_amount: 0,
   discount_reason: '',
-  payment_method: 'cash',
+  payment_method: 'CASH',
   payment_notes: '',
   customer_name: undefined,
   phone_number: undefined,
@@ -357,7 +357,7 @@ const resetForm = () => {
     extra_charges: 0,
     discount_amount: 0,
     discount_reason: '',
-    payment_method: 'cash',
+    payment_method: 'CASH',
     payment_notes: '',
     customer_name: undefined,
     phone_number: undefined,

@@ -99,12 +99,12 @@
       </div>
 
       <!-- Completion Notes Input (for completing task) -->
-      <div v-if="task.status === 'in_progress' && showCompletionNotes" class="section">
+      <div v-if="task.status === 'IN_PROGRESS'" class="section">
         <div class="section-title">บันทึกการทำงาน</div>
         <n-input
           v-model:value="completionNotes"
           type="textarea"
-          placeholder="บันทึกรายละเอียดการทำความสะอาด (ไม่บังคับ)"
+          placeholder="บันทึกรายละเอียดการทำความสะอาด เช่น พบความเสียหาย, ของหาย, หรือสิ่งผิดปกติ (ไม่บังคับ)"
           :autosize="{ minRows: 3, maxRows: 5 }"
           maxlength="500"
           show-count
@@ -119,7 +119,7 @@
         </n-button>
 
         <n-button
-          v-if="task && task.status === 'pending'"
+          v-if="task && task.status === 'PENDING'"
           type="primary"
           @click="handleStart"
           :loading="isLoading"
@@ -128,7 +128,7 @@
         </n-button>
 
         <n-button
-          v-if="task && task.status === 'in_progress'"
+          v-if="task && task.status === 'IN_PROGRESS'"
           type="success"
           @click="handleComplete"
           :loading="isLoading"
@@ -176,40 +176,40 @@ const isVisible = computed({
 
 function getStatusLabel(status: string): string {
   const statusMap: Record<string, string> = {
-    pending: 'รอดำเนินการ',
-    in_progress: 'กำลังทำ',
-    completed: 'เสร็จสิ้น',
-    cancelled: 'ยกเลิก'
+    PENDING: 'รอดำเนินการ',
+    IN_PROGRESS: 'กำลังทำ',
+    COMPLETED: 'เสร็จสิ้น',
+    CANCELLED: 'ยกเลิก'
   }
   return statusMap[status] || status
 }
 
 function getStatusType(status: string): 'warning' | 'info' | 'success' | 'default' {
   const typeMap: Record<string, 'warning' | 'info' | 'success' | 'default'> = {
-    pending: 'warning',
-    in_progress: 'info',
-    completed: 'success',
-    cancelled: 'default'
+    PENDING: 'warning',
+    IN_PROGRESS: 'info',
+    COMPLETED: 'success',
+    CANCELLED: 'default'
   }
   return typeMap[status] || 'default'
 }
 
 function getPriorityLabel(priority: string): string {
   const priorityMap: Record<string, string> = {
-    urgent: '🔴 ด่วนมาก',
-    high: '🟠 สูง',
-    medium: '🟡 ปานกลาง',
-    low: '🟢 ต่ำ'
+    URGENT: '🔴 ด่วนมาก',
+    HIGH: '🟠 สูง',
+    MEDIUM: '🟡 ปานกลาง',
+    LOW: '🟢 ต่ำ'
   }
   return priorityMap[priority] || priority
 }
 
 function getPriorityType(priority: string): 'error' | 'warning' | 'info' | 'success' {
   const typeMap: Record<string, 'error' | 'warning' | 'info' | 'success'> = {
-    urgent: 'error',
-    high: 'warning',
-    medium: 'info',
-    low: 'success'
+    URGENT: 'error',
+    HIGH: 'warning',
+    MEDIUM: 'info',
+    LOW: 'success'
   }
   return typeMap[priority] || 'info'
 }

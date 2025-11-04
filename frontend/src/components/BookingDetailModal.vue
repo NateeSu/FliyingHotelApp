@@ -186,33 +186,33 @@ const showModal = computed({
 
 const canEdit = computed(() => {
   if (!props.booking) return false
-  return ['pending', 'confirmed'].includes(props.booking.status)
+  return ['PENDING', 'CONFIRMED'].includes(props.booking.status)
 })
 
 const canCancel = computed(() => {
   if (!props.booking) return false
-  return ['pending', 'confirmed'].includes(props.booking.status)
+  return ['PENDING', 'CONFIRMED'].includes(props.booking.status)
 })
 
 // Methods
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'รอยืนยัน',
-    confirmed: 'ยืนยันแล้ว',
-    checked_in: 'เช็คอินแล้ว',
-    completed: 'เสร็จสิ้น',
-    cancelled: 'ยกเลิกแล้ว'
+    PENDING: 'รอยืนยัน',
+    CONFIRMED: 'ยืนยันแล้ว',
+    CHECKED_IN: 'เช็คอินแล้ว',
+    COMPLETED: 'เสร็จสิ้น',
+    CANCELLED: 'ยกเลิกแล้ว'
   }
   return labels[status] || status
 }
 
 function getStatusType(status: string): any {
   const types: Record<string, any> = {
-    pending: 'info',
-    confirmed: 'success',
-    checked_in: 'warning',
-    completed: 'default',
-    cancelled: 'error'
+    PENDING: 'info',
+    CONFIRMED: 'success',
+    CHECKED_IN: 'warning',
+    COMPLETED: 'default',
+    CANCELLED: 'error'
   }
   return types[status] || 'default'
 }

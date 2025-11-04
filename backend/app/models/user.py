@@ -7,10 +7,10 @@ import enum
 
 class UserRole(str, enum.Enum):
     """User roles enum"""
-    ADMIN = "admin"
-    RECEPTION = "reception"
-    HOUSEKEEPING = "housekeeping"
-    MAINTENANCE = "maintenance"
+    ADMIN = "ADMIN"
+    RECEPTION = "RECEPTION"
+    HOUSEKEEPING = "HOUSEKEEPING"
+    MAINTENANCE = "MAINTENANCE"
 
 
 class User(Base):

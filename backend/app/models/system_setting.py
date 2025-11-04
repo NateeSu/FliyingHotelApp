@@ -11,10 +11,10 @@ from app.db.base import Base
 
 class SettingDataTypeEnum(str, enum.Enum):
     """Setting data type enumeration"""
-    STRING = "string"
-    NUMBER = "number"
-    JSON = "json"
-    BOOLEAN = "boolean"
+    STRING = "STRING"
+    NUMBER = "NUMBER"
+    JSON = "JSON"
+    BOOLEAN = "BOOLEAN"
 
 
 class SystemSetting(Base):

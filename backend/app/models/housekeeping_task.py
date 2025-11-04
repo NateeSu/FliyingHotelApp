@@ -12,18 +12,18 @@ from app.db.base import Base
 
 class HousekeepingTaskStatusEnum(str, enum.Enum):
     """Housekeeping task status enumeration"""
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 class HousekeepingTaskPriorityEnum(str, enum.Enum):
     """Housekeeping task priority enumeration"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    URGENT = "urgent"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    URGENT = "URGENT"
 
 
 class HousekeepingTask(Base):

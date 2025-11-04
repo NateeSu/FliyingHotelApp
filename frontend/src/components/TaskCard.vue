@@ -60,7 +60,7 @@
     <!-- Action Buttons -->
     <div class="action-buttons" @click.stop>
       <n-button
-        v-if="task.status === 'pending'"
+        v-if="task.status === 'PENDING'"
         type="primary"
         @click="$emit('start', task.id)"
         block
@@ -69,7 +69,7 @@
       </n-button>
 
       <n-button
-        v-if="task.status === 'in_progress'"
+        v-if="task.status === 'IN_PROGRESS'"
         type="success"
         @click="$emit('complete', task.id)"
         block
@@ -105,20 +105,20 @@ defineEmits<Emits>()
 
 const statusLabel = computed(() => {
   const statusMap: Record<string, string> = {
-    pending: 'รอดำเนินการ',
-    in_progress: 'กำลังทำ',
-    completed: 'เสร็จสิ้น',
-    cancelled: 'ยกเลิก'
+    PENDING: 'รอดำเนินการ',
+    IN_PROGRESS: 'กำลังทำ',
+    COMPLETED: 'เสร็จสิ้น',
+    CANCELLED: 'ยกเลิก'
   }
   return statusMap[props.task.status] || props.task.status
 })
 
 const priorityLabel = computed(() => {
   const priorityMap: Record<string, string> = {
-    urgent: '🔴 ด่วนมาก',
-    high: '🟠 สูง',
-    medium: '🟡 ปานกลาง',
-    low: '🟢 ต่ำ'
+    URGENT: '🔴 ด่วนมาก',
+    HIGH: '🟠 สูง',
+    MEDIUM: '🟡 ปานกลาง',
+    LOW: '🟢 ต่ำ'
   }
   return priorityMap[props.task.priority] || props.task.priority
 })
@@ -145,19 +145,19 @@ function formatDateTime(datetime: string | null): string {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.task-card.priority-urgent {
+.task-card.priority-URGENT {
   border-left-color: #f44336;
 }
 
-.task-card.priority-high {
+.task-card.priority-HIGH {
   border-left-color: #ff9800;
 }
 
-.task-card.priority-medium {
+.task-card.priority-MEDIUM {
   border-left-color: #ffc107;
 }
 
-.task-card.priority-low {
+.task-card.priority-LOW {
   border-left-color: #4caf50;
 }
 
@@ -194,22 +194,22 @@ function formatDateTime(datetime: string | null): string {
   white-space: nowrap;
 }
 
-.priority-badge.priority-urgent {
+.priority-badge.priority-URGENT {
   background: rgba(244, 67, 54, 0.15);
   color: #d32f2f;
 }
 
-.priority-badge.priority-high {
+.priority-badge.priority-HIGH {
   background: rgba(255, 152, 0, 0.15);
   color: #f57c00;
 }
 
-.priority-badge.priority-medium {
+.priority-badge.priority-MEDIUM {
   background: rgba(255, 193, 7, 0.15);
   color: #f57f17;
 }
 
-.priority-badge.priority-low {
+.priority-badge.priority-LOW {
   background: rgba(76, 175, 80, 0.15);
   color: #388e3c;
 }
@@ -223,22 +223,22 @@ function formatDateTime(datetime: string | null): string {
   margin-bottom: 12px;
 }
 
-.status-badge.status-pending {
+.status-badge.status-PENDING {
   background: rgba(255, 193, 7, 0.2);
   color: #f57f17;
 }
 
-.status-badge.status-in_progress {
+.status-badge.status-IN_PROGRESS {
   background: rgba(33, 150, 243, 0.2);
   color: #1976d2;
 }
 
-.status-badge.status-completed {
+.status-badge.status-COMPLETED {
   background: rgba(76, 175, 80, 0.2);
   color: #388e3c;
 }
 
-.status-badge.status-cancelled {
+.status-badge.status-CANCELLED {
   background: rgba(158, 158, 158, 0.2);
   color: #616161;
 }

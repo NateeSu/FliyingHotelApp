@@ -27,26 +27,24 @@
           <!-- Customer Form Fields -->
           <div class="form-row">
             <div class="form-group">
-              <label>ชื่อ-นามสกุล <span class="required">*</span></label>
+              <label>ชื่อ-นามสกุล</label>
               <input
                 v-model="formData.customer.full_name"
                 type="text"
                 class="form-input"
-                placeholder="ชื่อ-นามสกุล"
-                required
+                placeholder="ชื่อ-นามสกุล (ไม่จำเป็น)"
               />
             </div>
             <div class="form-group">
-              <label>เบอร์โทรศัพท์ <span class="required">*</span></label>
+              <label>เบอร์โทรศัพท์</label>
               <input
                 v-model="formData.customer.phone_number"
                 type="tel"
                 class="form-input"
-                placeholder="0812345678"
+                placeholder="0812345678 (ไม่จำเป็น)"
                 inputmode="numeric"
                 pattern="[0-9]*"
                 @input="sanitizePhoneNumber"
-                required
               />
               <div v-if="phoneNumberError" class="error-message">{{ phoneNumberError }}</div>
             </div>
@@ -84,15 +82,15 @@
             <label>ประเภทการเข้าพัก <span class="required">*</span></label>
             <div class="stay-type-selector">
               <button
-                :class="['stay-type-btn', { active: formData.checkIn.stay_type === 'overnight' }]"
-                @click="formData.checkIn.stay_type = 'overnight'"
+                :class="['stay-type-btn', { active: formData.checkIn.stay_type === 'OVERNIGHT' }]"
+                @click="formData.checkIn.stay_type = 'OVERNIGHT'"
               >
                 <div class="icon">🌙</div>
                 <div class="label">ค้างคืน</div>
               </button>
               <button
-                :class="['stay-type-btn', { active: formData.checkIn.stay_type === 'temporary' }]"
-                @click="formData.checkIn.stay_type = 'temporary'"
+                :class="['stay-type-btn', { active: formData.checkIn.stay_type === 'TEMPORARY' }]"
+                @click="formData.checkIn.stay_type = 'TEMPORARY'"
               >
                 <div class="icon">⏱️</div>
                 <div class="label">ชั่วคราว (3 ชม.)</div>
@@ -101,7 +99,7 @@
           </div>
 
           <!-- Number of Nights (for overnight) -->
-          <div v-if="formData.checkIn.stay_type === 'overnight'" class="form-row">
+          <div v-if="formData.checkIn.stay_type === 'OVERNIGHT'" class="form-row">
             <div class="form-group">
               <label>จำนวนคืน <span class="required">*</span></label>
               <input
@@ -141,20 +139,20 @@
             <label>วิธีชำระเงิน <span class="required">*</span></label>
             <div class="payment-method-selector">
               <button
-                :class="['payment-btn', { active: formData.checkIn.payment_method === 'cash' }]"
-                @click="formData.checkIn.payment_method = 'cash'"
+                :class="['payment-btn', { active: formData.checkIn.payment_method === 'CASH' }]"
+                @click="formData.checkIn.payment_method = 'CASH'"
               >
                 💵 เงินสด
               </button>
               <button
-                :class="['payment-btn', { active: formData.checkIn.payment_method === 'transfer' }]"
-                @click="formData.checkIn.payment_method = 'transfer'"
+                :class="['payment-btn', { active: formData.checkIn.payment_method === 'TRANSFER' }]"
+                @click="formData.checkIn.payment_method = 'TRANSFER'"
               >
                 🏦 โอนเงิน
               </button>
               <button
-                :class="['payment-btn', { active: formData.checkIn.payment_method === 'credit_card' }]"
-                @click="formData.checkIn.payment_method = 'credit_card'"
+                :class="['payment-btn', { active: formData.checkIn.payment_method === 'CREDIT_CARD' }]"
+                @click="formData.checkIn.payment_method = 'CREDIT_CARD'"
               >
                 💳 บัตรเครดิต
               </button>
@@ -180,7 +178,7 @@
             <span>ค่าห้อง:</span>
             <span class="amount">{{ calculatedAmount }} บาท</span>
           </div>
-          <div v-if="formData.checkIn.stay_type === 'overnight'" class="summary-detail">
+          <div v-if="formData.checkIn.stay_type === 'OVERNIGHT'" class="summary-detail">
             {{ formData.checkIn.number_of_nights || 1 }} คืน × {{ ratePerNight }} บาท
           </div>
           <div v-else class="summary-detail">
@@ -245,10 +243,10 @@ const formData = ref({
   } as CustomerData,
   checkIn: {
     room_id: props.roomId,
-    stay_type: 'overnight' as 'overnight' | 'temporary',
+    stay_type: 'OVERNIGHT' as 'OVERNIGHT' | 'TEMPORARY',
     number_of_nights: 1,
-    number_of_guests: 1,
-    payment_method: 'cash' as 'cash' | 'transfer' | 'credit_card',
+    number_of_guests: 2,
+    payment_method: 'CASH' as 'CASH' | 'TRANSFER' | 'CREDIT_CARD',
     notes: '',
     booking_id: props.bookingId || undefined
   } as CheckInCreateData
@@ -278,7 +276,7 @@ const sanitizePhoneNumber = () => {
 
 // Calculated amount
 const calculatedAmount = computed(() => {
-  if (formData.value.checkIn.stay_type === 'overnight') {
+  if (formData.value.checkIn.stay_type === 'OVERNIGHT') {
     const nights = formData.value.checkIn.number_of_nights || 1
     const rate = props.ratePerNight || 0
     return nights * rate
@@ -289,12 +287,10 @@ const calculatedAmount = computed(() => {
 
 // Form validation
 const isFormValid = computed(() => {
-  const customer = formData.value.customer
   const checkIn = formData.value.checkIn
 
-  if (!customer.full_name || !customer.phone_number) return false
   if (!checkIn.payment_method) return false
-  if (checkIn.stay_type === 'overnight' && (!checkIn.number_of_nights || checkIn.number_of_nights < 1)) return false
+  if (checkIn.stay_type === 'OVERNIGHT' && (!checkIn.number_of_nights || checkIn.number_of_nights < 1)) return false
 
   return true
 })
@@ -310,9 +306,11 @@ const handleSubmit = async () => {
     // Ensure room_id is set
     formData.value.checkIn.room_id = props.roomId
 
-    // Prepare customer data - convert empty email to undefined
+    // Prepare customer data - convert empty fields to undefined
     const customerData = {
       ...formData.value.customer,
+      full_name: formData.value.customer.full_name?.trim() || undefined,
+      phone_number: formData.value.customer.phone_number?.trim() || undefined,
       email: formData.value.customer.email?.trim() || undefined,
       id_card_number: formData.value.customer.id_card_number?.trim() || undefined,
       address: formData.value.customer.address?.trim() || undefined,
@@ -365,10 +363,10 @@ const resetForm = () => {
     },
     checkIn: {
       room_id: props.roomId,
-      stay_type: 'overnight',
+      stay_type: 'OVERNIGHT',
       number_of_nights: 1,
-      number_of_guests: 1,
-      payment_method: 'cash',
+      number_of_guests: 2,
+      payment_method: 'CASH',
       notes: ''
     }
   }
@@ -400,7 +398,7 @@ const prefillFromBooking = () => {
       const nights = checkOutDate.diff(checkInDate, 'day')
 
       formData.value.checkIn.number_of_nights = nights > 0 ? nights : 1
-      formData.value.checkIn.stay_type = 'overnight'
+      formData.value.checkIn.stay_type = 'OVERNIGHT'
     }
 
     // Set booking_id for linking

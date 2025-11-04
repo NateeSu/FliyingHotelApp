@@ -12,21 +12,21 @@ from app.db.base import Base
 
 class StayTypeEnum(str, enum.Enum):
     """Stay type enumeration"""
-    OVERNIGHT = "overnight"
-    TEMPORARY = "temporary"
+    OVERNIGHT = "OVERNIGHT"
+    TEMPORARY = "TEMPORARY"
 
 
 class PaymentMethodEnum(str, enum.Enum):
     """Payment method enumeration"""
-    CASH = "cash"
-    TRANSFER = "transfer"
-    CREDIT_CARD = "credit_card"
+    CASH = "CASH"
+    TRANSFER = "TRANSFER"
+    CREDIT_CARD = "CREDIT_CARD"
 
 
 class CheckInStatusEnum(str, enum.Enum):
     """Check-in status enumeration"""
-    CHECKED_IN = "checked_in"
-    CHECKED_OUT = "checked_out"
+    CHECKED_IN = "CHECKED_IN"
+    CHECKED_OUT = "CHECKED_OUT"
 
 
 class CheckIn(Base):

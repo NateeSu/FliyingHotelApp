@@ -10,8 +10,8 @@ from decimal import Decimal
 
 class CustomerCreate(BaseModel):
     """Schema for creating a customer"""
-    full_name: str = Field(..., min_length=1, max_length=255)
-    phone_number: str = Field(..., min_length=10, max_length=20)
+    full_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    phone_number: Optional[str] = Field(None, min_length=9, max_length=20)
     email: Optional[EmailStr] = None
     id_card_number: Optional[str] = Field(None, max_length=20)
     address: Optional[str] = None
@@ -31,8 +31,8 @@ class CustomerUpdate(BaseModel):
 class CustomerResponse(BaseModel):
     """Schema for customer response"""
     id: int
-    full_name: str
-    phone_number: str
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
     email: Optional[str] = None
     id_card_number: Optional[str] = None
     address: Optional[str] = None
@@ -50,8 +50,8 @@ class CustomerResponse(BaseModel):
 class CustomerSearchResult(BaseModel):
     """Schema for customer search result (autocomplete)"""
     id: int
-    full_name: str
-    phone_number: str
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
     email: Optional[str] = None
     total_visits: int
     last_visit_date: Optional[datetime] = None

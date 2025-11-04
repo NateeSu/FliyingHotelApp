@@ -301,7 +301,7 @@ const numberOfNights = computed(() => {
 
 const availableRoomOptions = computed(() => {
   return dashboardStore.rooms
-    .filter(room => room.status === 'available' || room.id === formData.value.room_id)
+    .filter(room => room.status === 'AVAILABLE' || room.id === formData.value.room_id)
     .map(room => ({
       label: `${room.room_number} - ${room.room_type_name}`,
       value: room.id,

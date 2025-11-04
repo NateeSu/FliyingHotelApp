@@ -25,7 +25,7 @@ class RevenueReportResponse(BaseModel):
     total_transactions: int
     average_transaction: float
     by_payment_method: Dict[str, float]  # {"cash": 5000, "transfer": 3000}
-    by_stay_type: Dict[str, float]  # {"overnight": 8000, "temporary": 2000}
+    by_stay_type: Dict[str, float]  # {"OVERNIGHT": 8000, "TEMPORARY": 2000}
     by_period: List[RevenueByPeriod]  # Chart data
     start_date: date
     end_date: date
@@ -166,13 +166,13 @@ class CheckInListItem(BaseModel):
     room_type_name: str
     customer_name: str
     customer_phone: str
-    stay_type: str  # "overnight" | "temporary"
+    stay_type: str  # "OVERNIGHT" | "TEMPORARY"
     check_in_time: datetime
     expected_check_out_time: Optional[datetime]
     check_out_time: Optional[datetime]
     total_amount: Decimal
     payment_method: str
-    status: str  # "checked_in" | "checked_out"
+    status: str  # "CHECKED_IN" | "CHECKED_OUT"
     number_of_nights: Optional[int]
     number_of_guests: int
 

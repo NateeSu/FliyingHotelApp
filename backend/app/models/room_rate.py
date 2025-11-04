@@ -11,8 +11,8 @@ class StayType(str, enum.Enum):
     - overnight: ค้างคืน (13:00 check-in, 12:00 check-out)
     - temporary: ชั่วคราว (3 hours session)
     """
-    OVERNIGHT = "overnight"
-    TEMPORARY = "temporary"
+    OVERNIGHT = "OVERNIGHT"
+    TEMPORARY = "TEMPORARY"
 
 
 class RoomRate(Base):

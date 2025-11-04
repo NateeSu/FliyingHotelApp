@@ -20,8 +20,8 @@ class Customer(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Basic information
-    full_name = Column(String(255), nullable=False, index=True)
-    phone_number = Column(String(20), nullable=False, index=True)  # Indexed for search and duplicate detection
+    full_name = Column(String(255), nullable=True, index=True)
+    phone_number = Column(String(20), nullable=True, index=True)  # Indexed for search and duplicate detection
     id_card_number = Column(String(20), nullable=True)
     email = Column(String(255), nullable=True)
     address = Column(String(500), nullable=True)

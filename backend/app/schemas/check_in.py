@@ -86,7 +86,7 @@ class CheckInResponse(BaseModel):
 
 class CheckInWithDetails(CheckInResponse):
     """Schema for check-in with customer and room details"""
-    customer_name: str
+    customer_name: Optional[str] = None
     customer_phone: str
     room_number: str
     room_type_name: str
@@ -121,7 +121,7 @@ class CheckOutSummary(BaseModel):
     """Schema for checkout summary calculation"""
     check_in_id: int
     room_number: str
-    customer_name: str
+    customer_name: Optional[str] = None
     stay_type: StayTypeEnum
     check_in_time: datetime
     expected_check_out_time: datetime

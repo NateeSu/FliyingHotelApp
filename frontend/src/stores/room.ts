@@ -33,7 +33,7 @@ export const useRoomStore = defineStore('room', () => {
   )
 
   const availableRooms = computed(() =>
-    rooms.value.filter(r => r.status === 'available' && r.is_active)
+    rooms.value.filter(r => r.status === 'AVAILABLE' && r.is_active)
   )
 
   const roomsByFloor = computed(() => {

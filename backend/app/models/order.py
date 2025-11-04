@@ -12,15 +12,15 @@ from app.db.base import Base
 
 class OrderSourceEnum(str, enum.Enum):
     """Order source enumeration"""
-    QR_CODE = "qr_code"
-    RECEPTION = "reception"
+    QR_CODE = "QR_CODE"
+    RECEPTION = "RECEPTION"
 
 
 class OrderStatusEnum(str, enum.Enum):
     """Order status enumeration"""
-    PENDING = "pending"
-    DELIVERED = "delivered"
-    COMPLETED = "completed"
+    PENDING = "PENDING"
+    DELIVERED = "DELIVERED"
+    COMPLETED = "COMPLETED"
 
 
 class Order(Base):

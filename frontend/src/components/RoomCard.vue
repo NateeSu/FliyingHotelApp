@@ -13,8 +13,14 @@
         <span class="floor-badge">{{ room.floor }}F</span>
         <span class="number">{{ room.room_number }}</span>
       </div>
-      <div class="status-badge" :class="`status-${room.status}`">
-        {{ statusLabel }}
+      <div class="status-badges">
+        <div class="status-badge" :class="`status-${room.status}`">
+          {{ statusLabel }}
+        </div>
+        <!-- Stay Type Badge (if occupied) -->
+        <div v-if="room.status === 'OCCUPIED' && room.stay_type" class="stay-type-badge" :class="`stay-${room.stay_type}`">
+          {{ stayTypeLabel }}
+        </div>
       </div>
     </div>
 
@@ -351,8 +357,9 @@ function handleCompleteHousekeeping(): void {
 .room-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
+  gap: 8px;
 }
 
 .room-number {
@@ -375,6 +382,13 @@ function handleCompleteHousekeeping(): void {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.status-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
 .status-badge {
   padding: 6px 12px;
   border-radius: 20px;
@@ -382,6 +396,31 @@ function handleCompleteHousekeeping(): void {
   font-weight: 600;
   background: rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.stay-type-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Stay Type Badge Colors */
+.stay-type-badge.stay-OVERNIGHT {
+  background: rgba(76, 175, 80, 0.4);
+  border-color: rgba(76, 175, 80, 0.6);
+  color: #fff;
+}
+
+.stay-type-badge.stay-TEMPORARY {
+  background: rgba(33, 150, 243, 0.4);
+  border-color: rgba(33, 150, 243, 0.6);
+  color: #fff;
 }
 
 /* Room Type */

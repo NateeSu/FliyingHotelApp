@@ -33,7 +33,7 @@ class HousekeepingTaskCreate(BaseModel):
                 "check_in_id": 50,
                 "title": "ทำความสะอาดห้อง 101",
                 "description": "ทำความสะอาดปกติหลังลูกค้าเช็คเอาท์",
-                "priority": "medium",
+                "priority": "MEDIUM",
                 "assigned_to": None,
                 "notes": None
             }
@@ -50,7 +50,7 @@ class HousekeepingTaskUpdate(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "status": "in_progress",
+                "status": "IN_PROGRESS",
                 "assigned_to": 5
             }
         }

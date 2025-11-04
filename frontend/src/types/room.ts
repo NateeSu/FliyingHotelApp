@@ -4,16 +4,16 @@
 
 // Enums
 export enum RoomStatus {
-  AVAILABLE = 'available',
-  OCCUPIED = 'occupied',
-  CLEANING = 'cleaning',
-  RESERVED = 'reserved',
-  OUT_OF_SERVICE = 'out_of_service'
+  AVAILABLE = 'AVAILABLE',
+  OCCUPIED = 'OCCUPIED',
+  CLEANING = 'CLEANING',
+  RESERVED = 'RESERVED',
+  OUT_OF_SERVICE = 'OUT_OF_SERVICE'
 }
 
 export enum StayType {
-  OVERNIGHT = 'overnight',
-  TEMPORARY = 'temporary'
+  OVERNIGHT = 'OVERNIGHT',
+  TEMPORARY = 'TEMPORARY'
 }
 
 // Room Type Interfaces
