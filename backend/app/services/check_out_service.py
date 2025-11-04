@@ -66,7 +66,7 @@ class CheckOutService:
         return CheckOutSummary(
             check_in_id=check_in.id,
             room_number=check_in.room.room_number,
-            customer_name=check_in.customer.full_name,
+            customer_name=check_in.customer.full_name or "ไม่ระบุชื่อ",
             stay_type=check_in.stay_type,
             check_in_time=check_in.check_in_time,
             expected_check_out_time=check_in.expected_check_out_time,
