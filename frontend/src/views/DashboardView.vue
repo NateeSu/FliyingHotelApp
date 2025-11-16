@@ -136,6 +136,7 @@
         v-for="room in filteredRooms"
         :key="room.id"
         :room="room"
+        :breaker="breakersByRoom.get(room.id)"
         @click="handleRoomClick"
         @checkIn="handleCheckInClick"
         @checkOut="handleCheckOutClick"
@@ -211,6 +212,7 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { useNotificationStore } from '@/stores/notification'
 import { useRoomStore } from '@/stores/room'
 import { useBookingStore } from '@/stores/booking'
+import { useBreakersStore } from '@/stores/breakers'
 import { storeToRefs } from 'pinia'
 import { useWebSocket } from '@/composables/useWebSocket'
 import RoomCard from '@/components/RoomCard.vue'
@@ -231,6 +233,7 @@ const dashboardStore = useDashboardStore()
 const notificationStore = useNotificationStore()
 const roomStore = useRoomStore()
 const bookingStore = useBookingStore()
+const breakersStore = useBreakersStore()
 
 const {
   rooms,
@@ -244,6 +247,8 @@ const {
 const { unreadCount, hasUnread } = storeToRefs(notificationStore)
 
 const { rateMatrix } = storeToRefs(roomStore)
+
+const { breakersByRoom } = storeToRefs(breakersStore)
 
 // WebSocket
 const { isConnected, on } = useWebSocket()
@@ -291,7 +296,10 @@ const filteredRooms = computed(() => {
 // Methods
 async function handleRefresh(): Promise<void> {
   try {
-    await dashboardStore.refresh()
+    await Promise.all([
+      dashboardStore.refresh(),
+      breakersStore.fetchBreakers({ silent: true })
+    ])
   } catch (error) {
     console.error('Error refreshing dashboard:', error)
   }
@@ -464,7 +472,17 @@ function setupWebSocketHandlers(): void {
     console.log('New notification:', data)
     notificationStore.handleNewNotification(data)
   })
+
+  // Breaker status changed
+  on('breaker_status_changed', async (data) => {
+    console.log('Breaker status changed:', data)
+    // Refresh breakers to get latest status
+    await breakersStore.fetchBreakers({ silent: true })
+  })
 }
+
+// Auto-refresh interval
+let refreshInterval: NodeJS.Timeout | null = null
 
 // Lifecycle
 onMounted(async () => {
@@ -474,7 +492,8 @@ onMounted(async () => {
     dashboardStore.fetchOvertimeAlerts(),
     dashboardStore.fetchMaintenanceStats(),
     notificationStore.fetchUnreadCount(),
-    roomStore.fetchRateMatrix() // Load room rates
+    roomStore.fetchRateMatrix(), // Load room rates
+    breakersStore.fetchBreakers({ silent: true }) // Load breakers silently
   ])
 
   // Setup WebSocket handlers
@@ -482,10 +501,23 @@ onMounted(async () => {
 
   // Request notification permission
   notificationStore.requestNotificationPermission()
+
+  // Auto-refresh breaker status every 10 seconds
+  refreshInterval = setInterval(async () => {
+    try {
+      await breakersStore.fetchBreakers({ silent: true })
+    } catch (error) {
+      console.error('Auto-refresh breakers error:', error)
+    }
+  }, 10000)
 })
 
 onUnmounted(() => {
-  // Cleanup if needed
+  // Clear auto-refresh interval
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+    refreshInterval = null
+  }
 })
 </script>
 

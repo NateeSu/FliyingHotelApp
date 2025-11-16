@@ -90,6 +90,18 @@
       <span class="value">{{ room.notes }}</span>
     </div>
 
+    <!-- Breaker Status -->
+    <div v-if="breaker" class="breaker-status">
+      <div class="breaker-header">
+        <span class="icon">⚡</span>
+        <span class="label">เบรกเกอร์:</span>
+      </div>
+      <div class="breaker-state" :class="`state-${breakerStatusClass}`">
+        <span class="status-dot"></span>
+        <span class="status-text">{{ breakerStatusLabel }}</span>
+      </div>
+    </div>
+
     <!-- Action Buttons -->
     <div class="action-buttons" @click.stop>
       <!-- Check-In Button (available rooms) -->
@@ -162,6 +174,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DashboardRoomCard } from '@/types/dashboard'
+import type { Breaker } from '@/types/homeAssistant'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
 
@@ -170,6 +183,7 @@ dayjs.locale('th')
 // Props
 interface Props {
   room: DashboardRoomCard
+  breaker?: Breaker
 }
 
 const props = defineProps<Props>()
@@ -199,6 +213,22 @@ const statusLabel = computed(() => {
 const stayTypeLabel = computed(() => {
   if (!props.room.stay_type) return ''
   return props.room.stay_type === 'OVERNIGHT' ? 'ค้างคืน' : 'ชั่วคราว'
+})
+
+const breakerStatusLabel = computed(() => {
+  if (!props.breaker) return null
+  if (!props.breaker.is_available) return 'ไม่พร้อมใช้งาน'
+  if (props.breaker.current_state === 'ON') return 'เปิด'
+  if (props.breaker.current_state === 'OFF') return 'ปิด'
+  return 'ไม่ทราบสถานะ'
+})
+
+const breakerStatusClass = computed(() => {
+  if (!props.breaker) return null
+  if (!props.breaker.is_available) return 'unavailable'
+  if (props.breaker.current_state === 'ON') return 'on'
+  if (props.breaker.current_state === 'OFF') return 'off'
+  return 'unknown'
 })
 
 // Methods
@@ -561,6 +591,91 @@ function handleCompleteHousekeeping(): void {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Breaker Status */
+.breaker-status {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.breaker-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.breaker-header .icon {
+  font-size: 16px;
+}
+
+.breaker-state {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.breaker-state .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.breaker-state.state-on {
+  background: rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.breaker-state.state-on .status-dot {
+  background: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.8);
+}
+
+.breaker-state.state-off {
+  background: rgba(244, 67, 54, 0.3);
+  border: 1px solid rgba(244, 67, 54, 0.5);
+}
+
+.breaker-state.state-off .status-dot {
+  background: #F44336;
+  animation: none;
+}
+
+.breaker-state.state-unavailable,
+.breaker-state.state-unknown {
+  background: rgba(158, 158, 158, 0.3);
+  border: 1px solid rgba(158, 158, 158, 0.5);
+}
+
+.breaker-state.state-unavailable .status-dot,
+.breaker-state.state-unknown .status-dot {
+  background: #9E9E9E;
+  animation: none;
 }
 
 /* Action Buttons */

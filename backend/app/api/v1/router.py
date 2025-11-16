@@ -1,5 +1,9 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, room_types, rooms, room_rates, dashboard, notifications, websocket, check_ins, customers, housekeeping, maintenance, settings, public, bookings, products, orders, reports
+from app.api.v1.endpoints import (
+    auth, users, room_types, rooms, room_rates, dashboard, notifications,
+    websocket, check_ins, customers, housekeeping, maintenance, settings,
+    public, bookings, products, orders, reports, home_assistant, breakers
+)
 
 api_router = APIRouter()
 
@@ -124,4 +128,17 @@ api_router.include_router(
     reports.router,
     prefix="/reports",
     tags=["Reports"]
+)
+
+# Home Assistant & Breaker Control endpoints
+api_router.include_router(
+    home_assistant.router,
+    prefix="/home-assistant",
+    tags=["Home Assistant"]
+)
+
+api_router.include_router(
+    breakers.router,
+    prefix="/breakers",
+    tags=["Breakers"]
 )

@@ -116,7 +116,7 @@
         <h3 class="text-xl font-bold text-gray-900 mb-4">ดำเนินการ</h3>
 
         <!-- Auto-started Info (No manual start needed) -->
-        <div v-if="task.status === 'in_progress' && task.started_at" class="mb-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+        <div v-if="task.status === 'IN_PROGRESS' && task.started_at" class="mb-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
           <div class="flex items-start space-x-3">
             <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
@@ -131,7 +131,7 @@
 
         <!-- Complete Task Button -->
         <button
-          v-if="task.status === 'in_progress'"
+          v-if="task.status === 'IN_PROGRESS'"
           @click="showCompleteModal = true"
           class="w-full mb-4 px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold text-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
         >
@@ -142,7 +142,7 @@
         </button>
 
         <!-- Completed Badge -->
-        <div v-if="task.status === 'completed'" class="text-center py-4">
+        <div v-if="task.status === 'COMPLETED'" class="text-center py-4">
           <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-10 h-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -359,20 +359,20 @@ function formatDateTime(dateString: string): string {
 // Status labels and styles
 function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
-    pending: 'รอดำเนินการ',
-    in_progress: 'กำลังทำงาน',
-    completed: 'เสร็จสิ้น',
-    cancelled: 'ยกเลิก'
+    PENDING: 'รอดำเนินการ',
+    IN_PROGRESS: 'กำลังทำงาน',
+    COMPLETED: 'เสร็จสิ้น',
+    CANCELLED: 'ยกเลิก'
   }
   return labels[status] || status
 }
 
 function getStatusBadgeClass(status: string): string {
   const classes: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    in_progress: 'bg-blue-100 text-blue-800',
-    completed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800'
+    PENDING: 'bg-yellow-100 text-yellow-800',
+    IN_PROGRESS: 'bg-blue-100 text-blue-800',
+    COMPLETED: 'bg-green-100 text-green-800',
+    CANCELLED: 'bg-red-100 text-red-800'
   }
   return classes[status] || 'bg-gray-100 text-gray-800'
 }

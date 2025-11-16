@@ -144,9 +144,9 @@ const pagination = ref({
 
 // Status options
 const statusOptions = [
-  { label: '⏳ รอดำเนินการ', value: 'pending' },
-  { label: '✅ ส่งแล้ว', value: 'delivered' },
-  { label: '✔️ เสร็จสิ้น', value: 'completed' }
+  { label: '⏳ รอดำเนินการ', value: 'PENDING' },
+  { label: '✅ ส่งแล้ว', value: 'DELIVERED' },
+  { label: '✔️ เสร็จสิ้น', value: 'COMPLETED' }
 ]
 
 // Table columns
@@ -187,9 +187,9 @@ const columns = [
     key: 'status',
     render: (row) => {
       const statusMap = {
-        pending: '⏳ รอดำเนินการ',
-        delivered: '✅ ส่งแล้ว',
-        completed: '✔️ เสร็จสิ้น'
+        PENDING: '⏳ รอดำเนินการ',
+        DELIVERED: '✅ ส่งแล้ว',
+        COMPLETED: '✔️ เสร็จสิ้น'
       }
       return statusMap[row.status] || row.status
     }
@@ -224,7 +224,7 @@ const columns = [
             type: 'success',
             size: 'small',
             onClick: () => completeOrder(row.id),
-            disabled: row.status === 'completed'
+            disabled: row.status === 'COMPLETED'
           },
           { default: () => '✔️ เสร็จ' }
         )

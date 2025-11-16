@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
+    ENCRYPTION_KEY: Optional[str] = None  # For encrypting sensitive data (Home Assistant tokens, etc.)
 
     # Database
     DATABASE_URL: str

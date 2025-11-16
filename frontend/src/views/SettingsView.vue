@@ -51,6 +51,22 @@
               <span>Telegram</span>
             </div>
           </button>
+          <button
+            @click="activeTab = 'homeassistant'"
+            :class="[
+              'pb-4 px-1 border-b-2 font-semibold text-sm transition-colors',
+              activeTab === 'homeassistant'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            ]"
+          >
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+              </svg>
+              <span>Home Assistant</span>
+            </div>
+          </button>
           <!-- More tabs can be added here in future -->
         </nav>
       </div>
@@ -370,6 +386,210 @@
             </button>
           </div>
         </div>
+
+        <!-- Home Assistant Settings Tab -->
+        <div v-if="activeTab === 'homeassistant'" class="space-y-6">
+          <!-- Status Banner -->
+          <div v-if="haStatus" :class="[
+            'rounded-xl p-6 border-2',
+            haStatus.is_online
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+              : 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
+          ]">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900 mb-1">
+                  สถานะการเชื่อมต่อ:
+                  <span :class="haStatus.is_online ? 'text-green-600' : 'text-red-600'">
+                    {{ haStatus.is_online ? 'เชื่อมต่อแล้ว' : 'ไม่ได้เชื่อมต่อ' }}
+                  </span>
+                </h3>
+                <p v-if="haStatus.is_online" class="text-sm text-gray-600">
+                  Version: {{ haStatus.ha_version }}
+                </p>
+                <p v-if="haStatus.base_url" class="text-sm text-gray-600">
+                  URL: {{ haStatus.base_url }}
+                </p>
+                <p v-if="haStatus.last_ping_at" class="text-xs text-gray-500 mt-1">
+                  เช็กล่าสุด: {{ new Date(haStatus.last_ping_at).toLocaleString('th-TH') }}
+                </p>
+              </div>
+              <div :class="[
+                'w-4 h-4 rounded-full',
+                haStatus.is_online ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+              ]"></div>
+            </div>
+          </div>
+
+          <!-- Configuration Form -->
+          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-2 border-blue-200">
+            <div class="mb-6">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+                </svg>
+                <span>การตั้งค่า Home Assistant</span>
+              </h3>
+              <p class="text-sm text-gray-600 mt-1">เชื่อมต่อกับ Home Assistant เพื่อควบคุมเบรกเกอร์ไฟฟ้าอัตโนมัติ</p>
+            </div>
+
+            <!-- Base URL -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Base URL
+                <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="haForm.base_url"
+                type="url"
+                class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all font-mono text-sm"
+                placeholder="http://192.168.1.100:8123"
+              />
+              <p class="mt-2 text-xs text-gray-500">
+                URL ของ Home Assistant ในเครือข่ายท้องถิ่น (Local Network)
+              </p>
+            </div>
+
+            <!-- Access Token -->
+            <div class="mb-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Long-Lived Access Token
+                <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  v-model="haForm.access_token"
+                  :type="showToken ? 'text' : 'password'"
+                  class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all font-mono text-sm"
+                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                />
+                <button
+                  @click="showToken = !showToken"
+                  type="button"
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  <svg v-if="!showToken" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="mt-2 text-xs text-gray-500">
+                สร้างได้จาก Profile → Long-Lived Access Tokens ใน Home Assistant
+              </p>
+            </div>
+
+            <!-- Helper Info -->
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <div class="flex items-start space-x-3">
+                <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div class="text-sm text-blue-800">
+                  <p class="font-semibold mb-1">วิธีสร้าง Access Token:</p>
+                  <ol class="list-decimal list-inside space-y-1 ml-2">
+                    <li>เข้าสู่ Home Assistant และคลิกที่ชื่อผู้ใช้มุมล่างซ้าย</li>
+                    <li>เลื่อนลงไปที่ส่วน "Long-Lived Access Tokens"</li>
+                    <li>คลิก "Create Token" และตั้งชื่อ เช่น "FlyingHotel"</li>
+                    <li>คัดลอก Token ที่ได้มาวางในช่องด้านบน</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Test Connection Section -->
+          <div class="bg-gray-50 rounded-xl p-6 border-2 border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">ทดสอบการเชื่อมต่อ</h3>
+            <p class="text-sm text-gray-600 mb-4">ทดสอบการเชื่อมต่อก่อนบันทึกการตั้งค่า</p>
+
+            <button
+              @click="handleTestHAConnection"
+              :disabled="testingHA || !haForm.base_url || !haForm.access_token"
+              class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              <svg v-if="testingHA" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>{{ testingHA ? 'กำลังทดสอบ...' : 'ทดสอบการเชื่อมต่อ' }}</span>
+            </button>
+
+            <!-- Test Result -->
+            <div v-if="haTestResult" class="mt-4">
+              <div
+                :class="[
+                  'p-4 rounded-xl border-2',
+                  haTestResult.success
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                ]"
+              >
+                <div class="flex items-start space-x-3">
+                  <svg
+                    :class="haTestResult.success ? 'text-green-600' : 'text-red-600'"
+                    class="w-6 h-6 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path v-if="haTestResult.success" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    <path v-else fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                  <div>
+                    <p :class="haTestResult.success ? 'text-green-800' : 'text-red-800'" class="font-semibold">
+                      {{ haTestResult.message }}
+                    </p>
+                    <div v-if="haTestResult.success && haTestResult.ha_version" class="text-sm text-gray-600 mt-2 space-y-1">
+                      <p>Version: {{ haTestResult.ha_version }}</p>
+                      <p v-if="haTestResult.entity_count">Entities: {{ haTestResult.entity_count }} รายการ</p>
+                      <p v-if="haTestResult.response_time_ms">Response Time: {{ haTestResult.response_time_ms }}ms</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-between items-center pt-4 border-t">
+            <button
+              v-if="haStatus?.is_configured"
+              @click="handleDeleteHAConfig"
+              :disabled="deletingHA"
+              class="px-6 py-3 bg-red-100 text-red-700 rounded-xl font-semibold hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              <svg v-if="deletingHA" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>{{ deletingHA ? 'กำลังลบ...' : 'ลบการตั้งค่า' }}</span>
+            </button>
+            <div v-else></div>
+
+            <div class="flex space-x-4">
+              <button
+                @click="handleResetHA"
+                class="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+              >
+                รีเซ็ต
+              </button>
+              <button
+                @click="handleSaveHAConfig"
+                :disabled="savingHA || !haForm.base_url || !haForm.access_token"
+                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                <svg v-if="savingHA" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>{{ savingHA ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -396,6 +616,11 @@
 import { ref, onMounted } from 'vue'
 import { getSettings, updateSettings, testTelegramConnection } from '@/api/settings'
 import type { SystemSettings, TelegramTestResponse } from '@/api/settings'
+import { useHomeAssistantStore } from '@/stores/homeAssistant'
+import type { HomeAssistantTestConnectionResponse, HomeAssistantStatus } from '@/types/homeAssistant'
+
+// Home Assistant Store
+const haStore = useHomeAssistantStore()
 
 // State
 const activeTab = ref('telegram')
@@ -434,6 +659,22 @@ const toast = ref({
   type: 'success' as 'success' | 'error',
   message: ''
 })
+
+// Home Assistant State
+const haStatus = ref<HomeAssistantStatus | null>(null)
+const haForm = ref({
+  base_url: '',
+  access_token: ''
+})
+const originalHAConfig = ref({
+  base_url: '',
+  access_token: ''
+})
+const showToken = ref(false)
+const testingHA = ref(false)
+const savingHA = ref(false)
+const deletingHA = ref(false)
+const haTestResult = ref<HomeAssistantTestConnectionResponse | null>(null)
 
 // Show toast
 function showToast(type: 'success' | 'error', message: string) {
@@ -500,9 +741,112 @@ async function handleTestConnection() {
   }
 }
 
+// Home Assistant Functions
+
+// Fetch HA status
+async function fetchHAStatus() {
+  try {
+    haStatus.value = await haStore.fetchStatus()
+  } catch (error) {
+    // Status might not be available if not configured
+    haStatus.value = {
+      is_configured: false,
+      is_online: false,
+      last_ping_at: null,
+      ha_version: null,
+      base_url: null
+    }
+  }
+}
+
+// Fetch HA config
+async function fetchHAConfig() {
+  try {
+    const config = await haStore.fetchConfig()
+    if (config) {
+      haForm.value.base_url = config.base_url
+      // Don't populate access_token as it's masked in the response
+      haForm.value.access_token = ''
+      originalHAConfig.value = { ...haForm.value }
+    }
+  } catch (error) {
+    // Config not available
+    haForm.value = { base_url: '', access_token: '' }
+    originalHAConfig.value = { base_url: '', access_token: '' }
+  }
+}
+
+// Test HA connection
+async function handleTestHAConnection() {
+  testingHA.value = true
+  haTestResult.value = null
+  try {
+    const result = await haStore.testConnection({
+      base_url: haForm.value.base_url,
+      access_token: haForm.value.access_token
+    })
+    haTestResult.value = result
+  } catch (error: any) {
+    haTestResult.value = {
+      success: false,
+      message: error.response?.data?.detail || 'ไม่สามารถทดสอบการเชื่อมต่อได้'
+    }
+  } finally {
+    testingHA.value = false
+  }
+}
+
+// Save HA config
+async function handleSaveHAConfig() {
+  savingHA.value = true
+  try {
+    await haStore.saveConfig(haForm.value)
+    await fetchHAStatus()
+    await fetchHAConfig()
+    showToast('success', 'บันทึกการตั้งค่า Home Assistant สำเร็จ')
+    haTestResult.value = null
+  } catch (error: any) {
+    showToast('error', error.response?.data?.detail || 'ไม่สามารถบันทึกการตั้งค่าได้')
+  } finally {
+    savingHA.value = false
+  }
+}
+
+// Delete HA config
+async function handleDeleteHAConfig() {
+  if (!confirm('คุณต้องการลบการตั้งค่า Home Assistant ใช่หรือไม่?')) {
+    return
+  }
+
+  deletingHA.value = true
+  try {
+    await haStore.deleteConfig()
+    await fetchHAStatus()
+    haForm.value = { base_url: '', access_token: '' }
+    originalHAConfig.value = { base_url: '', access_token: '' }
+    haTestResult.value = null
+    showToast('success', 'ลบการตั้งค่า Home Assistant สำเร็จ')
+  } catch (error: any) {
+    showToast('error', error.response?.data?.detail || 'ไม่สามารถลบการตั้งค่าได้')
+  } finally {
+    deletingHA.value = false
+  }
+}
+
+// Reset HA form
+function handleResetHA() {
+  haForm.value = { ...originalHAConfig.value }
+  haTestResult.value = null
+  showToast('success', 'รีเซ็ตการตั้งค่าเรียบร้อย')
+}
+
 // Lifecycle
-onMounted(() => {
-  fetchSettings()
+onMounted(async () => {
+  await Promise.all([
+    fetchSettings(),
+    fetchHAStatus(),
+    fetchHAConfig()
+  ])
 })
 </script>
 

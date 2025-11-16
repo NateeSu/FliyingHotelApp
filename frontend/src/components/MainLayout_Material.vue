@@ -627,7 +627,7 @@ const menuItems = computed(() => {
       children: productsItems
     })
 
-    // System Administration submenu
+    // System Administration submenu (ADMIN only items)
     const adminItems: MenuItem[] = [
       {
         label: 'จัดการผู้ใช้',
@@ -646,6 +646,34 @@ const menuItems = computed(() => {
       icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2V17zm4 0h-2V5h2V17zm4 0h-2v-4h2V17z',
       children: adminItems
     })
+  }
+
+  // Smart Breakers - for Admin and Reception
+  if (authStore.isAdmin || authStore.hasRole(['RECEPTION'])) {
+    // Find "ระบบ" menu to add Smart Breakers as submenu
+    const systemMenu = items.find(item => item.label === 'ระบบ')
+
+    if (systemMenu && systemMenu.children) {
+      // Add Smart Breakers at the beginning of system submenu
+      systemMenu.children.unshift({
+        label: 'Smart Breakers',
+        path: '/breakers',
+        icon: 'M11.5 1L2 6v2h19V6l-9.5-5zM12 13c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-9 7h18v-2h-18v2zm0-4h18v-2h-18v2zm0-6v2h3.42c-.43-.63-.67-1.4-.67-2.21 0-.83.26-1.59.7-2.21H3v2.42zm7 0c0-1.53 1.24-2.77 2.77-2.77s2.77 1.24 2.77 2.77-1.24 2.77-2.77 2.77S10 11.53 10 10zm11 0v-2h-3.43c.43.63.67 1.4.67 2.21 0 .83-.26 1.59-.7 2.21H21V10z'
+      })
+    } else if (!systemMenu) {
+      // If no system menu exists (for Reception), create it
+      const breakersItems: MenuItem[] = [{
+        label: 'Smart Breakers',
+        path: '/breakers',
+        icon: 'M11.5 1L2 6v2h19V6l-9.5-5zM12 13c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-9 7h18v-2h-18v2zm0-4h18v-2h-18v2zm0-6v2h3.42c-.43-.63-.67-1.4-.67-2.21 0-.83.26-1.59.7-2.21H3v2.42zm7 0c0-1.53 1.24-2.77 2.77-2.77s2.77 1.24 2.77 2.77-1.24 2.77-2.77 2.77S10 11.53 10 10zm11 0v-2h-3.43c.43.63.67 1.4.67 2.21 0 .83-.26 1.59-.7 2.21H21V10z'
+      }]
+
+      items.push({
+        label: 'ระบบ',
+        icon: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2V17zm4 0h-2V5h2V17zm4 0h-2v-4h2V17z',
+        children: breakersItems
+      })
+    }
   }
 
   return items

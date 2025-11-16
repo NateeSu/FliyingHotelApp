@@ -135,6 +135,13 @@ const routes: RouteRecordRaw[] = [
     name: 'Reports',
     component: () => import('@/views/ReportsView.vue'),
     meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
+  },
+  // Home Assistant & Breakers Management
+  {
+    path: '/breakers',
+    name: 'Breakers',
+    component: () => import('@/views/BreakersView.vue'),
+    meta: { requiresAuth: true, roles: ['ADMIN', 'RECEPTION'] }
   }
 ]
 

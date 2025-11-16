@@ -185,7 +185,7 @@
                   <span
                     :class="[
                       'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
-                      checkIn.stay_type === 'overnight'
+                      checkIn.stay_type === 'OVERNIGHT'
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-purple-100 text-purple-800'
                     ]"
@@ -208,7 +208,7 @@
                   <span
                     :class="[
                       'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
-                      checkIn.status === 'checked_out'
+                      checkIn.status === 'CHECKED_OUT'
                         ? 'bg-gray-100 text-gray-800'
                         : 'bg-green-100 text-green-800'
                     ]"
@@ -307,7 +307,7 @@
                   <span
                     :class="[
                       'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
-                      selectedCheckIn.status === 'checked_out'
+                      selectedCheckIn.status === 'CHECKED_OUT'
                         ? 'bg-gray-100 text-gray-800'
                         : 'bg-green-100 text-green-800'
                     ]"
@@ -555,26 +555,26 @@ function closeDetailsModal() {
 // Translations
 function translateStayType(type: string): string {
   const map: Record<string, string> = {
-    'overnight': 'ค้างคืน',
-    'temporary': 'ชั่วคราว'
+    'OVERNIGHT': 'ค้างคืน',
+    'TEMPORARY': 'ชั่วคราว'
   }
   return map[type] || type
 }
 
 function translateStatus(status: string): string {
   const map: Record<string, string> = {
-    'checked_in': 'เข้าพัก',
-    'checked_out': 'เช็คเอาท์แล้ว'
+    'CHECKED_IN': 'เข้าพัก',
+    'CHECKED_OUT': 'เช็คเอาท์แล้ว'
   }
   return map[status] || status
 }
 
 function translatePaymentMethod(method: string): string {
   const map: Record<string, string> = {
-    'cash': 'เงินสด',
-    'transfer': 'โอนเงิน',
-    'credit_card': 'บัตรเครดิต',
-    'qr_code': 'QR Code'
+    'CASH': 'เงินสด',
+    'TRANSFER': 'โอนเงิน',
+    'CREDIT_CARD': 'บัตรเครดิต',
+    'QR_CODE': 'QR Code'
   }
   return map[method] || method
 }

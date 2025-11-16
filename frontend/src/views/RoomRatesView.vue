@@ -66,7 +66,7 @@
                 <!-- Overnight Rate -->
                 <td class="px-6 py-6 text-center">
                   <button
-                    @click="openEditRateDialog(row.room_type_id, row.room_type_name, 'overnight', row.overnight_rate)"
+                    @click="openEditRateDialog(row.room_type_id, row.room_type_name, 'OVERNIGHT', row.overnight_rate)"
                     class="group relative inline-flex flex-col items-center justify-center px-6 py-4 min-w-[140px] bg-gradient-to-br from-indigo-100 to-purple-100 hover:from-indigo-200 hover:to-purple-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                   >
                     <span v-if="row.overnight_rate" class="text-3xl font-bold text-indigo-700">
@@ -83,7 +83,7 @@
                 <!-- Temporary Rate -->
                 <td class="px-6 py-6 text-center">
                   <button
-                    @click="openEditRateDialog(row.room_type_id, row.room_type_name, 'temporary', row.temporary_rate)"
+                    @click="openEditRateDialog(row.room_type_id, row.room_type_name, 'TEMPORARY', row.temporary_rate)"
                     class="group relative inline-flex flex-col items-center justify-center px-6 py-4 min-w-[140px] bg-gradient-to-br from-pink-100 to-purple-100 hover:from-pink-200 hover:to-purple-200 rounded-xl transition-all duration-200 transform hover:scale-105"
                   >
                     <span v-if="row.temporary_rate" class="text-3xl font-bold text-pink-700">
@@ -129,7 +129,7 @@
         <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 text-white">
           <h2 class="text-2xl font-bold">แก้ไขราคา</h2>
           <p class="text-white/80 mt-1">
-            {{ editingRoomTypeName }} - {{ editingStayType === 'overnight' ? 'ค้างคืน' : 'ชั่วคราว' }}
+            {{ editingRoomTypeName }} - {{ editingStayType === 'OVERNIGHT' ? 'ค้างคืน' : 'ชั่วคราว' }}
           </p>
         </div>
 
@@ -153,7 +153,7 @@
               <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">บาท</span>
             </div>
             <p class="text-sm text-gray-500 mt-2 text-center">
-              {{ editingStayType === 'overnight' ? 'ราคาต่อคืน' : 'ราคาต่อ 3 ชั่วโมง' }}
+              {{ editingStayType === 'OVERNIGHT' ? 'ราคาต่อคืน' : 'ราคาต่อ 3 ชั่วโมง' }}
             </p>
           </div>
 
@@ -201,7 +201,7 @@ const roomStore = useRoomStore()
 const showEditDialog = ref(false)
 const editingRoomTypeId = ref<number>(0)
 const editingRoomTypeName = ref('')
-const editingStayType = ref<'overnight' | 'temporary'>('overnight')
+const editingStayType = ref<'OVERNIGHT' | 'TEMPORARY'>('OVERNIGHT')
 const editingRate = ref<number>(0)
 const originalRate = ref<number | null>(null)
 
@@ -215,7 +215,7 @@ const formatPrice = (price: number): string => {
 const openEditRateDialog = (
   roomTypeId: number,
   roomTypeName: string,
-  stayType: 'overnight' | 'temporary',
+  stayType: 'OVERNIGHT' | 'TEMPORARY',
   currentRate?: number
 ) => {
   editingRoomTypeId.value = roomTypeId
@@ -237,14 +237,14 @@ const closeEditDialog = () => {
 
 const handleUpdateRate = async () => {
   try {
-    const stayTypeEnum = editingStayType.value === 'overnight' ? StayType.OVERNIGHT : StayType.TEMPORARY
+    const stayTypeEnum = editingStayType.value === 'OVERNIGHT' ? StayType.OVERNIGHT : StayType.TEMPORARY
 
     // Check if rate already exists
     const existingRate = roomStore.rateMatrix.find(
       row => row.room_type_id === editingRoomTypeId.value
     )
 
-    const rateId = editingStayType.value === 'overnight'
+    const rateId = editingStayType.value === 'OVERNIGHT'
       ? existingRate?.overnight_rate_id
       : existingRate?.temporary_rate_id
 

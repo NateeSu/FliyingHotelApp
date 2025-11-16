@@ -98,8 +98,8 @@ class BookingReportResponse(BaseModel):
 class TopCustomer(BaseModel):
     """Top customer data"""
     customer_id: int
-    full_name: str
-    phone_number: str
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
     total_spending: float
     visit_count: int
     last_visit: Optional[datetime]

@@ -184,6 +184,20 @@ class RoomService:
         #     }
         # })
 
+        # Auto control breaker based on room status change
+        if old_status != new_status:
+            try:
+                from app.services.breaker_service import BreakerService
+                breaker_service = BreakerService(self.db)
+                await breaker_service.auto_control_on_room_status_change(
+                    room_id=room.id,
+                    old_status=old_status,
+                    new_status=new_status
+                )
+            except Exception:
+                # Silently ignore breaker control errors to not block room status update
+                pass
+
         return room
 
     async def delete(self, room_id: int) -> None:

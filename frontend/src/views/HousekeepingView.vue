@@ -119,17 +119,17 @@ const selectedTask = ref<HousekeepingTaskWithDetails | null>(null)
 
 // Options
 const statusOptions = [
-  { label: 'รอดำเนินการ', value: 'pending' },
-  { label: 'กำลังทำ', value: 'in_progress' },
-  { label: 'เสร็จสิ้น', value: 'completed' },
-  { label: 'ยกเลิก', value: 'cancelled' }
+  { label: 'รอดำเนินการ', value: 'PENDING' },
+  { label: 'กำลังทำ', value: 'IN_PROGRESS' },
+  { label: 'เสร็จสิ้น', value: 'COMPLETED' },
+  { label: 'ยกเลิก', value: 'CANCELLED' }
 ]
 
 const priorityOptions = [
-  { label: '🔴 ด่วนมาก', value: 'urgent' },
-  { label: '🟠 สูง', value: 'high' },
-  { label: '🟡 ปานกลาง', value: 'medium' },
-  { label: '🟢 ต่ำ', value: 'low' }
+  { label: '🔴 ด่วนมาก', value: 'URGENT' },
+  { label: '🟠 สูง', value: 'HIGH' },
+  { label: '🟡 ปานกลาง', value: 'MEDIUM' },
+  { label: '🟢 ต่ำ', value: 'LOW' }
 ]
 
 // Methods

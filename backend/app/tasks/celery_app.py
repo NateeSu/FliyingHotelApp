@@ -41,6 +41,36 @@ celery_app.conf.beat_schedule = {
         'task': 'send_daily_summary_report',
         'schedule': crontab(hour=8, minute=0),
     },
+    # Breaker: Sync all breaker states from Home Assistant
+    # Runs every 10 seconds
+    'sync-all-breaker-states': {
+        'task': 'breaker.sync_all_breaker_states',
+        'schedule': 10.0,  # Every 10 seconds
+    },
+    # Breaker: Process control queue (debouncing and retries)
+    # Runs every 5 seconds
+    'process-breaker-control-queue': {
+        'task': 'breaker.process_control_queue',
+        'schedule': 5.0,  # Every 5 seconds
+    },
+    # Breaker: Health check for Home Assistant and breakers
+    # Runs every 5 minutes
+    'breaker-health-check': {
+        'task': 'breaker.health_check',
+        'schedule': crontab(minute='*/5'),
+    },
+    # Breaker: Clean up old queue items (older than 7 days)
+    # Runs daily at 3:00 AM
+    'cleanup-old-breaker-queue-items': {
+        'task': 'breaker.cleanup_old_queue_items',
+        'schedule': crontab(hour=3, minute=0),
+    },
+    # Breaker: Clean up old activity logs (older than 90 days)
+    # Runs weekly on Sunday at 4:00 AM
+    'cleanup-old-breaker-activity-logs': {
+        'task': 'breaker.cleanup_old_activity_logs',
+        'schedule': crontab(hour=4, minute=0, day_of_week=0),
+    },
 }
 
 # Auto-discover tasks from all modules

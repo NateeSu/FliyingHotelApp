@@ -35,11 +35,11 @@
           class="px-4 py-2 border-2 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none"
         >
           <option :value="null">ทุกสถานะ</option>
-          <option value="available">ว่าง</option>
-          <option value="occupied">มีผู้พัก</option>
-          <option value="cleaning">กำลังทำความสะอาด</option>
-          <option value="reserved">จองแล้ว</option>
-          <option value="out_of_service">ปิดปรับปรุง</option>
+          <option value="AVAILABLE">ว่าง</option>
+          <option value="OCCUPIED">มีผู้พัก</option>
+          <option value="CLEANING">กำลังทำความสะอาด</option>
+          <option value="RESERVED">จองแล้ว</option>
+          <option value="OUT_OF_SERVICE">ปิดปรับปรุง</option>
         </select>
 
         <select
@@ -218,6 +218,98 @@
             </label>
           </div>
 
+          <!-- Smart Breaker Configuration (only when editing) -->
+          <div v-if="isEditing && isHAConfigured" class="border-2 border-purple-200 rounded-xl p-4 bg-purple-50">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-2xl">⚡</span>
+              <h3 class="text-lg font-bold text-purple-800">Smart Breaker Configuration</h3>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Breaker Selection -->
+              <div>
+                <label class="block text-gray-700 font-semibold mb-2">
+                  Home Assistant Entity
+                </label>
+                <select
+                  v-model="selectedBreakerId"
+                  @change="handleBreakerChange"
+                  class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
+                >
+                  <option :value="null">ไม่เชื่อมกับ breaker</option>
+                  <option v-for="breaker in availableBreakers" :key="breaker.id" :value="breaker.id">
+                    {{ breaker.friendly_name }} ({{ breaker.entity_id }})
+                  </option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">
+                  เลือก breaker ที่ต้องการเชื่อมกับห้องนี้
+                </p>
+              </div>
+
+              <!-- Current Breaker Info -->
+              <div v-if="currentRoomBreaker" class="p-3 bg-white rounded-lg border border-purple-200">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-semibold text-gray-800">{{ currentRoomBreaker.friendly_name }}</div>
+                    <div class="text-sm text-gray-600">{{ currentRoomBreaker.entity_id }}</div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span :class="[
+                      'px-3 py-1 rounded-full text-xs font-semibold',
+                      currentRoomBreaker.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    ]">
+                      {{ currentRoomBreaker.is_available ? 'พร้อมใช้งาน' : 'ออฟไลน์' }}
+                    </span>
+                    <span :class="[
+                      'text-2xl',
+                      currentRoomBreaker.current_state === 'ON' ? '⚡' : '⚫'
+                    ]">
+                    </span>
+                  </div>
+                </div>
+
+                <div class="mt-2 pt-2 border-t border-purple-100">
+                  <div class="flex items-center gap-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input
+                        v-model="breakerAutoControl"
+                        type="checkbox"
+                        class="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
+                      />
+                      <span class="text-sm text-gray-700">เปิดใช้งานควบคุมอัตโนมัติ</span>
+                    </label>
+                    <router-link
+                      to="/breakers"
+                      class="text-xs text-purple-600 hover:text-purple-800 underline"
+                    >
+                      จัดการ Breaker
+                    </router-link>
+                  </div>
+                </div>
+              </div>
+
+              <!-- No Breaker Info -->
+              <div v-else-if="selectedBreakerId === null" class="p-3 bg-gray-100 rounded-lg text-center">
+                <p class="text-sm text-gray-600">ห้องนี้ยังไม่ได้เชื่อมกับ Smart Breaker</p>
+                <router-link to="/breakers" class="text-sm text-purple-600 hover:text-purple-800 underline mt-1 inline-block">
+                  สร้าง Breaker ใหม่
+                </router-link>
+              </div>
+            </div>
+          </div>
+
+          <!-- HA Not Configured -->
+          <div v-if="isEditing && !isHAConfigured" class="border-2 border-gray-200 rounded-xl p-4 bg-gray-50">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-2xl opacity-50">⚡</span>
+              <h3 class="text-lg font-bold text-gray-500">Smart Breaker</h3>
+            </div>
+            <p class="text-sm text-gray-500 mb-2">ยังไม่ได้ตั้งค่า Home Assistant</p>
+            <router-link to="/settings" class="text-sm text-indigo-600 hover:text-indigo-800 underline">
+              ตั้งค่าเลย
+            </router-link>
+          </div>
+
           <!-- Error Message -->
           <div v-if="roomStore.error" class="p-4 bg-red-100 border border-red-300 rounded-xl text-red-700">
             {{ roomStore.error }}
@@ -255,12 +347,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoomStore } from '@/stores/room'
+import { useHomeAssistantStore } from '@/stores/homeAssistant'
+import { useBreakersStore } from '@/stores/breakers'
 import type { Room, RoomFormData } from '@/types/room'
+import type { Breaker } from '@/types/homeAssistant'
 import { RoomStatus, getRoomStatusLabel } from '@/types/room'
 
 const roomStore = useRoomStore()
+const haStore = useHomeAssistantStore()
+const breakersStore = useBreakersStore()
 
 const showDialog = ref(false)
 const isEditing = ref(false)
@@ -305,6 +402,88 @@ const getStatusLabel = (status: RoomStatus): string => {
   return getRoomStatusLabel(status)
 }
 
+// Breaker-related state
+const selectedBreakerId = ref<number | null>(null)
+const breakerAutoControl = ref(true)
+
+// Computed
+const isHAConfigured = computed(() => haStore.status?.is_configured || false)
+
+const availableBreakers = computed(() => {
+  // Breakers ที่ยังไม่ได้ link กับห้องอื่น หรือ link กับห้องปัจจุบัน
+  return breakersStore.breakers.filter(b =>
+    b.room_id === null || b.room_id === editingId.value
+  )
+})
+
+const currentRoomBreaker = computed(() => {
+  if (!selectedBreakerId.value) return null
+  return breakersStore.breakers.find(b => b.id === selectedBreakerId.value)
+})
+
+// Breaker methods
+const handleBreakerChange = async () => {
+  if (!selectedBreakerId.value) {
+    breakerAutoControl.value = true
+    return
+  }
+
+  const breaker = breakersStore.breakers.find(b => b.id === selectedBreakerId.value)
+  if (breaker) {
+    breakerAutoControl.value = breaker.auto_control_enabled
+  }
+}
+
+const loadBreakerData = async () => {
+  if (!isHAConfigured.value) return
+
+  try {
+    await Promise.all([
+      haStore.fetchStatus(),
+      breakersStore.fetchBreakers()
+    ])
+
+    // Load current breaker for this room
+    if (editingId.value) {
+      const roomBreaker = breakersStore.breakers.find(b => b.room_id === editingId.value)
+      if (roomBreaker) {
+        selectedBreakerId.value = roomBreaker.id
+        breakerAutoControl.value = roomBreaker.auto_control_enabled
+      }
+    }
+  } catch (error) {
+    console.error('Error loading breaker data:', error)
+  }
+}
+
+const saveBreakerConfig = async () => {
+  if (!isEditing.value || !editingId.value) return
+
+  try {
+    // If breaker changed
+    const currentBreaker = breakersStore.breakers.find(b => b.room_id === editingId.value)
+
+    if (currentBreaker && currentBreaker.id !== selectedBreakerId.value) {
+      // Unlink old breaker
+      await breakersStore.update(currentBreaker.id, {
+        room_id: null,
+        auto_control_enabled: currentBreaker.auto_control_enabled
+      })
+    }
+
+    if (selectedBreakerId.value) {
+      // Link new breaker
+      await breakersStore.update(selectedBreakerId.value, {
+        room_id: editingId.value,
+        auto_control_enabled: breakerAutoControl.value
+      })
+    }
+  } catch (error) {
+    console.error('Error saving breaker config:', error)
+    throw error
+  }
+}
+
 const resetForm = () => {
   formData.value = {
     room_number: '',
@@ -314,6 +493,8 @@ const resetForm = () => {
     is_active: true,
     status: RoomStatus.AVAILABLE
   }
+  selectedBreakerId.value = null
+  breakerAutoControl.value = true
   roomStore.clearError()
 }
 
@@ -324,7 +505,7 @@ const openCreateDialog = () => {
   showDialog.value = true
 }
 
-const openEditDialog = (room: Room) => {
+const openEditDialog = async (room: Room) => {
   formData.value = {
     room_number: room.room_number,
     room_type_id: room.room_type_id,
@@ -336,6 +517,9 @@ const openEditDialog = (room: Room) => {
   isEditing.value = true
   editingId.value = room.id
   showDialog.value = true
+
+  // Load breaker data
+  await loadBreakerData()
 }
 
 const openRoomDetails = (room: Room) => {
@@ -370,6 +554,9 @@ const handleSubmit = async () => {
         ...dataToSubmit,
         status: formData.value.status
       })
+
+      // Save breaker configuration
+      await saveBreakerConfig()
     } else {
       await roomStore.createRoom(dataToSubmit)
     }

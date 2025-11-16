@@ -20,3 +20,15 @@ from .maintenance_task import (
     MaintenanceTaskPriorityEnum,
     MaintenanceTaskCategoryEnum
 )
+from .home_assistant import (
+    HomeAssistantConfig,
+    HomeAssistantBreaker,
+    BreakerActivityLog,
+    BreakerControlQueue,
+    BreakerState,
+    BreakerAction,
+    TriggerType,
+    ActionStatus,
+    QueueStatus,
+    TargetState
+)

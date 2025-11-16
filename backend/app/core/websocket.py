@@ -174,6 +174,108 @@ class ConnectionManager:
         await self.broadcast(message)
         logger.info(f"Broadcasted notification: {notification_type} to {target_role}")
 
+    async def broadcast_breaker_status_change(
+        self,
+        breaker_id: int,
+        entity_id: str,
+        room_id: int = None,
+        room_number: str = None,
+        old_state: str = None,
+        new_state: str = None,
+        breaker_data: dict = None
+    ):
+        """
+        Broadcast breaker status change event
+
+        Args:
+            breaker_id: ID of the breaker
+            entity_id: Home Assistant entity ID
+            room_id: Associated room ID
+            room_number: Room number
+            old_state: Previous state
+            new_state: New state
+            breaker_data: Additional breaker data to broadcast
+        """
+        message = {
+            "event": "breaker_status_changed",
+            "data": {
+                "breaker_id": breaker_id,
+                "entity_id": entity_id,
+                "room_id": room_id,
+                "room_number": room_number,
+                "old_state": old_state,
+                "new_state": new_state,
+                "breaker_data": breaker_data or {}
+            }
+        }
+        await self.broadcast(message)
+        logger.info(f"Broadcasted breaker status change: Breaker {breaker_id} ({entity_id}) {old_state} → {new_state}")
+
+    async def broadcast_breaker_control(
+        self,
+        breaker_id: int,
+        action: str,
+        status: str,
+        room_id: int = None,
+        room_number: str = None,
+        trigger_type: str = None
+    ):
+        """
+        Broadcast breaker control event (turn on/off)
+
+        Args:
+            breaker_id: ID of the breaker
+            action: Action performed (TURN_ON/TURN_OFF)
+            status: Result status (SUCCESS/FAILED)
+            room_id: Associated room ID
+            room_number: Room number
+            trigger_type: Trigger type (AUTO/MANUAL/SYSTEM)
+        """
+        message = {
+            "event": "breaker_control",
+            "data": {
+                "breaker_id": breaker_id,
+                "action": action,
+                "status": status,
+                "room_id": room_id,
+                "room_number": room_number,
+                "trigger_type": trigger_type
+            }
+        }
+        await self.broadcast(message)
+        logger.info(f"Broadcasted breaker control: Breaker {breaker_id} {action} - {status}")
+
+    async def broadcast_breaker_error(
+        self,
+        breaker_id: int,
+        entity_id: str,
+        error_message: str,
+        consecutive_errors: int,
+        room_id: int = None
+    ):
+        """
+        Broadcast breaker error event
+
+        Args:
+            breaker_id: ID of the breaker
+            entity_id: Home Assistant entity ID
+            error_message: Error message
+            consecutive_errors: Number of consecutive errors
+            room_id: Associated room ID
+        """
+        message = {
+            "event": "breaker_error",
+            "data": {
+                "breaker_id": breaker_id,
+                "entity_id": entity_id,
+                "error_message": error_message,
+                "consecutive_errors": consecutive_errors,
+                "room_id": room_id
+            }
+        }
+        await self.broadcast(message)
+        logger.warning(f"Broadcasted breaker error: Breaker {breaker_id} - {error_message}")
+
     def get_active_connections_count(self) -> int:
         """Get the number of active connections"""
         return len(self.active_connections)

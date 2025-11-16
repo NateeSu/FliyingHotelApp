@@ -267,6 +267,25 @@
                 </div>
               </button>
 
+              <!-- Breakers Management -->
+              <button
+                v-if="authStore.isAdmin || authStore.hasRole(['RECEPTION'])"
+                @click="$router.push('/breakers')"
+                class="group p-6 bg-gradient-to-br from-cyan-50 to-teal-50 hover:from-cyan-100 hover:to-teal-100 rounded-2xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 border-transparent hover:border-cyan-500"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-cyan-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+                    </svg>
+                  </div>
+                  <div class="text-left">
+                    <p class="font-bold text-gray-900 text-lg">เบรกเกอร์ไฟฟ้า</p>
+                    <p class="text-sm text-gray-600">ควบคุมไฟฟ้าห้องพัก</p>
+                  </div>
+                </div>
+              </button>
+
               <!-- Settings -->
               <button
                 v-if="authStore.isAdmin"

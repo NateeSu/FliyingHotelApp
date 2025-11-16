@@ -100,7 +100,31 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: celery -A app.tasks.celery_app worker --loglevel=info
+    command: celery -A app.tasks.celery_app worker --loglevel=info --pool=solo
+
+  # Celery Beat Scheduler
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flyinghotel_celery_beat
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+    environment:
+      DATABASE_URL: mysql+aiomysql://${MYSQL_USER:-flyinghotel_user}:${MYSQL_PASSWORD:-flyinghotel_pass}@mysql:3306/${MYSQL_DATABASE:-flyinghotel}?charset=utf8mb4
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-this-in-production}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    networks:
+      - flyinghotel_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.tasks.celery_app beat --loglevel=info
 
   # Vue 3 Frontend
   frontend:

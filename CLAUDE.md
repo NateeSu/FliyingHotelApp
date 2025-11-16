@@ -266,6 +266,132 @@ All API endpoints use `/api/v1/` prefix for versioning.
 - `housekeeping_completed`
 - `maintenance_request`
 
+## Enum Standards (CRITICAL)
+
+### ⚠️ **ENUM CASE CONVENTION - MUST BE ALL UPPERCASE**
+
+All enum values across the entire system **MUST** be **UPPERCASE ONLY**. This includes:
+- Database enum columns
+- Python model enums
+- Pydantic schemas
+- Frontend TypeScript enums
+- API requests/responses
+
+**WHY**: SQLAlchemy requires exact case matching between database and Python enums. Mismatched cases cause `LookupError` and break the entire application.
+
+### Complete Enum Reference
+
+#### Room Status (rooms.status)
+```
+Database: ENUM('AVAILABLE','OCCUPIED','CLEANING','RESERVED','OUT_OF_SERVICE')
+Python:   AVAILABLE, OCCUPIED, CLEANING, RESERVED, OUT_OF_SERVICE
+API:      'AVAILABLE', 'OCCUPIED', 'CLEANING', 'RESERVED', 'OUT_OF_SERVICE'
+```
+
+#### Stay Type (room_rates.stay_type, check_ins.stay_type, bookings.stay_type)
+```
+Database: ENUM('OVERNIGHT','TEMPORARY')
+Python:   OVERNIGHT, TEMPORARY
+API:      'OVERNIGHT', 'TEMPORARY'
+```
+
+#### Check-in Status (check_ins.status)
+```
+Database: ENUM('CHECKED_IN','CHECKED_OUT')
+Python:   CHECKED_IN, CHECKED_OUT
+API:      'CHECKED_IN', 'CHECKED_OUT'
+```
+
+#### Payment Method (check_ins.payment_method)
+```
+Database: ENUM('CASH','TRANSFER','CREDIT_CARD')
+Python:   CASH, TRANSFER, CREDIT_CARD
+API:      'CASH', 'TRANSFER', 'CREDIT_CARD'
+```
+
+#### Task Status (housekeeping_tasks.status, maintenance_tasks.status)
+```
+Database: ENUM('PENDING','IN_PROGRESS','COMPLETED','CANCELLED')
+Python:   PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+API:      'PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'
+```
+
+#### Task Priority (housekeeping_tasks.priority, maintenance_tasks.priority)
+```
+Database: ENUM('URGENT','HIGH','MEDIUM','LOW')
+Python:   URGENT, HIGH, MEDIUM, LOW
+API:      'URGENT', 'HIGH', 'MEDIUM', 'LOW'
+```
+
+#### Maintenance Category (maintenance_tasks.category)
+```
+Database: ENUM('PLUMBING','ELECTRICAL','HVAC','FURNITURE','APPLIANCE','BUILDING','OTHER')
+Python:   PLUMBING, ELECTRICAL, HVAC, FURNITURE, APPLIANCE, BUILDING, OTHER
+API:      'PLUMBING', 'ELECTRICAL', 'HVAC', 'FURNITURE', 'APPLIANCE', 'BUILDING', 'OTHER'
+```
+
+#### Booking Status (bookings.status)
+```
+Database: ENUM('PENDING','CONFIRMED','CHECKED_IN','COMPLETED','CANCELLED')
+Python:   PENDING, CONFIRMED, CHECKED_IN, COMPLETED, CANCELLED
+API:      'PENDING', 'CONFIRMED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED'
+```
+
+#### User Role (users.role)
+```
+Database: ENUM('ADMIN','RECEPTION','HOUSEKEEPING','MAINTENANCE')
+Python:   ADMIN, RECEPTION, HOUSEKEEPING, MAINTENANCE
+API:      'ADMIN', 'RECEPTION', 'HOUSEKEEPING', 'MAINTENANCE'
+```
+
+#### Notification Type (notifications.notification_type)
+```
+Database: ENUM('ROOM_STATUS_CHANGE','OVERTIME_ALERT','BOOKING_REMINDER','HOUSEKEEPING_COMPLETE','MAINTENANCE_REQUEST','CHECK_IN','CHECK_OUT','ROOM_TRANSFER')
+Python:   ROOM_STATUS_CHANGE, OVERTIME_ALERT, BOOKING_REMINDER, HOUSEKEEPING_COMPLETE, MAINTENANCE_REQUEST, CHECK_IN, CHECK_OUT, ROOM_TRANSFER
+API:      'ROOM_STATUS_CHANGE', 'OVERTIME_ALERT', 'BOOKING_REMINDER', 'HOUSEKEEPING_COMPLETE', 'MAINTENANCE_REQUEST', 'CHECK_IN', 'CHECK_OUT', 'ROOM_TRANSFER'
+```
+
+#### Order Status (orders.status)
+```
+Database: ENUM('PENDING','DELIVERED','COMPLETED')
+Python:   PENDING, DELIVERED, COMPLETED
+API:      'PENDING', 'DELIVERED', 'COMPLETED'
+```
+
+#### Order Source (orders.order_source)
+```
+Database: ENUM('QR_CODE','RECEPTION')
+Python:   QR_CODE, RECEPTION
+API:      'QR_CODE', 'RECEPTION'
+```
+
+#### Product Category (products.category)
+```
+Database: ENUM('ROOM_AMENITY','FOOD_BEVERAGE')
+Python:   ROOM_AMENITY, FOOD_BEVERAGE
+API:      'ROOM_AMENITY', 'FOOD_BEVERAGE'
+```
+
+#### Settings Data Type (system_settings.data_type)
+```
+Database: ENUM('string','number','json','boolean')
+Python:   STRING, NUMBER, JSON, BOOLEAN
+API:      'STRING', 'NUMBER', 'JSON', 'BOOLEAN'
+```
+
+### How to Create New Enums
+1. **Database Migration**: Define enum with ALL UPPERCASE values only
+2. **Python Model**: Create class inheriting from `(str, enum.Enum)` with UPPERCASE keys and values
+3. **Pydantic Schema**: Use `Literal` or `Enum` field with UPPERCASE values
+4. **Frontend**: Match the exact UPPERCASE values in TypeScript/validation
+
+### Verification Checklist
+- [ ] Database enum uses UPPERCASE only
+- [ ] Python enum values are UPPERCASE strings (e.g., `OVERNIGHT = "OVERNIGHT"`)
+- [ ] Pydantic schemas match Python enum values
+- [ ] Frontend components handle UPPERCASE values correctly
+- [ ] API tests verify UPPERCASE in request/response bodies
+
 ## Testing Strategy
 
 ### Coverage Targets
