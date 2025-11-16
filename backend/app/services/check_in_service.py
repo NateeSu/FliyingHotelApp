@@ -92,8 +92,13 @@ class CheckInService:
 
         self.db.add(check_in)
 
-        # Update room status to occupied
-        room.status = RoomStatus.OCCUPIED
+        # Update room status to occupied using RoomService (triggers breaker automation)
+        from app.services.room_service import RoomService
+        room_service = RoomService(self.db)
+        old_status = room.status
+        await room_service.update_status(room.id, RoomStatus.OCCUPIED)
+        # Refresh room to get updated status
+        await self.db.refresh(room)
 
         # If booking exists, mark as checked in
         if check_in_data.booking_id:
@@ -329,9 +334,14 @@ class CheckInService:
             transfer_note = f"\n[ย้ายห้อง {now_thailand().strftime('%Y-%m-%d %H:%M')}] {old_room.room_number} → {new_room.room_number}: {reason}"
             check_in.notes = (check_in.notes or "") + transfer_note
 
-        # Update room statuses
-        old_room.status = RoomStatus.CLEANING
-        new_room.status = RoomStatus.OCCUPIED
+        # Update room statuses using RoomService (triggers breaker automation)
+        from app.services.room_service import RoomService
+        room_service = RoomService(self.db)
+        await room_service.update_status(old_room.id, RoomStatus.CLEANING)
+        await room_service.update_status(new_room.id, RoomStatus.OCCUPIED)
+        # Refresh rooms to get updated status
+        await self.db.refresh(old_room)
+        await self.db.refresh(new_room)
 
         # Phase 5: Create housekeeping task for old room
         from app.models import HousekeepingTask

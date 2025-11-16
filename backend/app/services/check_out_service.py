@@ -191,10 +191,14 @@ class CheckOutService:
         )
         self.db.add(payment)
 
-        # Update room status to cleaning
+        # Update room status to cleaning using RoomService (triggers breaker automation)
         room = check_in.room
         old_status = room.status
-        room.status = RoomStatus.CLEANING
+        from app.services.room_service import RoomService
+        room_service = RoomService(self.db)
+        await room_service.update_status(room.id, RoomStatus.CLEANING)
+        # Refresh room to get updated status
+        await self.db.refresh(room)
 
         # Phase 5: Create housekeeping task
         # Start task immediately (IN_PROGRESS) - housekeeping staff only needs to confirm completion

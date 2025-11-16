@@ -99,14 +99,15 @@ class BookingService:
         await self.db.commit()
         await self.db.refresh(booking)
 
-        # 6. If booking is for today, update room status to reserved
+        # 6. If booking is for today, update room status to reserved using RoomService (triggers breaker automation)
         today = date.today()
         if booking.check_in_date == today:
-            room.status = RoomStatus.RESERVED
+            from app.services.room_service import RoomService
+            room_service = RoomService(self.db)
+            await room_service.update_status(room.id, RoomStatus.RESERVED)
+            # Refresh room to get updated status
+            await self.db.refresh(room)
             await self.db.commit()
-
-            # Broadcast room status change
-            await self._broadcast_room_status_change(room.id, RoomStatus.AVAILABLE, RoomStatus.RESERVED)
 
         # 7. Reload booking with eager-loaded relationships
         booking = await self.get_booking_by_id(booking.id, include_relations=True)
@@ -319,9 +320,12 @@ class BookingService:
             )
 
             if not other_booking_exists:
-                old_room_status = room.status
-                room.status = RoomStatus.AVAILABLE
-                await self._broadcast_room_status_change(room.id, old_room_status, RoomStatus.AVAILABLE)
+                # Update room status to available using RoomService (triggers breaker automation)
+                from app.services.room_service import RoomService
+                room_service = RoomService(self.db)
+                await room_service.update_status(room.id, RoomStatus.AVAILABLE)
+                # Refresh room to get updated status
+                await self.db.refresh(room)
 
         await self.db.commit()
         await self.db.refresh(booking)

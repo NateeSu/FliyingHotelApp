@@ -194,9 +194,11 @@ class RoomService:
                     old_status=old_status,
                     new_status=new_status
                 )
-            except Exception:
-                # Silently ignore breaker control errors to not block room status update
-                pass
+            except Exception as e:
+                # Log error but don't block room status update
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to auto-control breaker for room {room.id}: {str(e)}", exc_info=True)
 
         return room
 

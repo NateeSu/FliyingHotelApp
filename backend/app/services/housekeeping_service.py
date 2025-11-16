@@ -75,17 +75,13 @@ class HousekeepingService:
 
         self.db.add(task)
 
-        # Update room status to cleaning (if not already)
+        # Update room status to cleaning (if not already) using RoomService (triggers breaker automation)
         if room.status != RoomStatus.CLEANING:
-            old_status = room.status
-            room.status = RoomStatus.CLEANING
-
-            # Broadcast room status change
-            await websocket_manager.broadcast_room_status_change(
-                room_id=room.id,
-                old_status=old_status.value,
-                new_status=RoomStatus.CLEANING.value
-            )
+            from app.services.room_service import RoomService
+            room_service = RoomService(self.db)
+            await room_service.update_status(room.id, RoomStatus.CLEANING)
+            # Refresh room to get updated status
+            await self.db.refresh(room)
 
         await self.db.commit()
         await self.db.refresh(task)
@@ -307,15 +303,12 @@ class HousekeepingService:
         # Update room status to available
         room = task.room
         if room and room.status == RoomStatus.CLEANING:
-            old_status = room.status
-            room.status = RoomStatus.AVAILABLE
-
-            # Broadcast room status change
-            await websocket_manager.broadcast_room_status_change(
-                room_id=room.id,
-                old_status=old_status.value,
-                new_status=RoomStatus.AVAILABLE.value
-            )
+            # Update room status to available using RoomService (triggers breaker automation)
+            from app.services.room_service import RoomService
+            room_service = RoomService(self.db)
+            await room_service.update_status(room.id, RoomStatus.AVAILABLE)
+            # Refresh room to get updated status
+            await self.db.refresh(room)
 
         await self.db.commit()
 

@@ -570,37 +570,70 @@ class BreakerService:
         Automatically control breaker based on room status change.
 
         Business Logic:
-        - Turn ON if new_status is OCCUPIED or CLEANING
-        - Turn OFF if new_status is AVAILABLE, RESERVED, or OUT_OF_SERVICE
+        - Turn ON IMMEDIATELY if new_status is OCCUPIED or CLEANING
+        - Turn OFF IMMEDIATELY if new_status is AVAILABLE, RESERVED, or OUT_OF_SERVICE
 
         Args:
             room_id: Room ID
             old_status: Previous room status
             new_status: New room status
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"[BREAKER AUTO-CONTROL] Called for room_id={room_id}, old_status={old_status}, new_status={new_status}")
+
         breaker = await self.get_by_room_id(room_id)
 
         if not breaker:
+            logger.warning(f"[BREAKER AUTO-CONTROL] No breaker found for room {room_id}")
             return  # No breaker assigned to this room
 
+        logger.info(f"[BREAKER AUTO-CONTROL] Breaker found: id={breaker.id}, auto_enabled={breaker.auto_control_enabled}, available={breaker.is_available}, current_state={breaker.current_state}")
+
         if not breaker.auto_control_enabled:
+            logger.warning(f"[BREAKER AUTO-CONTROL] Auto control disabled for breaker {breaker.id}")
             return  # Auto control disabled
 
-        # Determine target state
-        target_state = None
-        if new_status in [RoomStatus.OCCUPIED, RoomStatus.CLEANING]:
-            target_state = TargetState.ON
-        elif new_status in [RoomStatus.AVAILABLE, RoomStatus.RESERVED, RoomStatus.OUT_OF_SERVICE]:
-            target_state = TargetState.OFF
+        if not breaker.is_available:
+            logger.warning(f"[BREAKER AUTO-CONTROL] Breaker {breaker.id} not available in Home Assistant")
+            return  # Breaker not available in Home Assistant
 
-        if target_state:
-            # Add to control queue with 3-second debounce
-            await self._add_to_control_queue(
-                breaker_id=breaker.id,
-                target_state=target_state,
-                trigger_type=TriggerType.AUTO,
-                debounce_seconds=3
-            )
+        # Determine target state and execute IMMEDIATELY
+        try:
+            if new_status in [RoomStatus.OCCUPIED, RoomStatus.CLEANING]:
+                # Turn ON immediately
+                logger.info(f"[BREAKER AUTO-CONTROL] Room status is {new_status}, checking if need to turn ON")
+                if breaker.current_state != BreakerState.ON:
+                    logger.info(f"[BREAKER AUTO-CONTROL] Calling turn_on for breaker {breaker.id}")
+                    await self.turn_on(
+                        breaker_id=breaker.id,
+                        trigger_type=TriggerType.AUTO,
+                        triggered_by=None,
+                        room_status_before=old_status.value if old_status else None,
+                        room_status_after=new_status.value
+                    )
+                    logger.info(f"[BREAKER AUTO-CONTROL] turn_on completed for breaker {breaker.id}")
+                else:
+                    logger.info(f"[BREAKER AUTO-CONTROL] Breaker {breaker.id} already ON, skipping")
+            elif new_status in [RoomStatus.AVAILABLE, RoomStatus.RESERVED, RoomStatus.OUT_OF_SERVICE]:
+                # Turn OFF immediately
+                logger.info(f"[BREAKER AUTO-CONTROL] Room status is {new_status}, checking if need to turn OFF")
+                if breaker.current_state != BreakerState.OFF:
+                    logger.info(f"[BREAKER AUTO-CONTROL] Calling turn_off for breaker {breaker.id}")
+                    await self.turn_off(
+                        breaker_id=breaker.id,
+                        trigger_type=TriggerType.AUTO,
+                        triggered_by=None,
+                        room_status_before=old_status.value if old_status else None,
+                        room_status_after=new_status.value
+                    )
+                    logger.info(f"[BREAKER AUTO-CONTROL] turn_off completed for breaker {breaker.id}")
+                else:
+                    logger.info(f"[BREAKER AUTO-CONTROL] Breaker {breaker.id} already OFF, skipping")
+        except Exception as e:
+            # Log error but don't block room status update
+            logger.error(f"[BREAKER AUTO-CONTROL] Failed for room {room_id}: {str(e)}", exc_info=True)
 
     # ========================================================================
     # Activity Logs
