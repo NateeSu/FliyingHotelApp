@@ -616,8 +616,9 @@ class BreakerService:
                     logger.info(f"[BREAKER AUTO-CONTROL] turn_on completed for breaker {breaker.id}")
                 else:
                     logger.info(f"[BREAKER AUTO-CONTROL] Breaker {breaker.id} already ON, skipping")
-            elif new_status in [RoomStatus.AVAILABLE, RoomStatus.RESERVED, RoomStatus.OUT_OF_SERVICE]:
+            elif new_status in [RoomStatus.AVAILABLE, RoomStatus.RESERVED, RoomStatus.OUT_OF_SERVICE, RoomStatus.OCCUPIED_OVERTIME]:
                 # Turn OFF immediately
+                # OCCUPIED_OVERTIME = temporary stay exceeded 3 hours, auto-cutoff power
                 logger.info(f"[BREAKER AUTO-CONTROL] Room status is {new_status}, checking if need to turn OFF")
                 if breaker.current_state != BreakerState.OFF:
                     logger.info(f"[BREAKER AUTO-CONTROL] Calling turn_off for breaker {breaker.id}")

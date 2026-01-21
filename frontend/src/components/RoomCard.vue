@@ -17,8 +17,8 @@
         <div class="status-badge" :class="`status-${room.status}`">
           {{ statusLabel }}
         </div>
-        <!-- Stay Type Badge (if occupied) -->
-        <div v-if="room.status === 'OCCUPIED' && room.stay_type" class="stay-type-badge" :class="`stay-${room.stay_type}`">
+        <!-- Stay Type Badge (if occupied or overtime) -->
+        <div v-if="(room.status === 'OCCUPIED' || room.status === 'OCCUPIED_OVERTIME') && room.stay_type" class="stay-type-badge" :class="`stay-${room.stay_type}`">
           {{ stayTypeLabel }}
         </div>
       </div>
@@ -53,8 +53,8 @@
       </div>
     </div>
 
-    <!-- Check-in Info (if occupied) -->
-    <div v-if="room.status === 'OCCUPIED' && room.customer_name" class="check-in-info">
+    <!-- Check-in Info (if occupied or overtime) -->
+    <div v-if="(room.status === 'OCCUPIED' || room.status === 'OCCUPIED_OVERTIME') && room.customer_name" class="check-in-info">
       <div class="customer-info">
         <span class="label">ผู้เข้าพัก:</span>
         <span class="value">{{ room.customer_name }}</span>
@@ -81,6 +81,12 @@
       <div v-if="room.is_overtime" class="overtime-alert">
         <span class="icon">⚠️</span>
         <span class="text">เกินเวลา {{ room.overtime_minutes }} นาที</span>
+      </div>
+
+      <!-- Overtime Cutoff Warning (for OCCUPIED_OVERTIME status) -->
+      <div v-if="room.status === 'OCCUPIED_OVERTIME'" class="overtime-cutoff-alert">
+        <span class="icon">🔌</span>
+        <span class="text">หมดเวลาเข้าพัก - ตัดไฟอัตโนมัติแล้ว</span>
       </div>
     </div>
 
@@ -156,6 +162,18 @@
         </button>
       </template>
 
+      <!-- Overtime Room Actions (only check-out) -->
+      <template v-if="room.status === 'OCCUPIED_OVERTIME'">
+        <!-- Check-Out Button (urgent) -->
+        <button
+          class="action-btn check-out-btn urgent"
+          @click="handleCheckOut"
+        >
+          <span class="icon">→</span>
+          <span class="text">เช็คเอาท์ (ด่วน)</span>
+        </button>
+      </template>
+
       <!-- Cleaning Room Actions -->
       <template v-if="room.status === 'CLEANING'">
         <!-- Complete Housekeeping Button -->
@@ -205,7 +223,8 @@ const statusLabel = computed(() => {
     OCCUPIED: 'มีผู้เข้าพัก',
     CLEANING: 'ทำความสะอาด',
     RESERVED: 'จอง',
-    OUT_OF_SERVICE: 'ไม่พร้อมใช้งาน'
+    OUT_OF_SERVICE: 'ไม่พร้อมใช้งาน',
+    OCCUPIED_OVERTIME: 'หมดเวลาเข้าพัก'
   }
   return statusMap[props.room.status] || props.room.status
 })
@@ -368,6 +387,26 @@ function handleCompleteHousekeeping(): void {
 
 .room-card.status-OUT_OF_SERVICE:hover {
   box-shadow: 0 8px 20px rgba(158, 158, 158, 0.4);
+}
+
+/* ห้องหมดเวลา - แดงเข้มเตือนด่วน */
+.room-card.status-OCCUPIED_OVERTIME {
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  box-shadow: 0 4px 12px rgba(220, 20, 60, 0.5);
+  animation: pulse-overtime 2s infinite;
+}
+
+.room-card.status-OCCUPIED_OVERTIME:hover {
+  box-shadow: 0 8px 20px rgba(220, 20, 60, 0.7);
+}
+
+@keyframes pulse-overtime {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(220, 20, 60, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(220, 20, 60, 0.9), 0 0 40px rgba(220, 20, 60, 0.6);
+  }
 }
 
 .room-card.is-overtime {
@@ -581,6 +620,39 @@ function handleCompleteHousekeeping(): void {
   font-size: 16px;
 }
 
+/* Overtime Cutoff Alert (for OCCUPIED_OVERTIME status) */
+.overtime-cutoff-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  animation: blink-urgent 1s infinite;
+  box-shadow: 0 0 15px rgba(220, 20, 60, 0.7);
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes blink-urgent {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+.overtime-cutoff-alert .icon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+}
+
 /* Room Notes */
 .room-notes {
   margin-top: 12px;
@@ -596,13 +668,14 @@ function handleCompleteHousekeeping(): void {
 /* Breaker Status */
 .breaker-status {
   margin-top: 12px;
-  padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .breaker-header {
@@ -610,27 +683,29 @@ function handleCompleteHousekeeping(): void {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .breaker-header .icon {
-  font-size: 16px;
+  font-size: 18px;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
 }
 
 .breaker-state {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.2);
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .breaker-state .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   animation: pulse-dot 2s infinite;
 }
@@ -641,40 +716,50 @@ function handleCompleteHousekeeping(): void {
     opacity: 1;
   }
   50% {
-    transform: scale(1.2);
-    opacity: 0.8;
+    transform: scale(1.3);
+    opacity: 0.7;
   }
 }
 
 .breaker-state.state-on {
-  background: rgba(76, 175, 80, 0.3);
-  border: 1px solid rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+  border: 2px solid #00E676;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 15px rgba(0, 230, 118, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .breaker-state.state-on .status-dot {
-  background: #4CAF50;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.8);
+  background: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(0, 230, 118, 0.8);
 }
 
 .breaker-state.state-off {
-  background: rgba(244, 67, 54, 0.3);
-  border: 1px solid rgba(244, 67, 54, 0.5);
+  background: linear-gradient(135deg, #FF5252 0%, #D32F2F 100%);
+  border: 2px solid #FF5252;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 15px rgba(255, 82, 82, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .breaker-state.state-off .status-dot {
-  background: #F44336;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
   animation: none;
 }
 
 .breaker-state.state-unavailable,
 .breaker-state.state-unknown {
-  background: rgba(158, 158, 158, 0.3);
-  border: 1px solid rgba(158, 158, 158, 0.5);
+  background: linear-gradient(135deg, #757575 0%, #616161 100%);
+  border: 2px solid #757575;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .breaker-state.state-unavailable .status-dot,
 .breaker-state.state-unknown .status-dot {
-  background: #9E9E9E;
+  background: #BDBDBD;
   animation: none;
 }
 
@@ -728,6 +813,28 @@ function handleCompleteHousekeeping(): void {
 
 .check-out-btn:hover {
   background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.check-out-btn.urgent {
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  animation: pulse-btn 1.5s infinite;
+  box-shadow: 0 0 15px rgba(220, 20, 60, 0.6);
+}
+
+.check-out-btn.urgent:hover {
+  background: linear-gradient(135deg, #8B0000 0%, #640000 100%);
+  box-shadow: 0 0 20px rgba(220, 20, 60, 0.8);
+}
+
+@keyframes pulse-btn {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 0 15px rgba(220, 20, 60, 0.6);
+  }
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 0 25px rgba(220, 20, 60, 0.9);
+  }
 }
 
 .transfer-btn {

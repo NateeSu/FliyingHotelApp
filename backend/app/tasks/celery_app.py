@@ -71,6 +71,12 @@ celery_app.conf.beat_schedule = {
         'task': 'breaker.cleanup_old_activity_logs',
         'schedule': crontab(hour=4, minute=0, day_of_week=0),
     },
+    # Overtime: Check and process overtime temporary stays
+    # Runs every 1 minute to detect 3-hour limit violations
+    'check-and-process-overtime': {
+        'task': 'overtime.check_and_process_overtime',
+        'schedule': 60.0,  # Every 60 seconds (1 minute)
+    },
 }
 
 # Auto-discover tasks from all modules

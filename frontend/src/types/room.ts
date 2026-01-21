@@ -8,7 +8,8 @@ export enum RoomStatus {
   OCCUPIED = 'OCCUPIED',
   CLEANING = 'CLEANING',
   RESERVED = 'RESERVED',
-  OUT_OF_SERVICE = 'OUT_OF_SERVICE'
+  OUT_OF_SERVICE = 'OUT_OF_SERVICE',
+  OCCUPIED_OVERTIME = 'OCCUPIED_OVERTIME'
 }
 
 export enum StayType {
@@ -112,7 +113,8 @@ export function getRoomStatusLabel(status: RoomStatus): string {
     [RoomStatus.OCCUPIED]: 'มีผู้พัก',
     [RoomStatus.CLEANING]: 'กำลังทำความสะอาด',
     [RoomStatus.RESERVED]: 'จองแล้ว',
-    [RoomStatus.OUT_OF_SERVICE]: 'ปิดปรับปรุง'
+    [RoomStatus.OUT_OF_SERVICE]: 'ปิดปรับปรุง',
+    [RoomStatus.OCCUPIED_OVERTIME]: 'หมดเวลาเข้าพัก'
   }
   return labels[status]
 }
@@ -123,7 +125,8 @@ export function getRoomStatusColor(status: RoomStatus): string {
     [RoomStatus.OCCUPIED]: 'red',
     [RoomStatus.CLEANING]: 'yellow',
     [RoomStatus.RESERVED]: 'blue',
-    [RoomStatus.OUT_OF_SERVICE]: 'gray'
+    [RoomStatus.OUT_OF_SERVICE]: 'gray',
+    [RoomStatus.OCCUPIED_OVERTIME]: 'crimson'
   }
   return colors[status]
 }

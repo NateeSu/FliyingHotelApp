@@ -13,12 +13,14 @@ class RoomStatus(str, enum.Enum):
     - cleaning: กำลังทำความสะอาด
     - reserved: จองแล้ว
     - out_of_service: ปิดปรับปรุง/ซ่อมแซม
+    - occupied_overtime: มีผู้พัก (เกินเวลาแล้ว - ตัดไฟอัตโนมัติ)
     """
     AVAILABLE = "AVAILABLE"
     OCCUPIED = "OCCUPIED"
     CLEANING = "CLEANING"
     RESERVED = "RESERVED"
     OUT_OF_SERVICE = "OUT_OF_SERVICE"
+    OCCUPIED_OVERTIME = "OCCUPIED_OVERTIME"
 
 
 class Room(Base):
