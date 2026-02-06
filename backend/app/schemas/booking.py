@@ -7,6 +7,8 @@ from typing import Optional, List, Union
 from datetime import date, datetime
 from decimal import Decimal
 
+from app.models.booking import BookingStatusEnum
+
 
 # ==================== Base Schemas ====================
 
@@ -64,7 +66,7 @@ class BookingResponse(BookingBase):
     """Schema for booking response"""
     id: int
     number_of_nights: int
-    status: str
+    status: BookingStatusEnum
     created_by: int
     created_at: datetime
     updated_at: datetime
@@ -98,7 +100,7 @@ class BookingCalendarEvent(BaseModel):
     start: date
     end: date
     color: str
-    status: str
+    status: BookingStatusEnum
     room_number: str
     customer_name: str
     deposit_amount: Decimal

@@ -1,34 +1,12 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
-import enum
 
-
-class MaintenanceTaskStatusEnum(str, enum.Enum):
-    """Maintenance task status"""
-    PENDING = "PENDING"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
-    CANCELLED = "CANCELLED"
-
-
-class MaintenanceTaskPriorityEnum(str, enum.Enum):
-    """Maintenance task priority"""
-    URGENT = "URGENT"
-    HIGH = "HIGH"
-    MEDIUM = "MEDIUM"
-    LOW = "LOW"
-
-
-class MaintenanceTaskCategoryEnum(str, enum.Enum):
-    """Maintenance task category"""
-    PLUMBING = "PLUMBING"
-    ELECTRICAL = "ELECTRICAL"
-    HVAC = "HVAC"
-    FURNITURE = "FURNITURE"
-    APPLIANCE = "APPLIANCE"
-    BUILDING = "BUILDING"
-    OTHER = "OTHER"
+from app.models.maintenance_task import (
+    MaintenanceTaskStatusEnum,
+    MaintenanceTaskPriorityEnum,
+    MaintenanceTaskCategoryEnum
+)
 
 
 class MaintenanceTaskBase(BaseModel):

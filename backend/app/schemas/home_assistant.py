@@ -5,49 +5,23 @@ Pydantic models for Home Assistant breaker control API validation
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from enum import Enum
 
+from app.models.home_assistant import (
+    BreakerState,
+    BreakerAction,
+    TriggerType,
+    ActionStatus,
+    QueueStatus,
+    TargetState
+)
 
-class BreakerStateEnum(str, Enum):
-    """Breaker state enum"""
-    ON = "ON"
-    OFF = "OFF"
-    UNAVAILABLE = "UNAVAILABLE"
-
-
-class BreakerActionEnum(str, Enum):
-    """Breaker action enum"""
-    TURN_ON = "TURN_ON"
-    TURN_OFF = "TURN_OFF"
-    STATUS_SYNC = "STATUS_SYNC"
-
-
-class TriggerTypeEnum(str, Enum):
-    """Trigger type enum"""
-    AUTO = "AUTO"
-    MANUAL = "MANUAL"
-    SYSTEM = "SYSTEM"
-
-
-class ActionStatusEnum(str, Enum):
-    """Action status enum"""
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
-    TIMEOUT = "TIMEOUT"
-
-
-class QueueStatusEnum(str, Enum):
-    """Queue status enum"""
-    PENDING = "PENDING"
-    PROCESSING = "PROCESSING"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
-
-
-class TargetStateEnum(str, Enum):
-    """Target state enum"""
-    ON = "ON"
-    OFF = "OFF"
+# Type aliases for backward compatibility (schema previously used *Enum suffix)
+BreakerStateEnum = BreakerState
+BreakerActionEnum = BreakerAction
+TriggerTypeEnum = TriggerType
+ActionStatusEnum = ActionStatus
+QueueStatusEnum = QueueStatus
+TargetStateEnum = TargetState
 
 
 # ============================================================================
