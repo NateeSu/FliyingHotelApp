@@ -76,6 +76,20 @@ class OvertimeService:
                     processed_count += 1
                     processed_ids.append(check_in.id)
 
+                    # ✅ Trigger breaker automation to turn OFF power automatically
+                    try:
+                        from app.services.breaker_service import BreakerService
+                        breaker_service = BreakerService(self.db)
+                        await breaker_service.auto_control_on_room_status_change(
+                            room_id=room.id,
+                            old_status=old_status,
+                            new_status=RoomStatus.OCCUPIED_OVERTIME
+                        )
+                        print(f"🔌 [OVERTIME] Breaker automation triggered for room {room.room_number}")
+                    except Exception as breaker_error:
+                        # Log error but don't block the overtime processing
+                        print(f"⚠️ [OVERTIME] Failed to trigger breaker automation for room {room.room_number}: {str(breaker_error)}")
+
                     # Broadcast WebSocket event for real-time UI update
                     await websocket_manager.broadcast({
                         "event": "overtime_auto_cutoff",
