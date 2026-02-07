@@ -540,6 +540,12 @@ const applyFilters = async () => {
 }
 
 const handleSubmit = async () => {
+  // Validate required fields
+  if (!formData.value.room_type_id || formData.value.room_type_id === 0) {
+    roomStore.error = 'กรุณาเลือกประเภทห้อง'
+    return
+  }
+
   try {
     const dataToSubmit = {
       room_number: formData.value.room_number,
