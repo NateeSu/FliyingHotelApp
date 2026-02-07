@@ -4,8 +4,12 @@ Automated tasks for monitoring and processing overtime temporary stays
 """
 from celery import shared_task
 
+import logging
+
 from app.db.session import AsyncSessionLocal
 from app.services.overtime_service import OvertimeService
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(name="overtime.check_and_process_overtime")
@@ -40,10 +44,10 @@ async def _async_check_and_process_overtime():
             result = await overtime_service.check_and_process_overtime_stays()
 
             if result["rooms_updated"] > 0:
-                print(f"⏰ [OVERTIME TASK] Processed {result['rooms_updated']} overtime rooms")
-                print(f"   Check-ins: {result['processed_check_ins']}")
+                logger.info("[OVERTIME TASK] Processed %d overtime rooms", result['rooms_updated'])
+                logger.info("[OVERTIME TASK] Check-ins: %s", result['processed_check_ins'])
             else:
-                print(f"✅ [OVERTIME TASK] No overtime stays found")
+                logger.debug("[OVERTIME TASK] No overtime stays found")
 
             # After updating room status to OCCUPIED_OVERTIME,
             # the breaker automation in breaker_service.py will automatically
@@ -56,9 +60,7 @@ async def _async_check_and_process_overtime():
             return result
 
         except Exception as e:
-            print(f"❌ Error in check_and_process_overtime task: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("Error in check_and_process_overtime task: %s", str(e))
             return {
                 "success": False,
                 "error": str(e)
@@ -121,9 +123,7 @@ async def _send_overtime_notifications(check_in_ids: list, db):
                 notification_type="overtime_alert"
             )
 
-            print(f"📱 Sent overtime notification for Check-in #{check_in_id}, Room {check_in.room.room_number}")
+            logger.info("Sent overtime notification for Check-in #%d, Room %s", check_in_id, check_in.room.room_number)
 
     except Exception as e:
-        print(f"❌ Error sending overtime notifications: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error sending overtime notifications: %s", str(e))

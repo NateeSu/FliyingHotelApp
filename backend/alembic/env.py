@@ -9,6 +9,23 @@ from app.db.base import Base
 
 # Import all models here for Alembic to detect
 from app.models.user import User  # noqa: F401
+from app.models.room_type import RoomType  # noqa: F401
+from app.models.room import Room  # noqa: F401
+from app.models.room_rate import RoomRate  # noqa: F401
+from app.models.customer import Customer  # noqa: F401
+from app.models.booking import Booking  # noqa: F401
+from app.models.check_in import CheckIn  # noqa: F401
+from app.models.payment import Payment  # noqa: F401
+from app.models.notification import Notification  # noqa: F401
+from app.models.product import Product  # noqa: F401
+from app.models.order import Order  # noqa: F401
+from app.models.housekeeping_task import HousekeepingTask  # noqa: F401
+from app.models.maintenance_task import MaintenanceTask  # noqa: F401
+from app.models.home_assistant import (  # noqa: F401
+    HomeAssistantConfig, HomeAssistantBreaker,
+    BreakerActivityLog, BreakerControlQueue
+)
+from app.models.system_setting import SystemSetting  # noqa: F401
 
 # this is the Alembic Config object
 config = context.config

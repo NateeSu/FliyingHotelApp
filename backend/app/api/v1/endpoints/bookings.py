@@ -21,6 +21,10 @@ from app.schemas.booking import (
     RoomAvailabilityResponse
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -49,7 +53,7 @@ async def create_booking(
     **Returns**: Created booking with details
     """
     try:
-        print(f"📌 Creating booking with data: {booking_data}")
+        logger.info("Creating booking with data: %s", booking_data)
         service = BookingService(db)
         booking = await service.create_booking(booking_data, current_user.id)
 
@@ -57,12 +61,10 @@ async def create_booking(
         return await _map_booking_to_response(booking)
 
     except ValueError as e:
-        print(f"❌ ValueError: {str(e)}")
+        logger.warning("ValueError creating booking: %s", str(e))
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"❌ Error creating booking: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error creating booking: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -133,9 +135,7 @@ async def get_bookings(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting bookings: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting bookings: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -168,9 +168,7 @@ async def get_booking(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting booking: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting booking: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -208,9 +206,7 @@ async def update_booking(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error updating booking: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error updating booking: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -242,9 +238,7 @@ async def cancel_booking(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error cancelling booking: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error cancelling booking: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -276,9 +270,7 @@ async def get_calendar_events(
         return events
 
     except Exception as e:
-        print(f"Error getting calendar events: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting calendar events: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -306,9 +298,7 @@ async def get_public_holidays(
         return holidays
 
     except Exception as e:
-        print(f"Error getting public holidays: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting public holidays: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -363,9 +353,7 @@ async def check_room_availability(
         )
 
     except Exception as e:
-        print(f"Error checking availability: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error checking availability: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 

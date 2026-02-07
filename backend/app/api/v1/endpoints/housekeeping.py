@@ -24,6 +24,10 @@ from app.schemas.housekeeping import (
     HousekeepingStats
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -68,9 +72,7 @@ async def create_housekeeping_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error creating housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error creating housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -146,9 +148,7 @@ async def get_housekeeping_tasks(
         )
 
     except Exception as e:
-        print(f"Error getting housekeeping tasks: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting housekeeping tasks: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -202,9 +202,7 @@ async def get_housekeeping_task(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -238,9 +236,7 @@ async def update_housekeeping_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error updating housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error updating housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -281,9 +277,7 @@ async def start_housekeeping_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error starting housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error starting housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -328,9 +322,7 @@ async def complete_housekeeping_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error completing housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error completing housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -359,7 +351,5 @@ async def get_housekeeping_stats(
         return stats
 
     except Exception as e:
-        print(f"Error getting housekeeping stats: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting housekeeping stats: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")

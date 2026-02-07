@@ -1,4 +1,5 @@
 import axios from 'axios'
+import router from '@/router'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -31,7 +32,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       localStorage.removeItem('access_token')
-      window.location.href = '/login'
+      router.push('/login')
     }
     return Promise.reject(error)
   }

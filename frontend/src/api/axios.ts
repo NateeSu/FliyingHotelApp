@@ -1,4 +1,5 @@
 import axios from 'axios'
+import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
 // Create axios instance
@@ -43,7 +44,7 @@ apiClient.interceptors.response.use(
       // Unauthorized - clear auth and redirect to login
       const authStore = useAuthStore()
       await authStore.logout()
-      window.location.href = '/login'
+      router.push('/login')
     }
 
     return Promise.reject(error)

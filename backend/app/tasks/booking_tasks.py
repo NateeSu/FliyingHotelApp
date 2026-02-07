@@ -9,12 +9,16 @@ from sqlalchemy import select, and_
 from datetime import date, datetime, timedelta
 from typing import List
 
+import logging
+
 from app.db.session import AsyncSessionLocal
 from app.models.booking import Booking, BookingStatusEnum
 from app.models.room import Room, RoomStatus
 from app.models.check_in import CheckIn
 from app.core.datetime_utils import now_thailand, today_thailand
 from app.core.websocket import websocket_manager
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(name="booking.check_bookings_for_today")
@@ -77,9 +81,9 @@ async def _async_check_bookings_for_today():
                         }
                     })
 
-                    print(f"✅ Updated room {room.room_number} to RESERVED (Booking #{booking.id})")
+                    logger.info("Updated room %s to RESERVED (Booking #%d)", room.room_number, booking.id)
 
-            print(f"📅 check_bookings_for_today completed: {updated_count} rooms updated")
+            logger.info("check_bookings_for_today completed: %d rooms updated", updated_count)
             return {
                 "success": True,
                 "date": today.isoformat(),
@@ -88,9 +92,7 @@ async def _async_check_bookings_for_today():
             }
 
         except Exception as e:
-            print(f"❌ Error in check_bookings_for_today: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("Error in check_bookings_for_today: %s", str(e))
             return {
                 "success": False,
                 "error": str(e)
@@ -128,7 +130,7 @@ async def _async_check_booking_check_in_times():
             # Typical check-in time is 14:00
             # If it's before 15:00, don't check yet
             if now.hour < 15:
-                print("⏰ Too early to check for overdue bookings (before 15:00)")
+                logger.debug("Too early to check for overdue bookings (before 15:00)")
                 return {
                     "success": True,
                     "message": "Too early to check",
@@ -174,7 +176,7 @@ async def _async_check_booking_check_in_times():
             if overdue_bookings:
                 await _send_overdue_booking_notifications(overdue_bookings, db)
 
-            print(f"📋 check_booking_check_in_times completed: {len(overdue_bookings)} overdue bookings found")
+            logger.info("check_booking_check_in_times completed: %d overdue bookings found", len(overdue_bookings))
             return {
                 "success": True,
                 "current_time": now.isoformat(),
@@ -183,9 +185,7 @@ async def _async_check_booking_check_in_times():
             }
 
         except Exception as e:
-            print(f"❌ Error in check_booking_check_in_times: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("Error in check_booking_check_in_times: %s", str(e))
             return {
                 "success": False,
                 "error": str(e)
@@ -237,9 +237,7 @@ async def _send_overdue_booking_notifications(overdue_bookings: List[dict], db):
                 notification_type="booking_overdue"
             )
 
-            print(f"📱 Sent overdue notification for Booking #{booking.id}")
+            logger.info("Sent overdue notification for Booking #%d", booking.id)
 
     except Exception as e:
-        print(f"❌ Error sending overdue booking notifications: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error sending overdue booking notifications: %s", str(e))

@@ -11,6 +11,9 @@ from app.services.reports_service import ReportsService
 from app.services.settings_service import SettingsService
 from app.services.telegram_service import TelegramService
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @celery_app.task(name="send_daily_summary_report")
@@ -46,12 +49,12 @@ async def _send_daily_summary_report_async():
             telegram_settings = await settings_service.get_telegram_settings()
 
             if not telegram_settings.get('enabled'):
-                print("Telegram is disabled, skipping daily summary")
+                logger.info("Telegram is disabled, skipping daily summary")
                 return
 
             admin_chat_id = telegram_settings.get('admin_chat_id')
             if not admin_chat_id:
-                print("No admin chat ID configured, skipping daily summary")
+                logger.warning("No admin chat ID configured, skipping daily summary")
                 return
 
             # Format message
@@ -92,13 +95,11 @@ async def _send_daily_summary_report_async():
                 )
 
                 if success:
-                    print(f"Daily summary sent successfully for {yesterday}")
+                    logger.info("Daily summary sent successfully for %s", yesterday)
                 else:
-                    print(f"Failed to send daily summary for {yesterday}")
+                    logger.error("Failed to send daily summary for %s", yesterday)
             else:
-                print("No bot token configured")
+                logger.warning("No bot token configured")
 
         except Exception as e:
-            print(f"Error sending daily summary report: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.exception("Error sending daily summary report: %s", str(e))

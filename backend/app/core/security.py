@@ -31,10 +31,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
     to_encode.update({"exp": expire})
 
-    jwt_secret = settings.JWT_SECRET_KEY or settings.SECRET_KEY
     encoded_jwt = jwt.encode(
         to_encode,
-        jwt_secret,
+        settings.JWT_SECRET_KEY,
         algorithm=settings.JWT_ALGORITHM
     )
 
@@ -44,10 +43,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def decode_access_token(token: str) -> Optional[dict]:
     """Decode and verify a JWT access token"""
     try:
-        jwt_secret = settings.JWT_SECRET_KEY or settings.SECRET_KEY
         payload = jwt.decode(
             token,
-            jwt_secret,
+            settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM]
         )
         return payload

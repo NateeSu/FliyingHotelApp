@@ -2,6 +2,7 @@
 Check-Out Service (Phase 4)
 Handles check-out business logic with overtime calculation and payment processing
 """
+import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional, Dict, Any
@@ -10,6 +11,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from app.models import CheckIn, Room, Payment, RoomStatus, Customer
+
+logger = logging.getLogger(__name__)
 from app.models.check_in import CheckInStatusEnum
 from app.models.notification import NotificationTypeEnum, TargetRoleEnum
 from app.schemas.check_in import CheckOutRequest, CheckOutSummary
@@ -262,7 +265,7 @@ class CheckOutService:
                 room_type=room.room_type.name if room.room_type else "ไม่ระบุ"
             )
         except Exception as e:
-            print(f"Failed to send Telegram notification: {e}")
+            logger.warning("Failed to send Telegram notification: %s", e)
             # Don't fail the checkout if Telegram notification fails
 
         return check_in

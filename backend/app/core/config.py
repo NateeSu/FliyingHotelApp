@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from typing import Optional
 
 
@@ -17,6 +18,13 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
+
+    @model_validator(mode="after")
+    def validate_jwt_secret(self) -> "Settings":
+        """Ensure JWT_SECRET_KEY falls back to SECRET_KEY if not set."""
+        if not self.JWT_SECRET_KEY:
+            self.JWT_SECRET_KEY = self.SECRET_KEY
+        return self
     ENCRYPTION_KEY: Optional[str] = None  # For encrypting sensitive data (Home Assistant tokens, etc.)
 
     # Database

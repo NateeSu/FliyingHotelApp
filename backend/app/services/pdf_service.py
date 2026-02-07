@@ -15,9 +15,12 @@ from decimal import Decimal
 from io import BytesIO
 from typing import Optional
 import os
+import logging
 
 from app.models import CheckIn, Customer, Room, RoomType, User
 from app.schemas.check_in import CheckOutSummary
+
+logger = logging.getLogger(__name__)
 
 
 class PDFService:
@@ -40,14 +43,14 @@ class PDFService:
                     pdfmetrics.registerFont(TTFont('ThaiFont', font_path))
                     self.thai_font = 'ThaiFont'
                     font_loaded = True
-                    print(f"Loaded Thai font from: {font_path}")
+                    logger.info("Loaded Thai font from: %s", font_path)
                     break
 
             if not font_loaded:
-                print("Warning: No Thai font found, using Helvetica")
+                logger.warning("No Thai font found, using Helvetica")
                 self.thai_font = 'Helvetica'
         except Exception as e:
-            print(f"Warning: Could not load Thai font: {e}")
+            logger.warning("Could not load Thai font: %s", e)
             self.thai_font = 'Helvetica'
 
     def generate_receipt(

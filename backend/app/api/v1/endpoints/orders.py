@@ -13,6 +13,10 @@ from app.models import Order, CheckIn, Room, Product, User
 from app.models.check_in import CheckInStatusEnum
 from app.schemas.order import OrderResponse, OrderListResponse
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -97,7 +101,7 @@ async def get_orders(
         )
 
     except Exception as e:
-        print(f"Error fetching orders: {str(e)}")
+        logger.error("Error fetching orders: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -127,7 +131,7 @@ async def get_order(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error fetching order: {str(e)}")
+        logger.error("Error fetching order: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -180,7 +184,7 @@ async def update_order_status(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error updating order status: {str(e)}")
+        logger.error("Error updating order status: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -216,5 +220,5 @@ async def complete_order(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error completing order: {str(e)}")
+        logger.error("Error completing order: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")

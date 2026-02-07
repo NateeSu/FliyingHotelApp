@@ -2,6 +2,7 @@
 Housekeeping Service (Phase 5)
 Handles housekeeping task business logic
 """
+import logging
 from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +10,8 @@ from sqlalchemy import select, and_, func, or_
 from sqlalchemy.orm import joinedload
 
 from app.models import HousekeepingTask, Room, User, CheckIn
+
+logger = logging.getLogger(__name__)
 from app.models.housekeeping_task import (
     HousekeepingTaskStatusEnum,
     HousekeepingTaskPriorityEnum
@@ -102,7 +105,7 @@ class HousekeepingService:
                 room_type=room.room_type.name if room.room_type else "ไม่ระบุ"
             )
         except Exception as e:
-            print(f"Failed to send Telegram notification: {e}")
+            logger.warning("Failed to send Telegram notification: %s", e)
             # Don't fail the task creation if notification fails
 
         return task

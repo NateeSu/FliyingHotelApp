@@ -8,12 +8,10 @@ from datetime import datetime
 import enum
 
 from app.db.base import Base
+from app.models.room_rate import StayType
 
-
-class StayTypeEnum(str, enum.Enum):
-    """Stay type enumeration"""
-    OVERNIGHT = "OVERNIGHT"
-    TEMPORARY = "TEMPORARY"
+# Backward-compatible alias - canonical definition is in room_rate.py
+StayTypeEnum = StayType
 
 
 class PaymentMethodEnum(str, enum.Enum):

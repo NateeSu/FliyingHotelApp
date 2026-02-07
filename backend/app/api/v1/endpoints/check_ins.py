@@ -26,6 +26,10 @@ from app.schemas.check_in import (
 )
 from app.schemas.customer import CustomerCreate
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -86,16 +90,10 @@ async def create_check_in(
         return CheckInResponse.model_validate(check_in)
 
     except ValueError as e:
-        # Log the error for debugging
-        print(f"ValueError in check-in: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.warning("ValueError in check-in: %s", str(e))
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Log the error for debugging
-        print(f"Exception in check-in: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Exception in check-in: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -214,14 +212,10 @@ async def process_checkout(
         return CheckInResponse.model_validate(check_in)
 
     except ValueError as e:
-        print(f"ValueError in checkout: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.warning("ValueError in checkout: %s", str(e))
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Exception in checkout: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Exception in checkout: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -321,9 +315,7 @@ async def generate_receipt(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error generating receipt: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error generating receipt: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการสร้างใบเสร็จ: {str(e)}")
 
 
@@ -395,9 +387,7 @@ async def upload_payment_slip(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error uploading slip: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error uploading slip: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการอัปโหลดสลิป: {str(e)}")
 
 
@@ -461,12 +451,8 @@ async def transfer_room(
         )
 
     except ValueError as e:
-        print(f"ValueError in room transfer: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.warning("ValueError in room transfer: %s", str(e))
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Exception in room transfer: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Exception in room transfer: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")

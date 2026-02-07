@@ -14,6 +14,10 @@ from app.models import Product, User
 from app.models.product import ProductCategoryEnum
 from app.schemas.product import ProductCreate, ProductUpdate, ProductResponse
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -71,7 +75,7 @@ async def get_all_products(
         )
 
     except Exception as e:
-        print(f"Error fetching products: {str(e)}")
+        logger.error("Error fetching products: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -123,7 +127,7 @@ async def get_all_products_admin(
         )
 
     except Exception as e:
-        print(f"Error fetching products: {str(e)}")
+        logger.error("Error fetching products: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -155,7 +159,7 @@ async def get_product(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error fetching product: {str(e)}")
+        logger.error("Error fetching product: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -207,7 +211,7 @@ async def create_product(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error creating product: {str(e)}")
+        logger.error("Error creating product: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -281,7 +285,7 @@ async def update_product(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error updating product: {str(e)}")
+        logger.error("Error updating product: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -317,5 +321,5 @@ async def delete_product(
         raise
     except Exception as e:
         await db.rollback()
-        print(f"Error deleting product: {str(e)}")
+        logger.error("Error deleting product: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")

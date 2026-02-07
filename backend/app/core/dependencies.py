@@ -1,3 +1,4 @@
+import logging
 from typing import AsyncGenerator, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -6,6 +7,8 @@ from sqlalchemy import select
 from app.db.session import AsyncSessionLocal
 from app.core.security import decode_access_token
 from app.models import User
+
+logger = logging.getLogger(__name__)
 
 # Security
 security = HTTPBearer()
@@ -114,13 +117,13 @@ async def get_current_user(
         )
 
     if not user.is_active:
-        print(f"❌ User {user.username} is not active")
+        logger.warning("User %s is not active", user.username)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="บัญชีถูกระงับการใช้งาน",
         )
 
-    print(f"✅ get_current_user: user={user.username}, role={user.role}, is_active={user.is_active}")
+    logger.debug("Authenticated user=%s role=%s", user.username, user.role)
     return user
 
 
@@ -177,24 +180,19 @@ async def require_admin_or_reception(
         # Handle both enum value and string from database
         user_role_str = user.role.value if hasattr(user.role, 'value') else str(user.role)
 
-        print(f"🔍 DEBUG require_admin_or_reception: user={user.username}, role={user.role}, role_str={user_role_str}, role_type={type(user.role)}, has_value={hasattr(user.role, 'value')}")
-
         if user_role_str.upper() not in ["ADMIN", "RECEPTION"]:
-            print(f"❌ Access denied for role: {user_role_str.upper()}")
+            logger.warning("Access denied for user=%s role=%s", user.username, user_role_str)
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="ต้องมีสิทธิ์ ADMIN หรือ RECEPTION เท่านั้น",
             )
 
-        print(f"✅ Access granted for role: {user_role_str.upper()}")
         return user
     except HTTPException:
         raise
     except Exception as e:
-        print(f"💥 ERROR in require_admin_or_reception: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error in require_admin_or_reception")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์: {str(e)}",
+            detail="เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์",
         )

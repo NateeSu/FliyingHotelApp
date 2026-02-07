@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import date, datetime, timedelta
 import httpx
+import logging
 
 from app.models.booking import Booking, BookingStatusEnum
 from app.models.room import Room, RoomStatus
@@ -24,6 +25,8 @@ from app.schemas.booking import (
 )
 from app.core.websocket import websocket_manager
 from app.core.datetime_utils import now_thailand
+
+logger = logging.getLogger(__name__)
 
 
 class BookingService:
@@ -549,7 +552,7 @@ class BookingService:
                 return holidays
 
         except Exception as e:
-            print(f"Error fetching public holidays: {str(e)}")
+            logger.warning("Error fetching public holidays: %s", str(e))
             # Return empty list if API fails
             return []
 

@@ -2,6 +2,7 @@
 Overtime Service
 Handles detection and processing of overtime temporary stays
 """
+import logging
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -12,6 +13,8 @@ from app.models.check_in import CheckIn, CheckInStatusEnum, StayTypeEnum
 from app.models.room import Room, RoomStatus
 from app.core.datetime_utils import now_thailand
 from app.core.websocket import websocket_manager
+
+logger = logging.getLogger(__name__)
 
 
 class OvertimeService:
@@ -85,10 +88,9 @@ class OvertimeService:
                             old_status=old_status,
                             new_status=RoomStatus.OCCUPIED_OVERTIME
                         )
-                        print(f"🔌 [OVERTIME] Breaker automation triggered for room {room.room_number}")
+                        logger.info("[OVERTIME] Breaker automation triggered for room %s", room.room_number)
                     except Exception as breaker_error:
-                        # Log error but don't block the overtime processing
-                        print(f"⚠️ [OVERTIME] Failed to trigger breaker automation for room {room.room_number}: {str(breaker_error)}")
+                        logger.warning("[OVERTIME] Failed to trigger breaker automation for room %s: %s", room.room_number, breaker_error)
 
                     # Broadcast WebSocket event for real-time UI update
                     await websocket_manager.broadcast({
@@ -107,21 +109,20 @@ class OvertimeService:
                         }
                     })
 
-                    print(f"✅ [OVERTIME] Room {room.room_number} → OCCUPIED_OVERTIME "
-                          f"(Check-in #{check_in.id}, {overtime_minutes} mins over)")
+                    logger.info("[OVERTIME] Room %s -> OCCUPIED_OVERTIME (Check-in #%d, %d mins over)",
+                               room.room_number, check_in.id, overtime_minutes)
 
                 else:
                     # Room is not in OCCUPIED status (maybe already checked out?)
                     # Still mark check_in as overtime but don't change room status
                     await self.db.commit()
-                    print(f"⚠️ [OVERTIME] Check-in #{check_in.id} marked as overtime, "
-                          f"but room {check_in.room_id} status is {room.status.value if room else 'N/A'}")
+                    logger.warning("[OVERTIME] Check-in #%d marked as overtime, but room %s status is %s",
+                                   check_in.id, check_in.room_id,
+                                   room.status.value if room else "N/A")
 
             except Exception as e:
                 await self.db.rollback()
-                print(f"❌ Error processing overtime for check-in #{check_in.id}: {str(e)}")
-                import traceback
-                traceback.print_exc()
+                logger.exception("Error processing overtime for check-in #%d", check_in.id)
                 continue
 
         return {

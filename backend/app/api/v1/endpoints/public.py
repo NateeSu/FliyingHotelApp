@@ -29,6 +29,10 @@ from app.schemas.maintenance import (
     MaintenanceTaskCreate
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -87,9 +91,7 @@ async def get_public_housekeeping_task(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting public housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting public housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -144,9 +146,7 @@ async def start_public_housekeeping_task(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error starting public housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error starting public housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -200,9 +200,7 @@ async def complete_public_housekeeping_task(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error completing public housekeeping task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error completing public housekeeping task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -234,9 +232,7 @@ async def get_public_maintenance_task(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        print(f"Error getting public maintenance task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error getting public maintenance task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -283,9 +279,7 @@ async def start_public_maintenance_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error starting public maintenance task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error starting public maintenance task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -335,9 +329,7 @@ async def complete_public_maintenance_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error completing public maintenance task: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error completing public maintenance task: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -382,9 +374,7 @@ async def report_public_maintenance(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        print(f"Error creating public maintenance report: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error creating public maintenance report: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -432,9 +422,7 @@ async def get_room_qrcode(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error generating QR code: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error generating QR code: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -495,9 +483,7 @@ async def get_all_room_qrcodes(
         return qr_codes
 
     except Exception as e:
-        print(f"Error generating QR codes: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error generating QR codes: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -537,7 +523,7 @@ async def get_guest_checkin_status(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error checking check-in status: {str(e)}")
+        logger.error("Error checking check-in status: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -571,7 +557,7 @@ async def get_guest_products(
         ]
 
     except Exception as e:
-        print(f"Error fetching products: {str(e)}")
+        logger.error("Error fetching products: %s", str(e))
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
 
 
@@ -662,8 +648,6 @@ async def create_guest_order(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error creating guest order: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.exception("Error creating guest order: %s", str(e))
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")

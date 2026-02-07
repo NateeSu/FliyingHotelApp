@@ -123,7 +123,7 @@ import {
   type FormRules
 } from 'naive-ui'
 import { useDashboardStore } from '@/stores/dashboard'
-import { checkInsApi, type RoomTransferRequest } from '@/api/checkIns'
+import { checkInApi, type RoomTransferRequest } from '@/api/check-ins'
 import type { DashboardRoomCard } from '@/types/dashboard'
 
 interface Props {
@@ -215,7 +215,7 @@ async function handleSubmit() {
 
     isLoading.value = true
 
-    const response = await checkInsApi.transferRoom(props.checkInId, formData.value)
+    const response = await checkInApi.transferRoom(props.checkInId, formData.value)
 
     message.success(response.message || 'ย้ายห้องสำเร็จ')
 
