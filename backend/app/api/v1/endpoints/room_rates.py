@@ -5,9 +5,20 @@ from datetime import date
 from app.core.dependencies import get_db, require_role, get_current_user_id
 from app.services.room_rate_service import RoomRateService
 from app.schemas.room_rate import RoomRateCreate, RoomRateUpdate, RoomRateResponse, RoomRateWithRoomType, RoomRateMatrix
-from app.models.room_rate import StayType
+from app.models.room_rate import RoomRate, StayType
 
 router = APIRouter()
+
+
+def _serialize_rate(rate: RoomRate) -> RoomRateWithRoomType:
+    """Convert SQLAlchemy RoomRate to Pydantic response, avoiding __dict__ conflicts."""
+    rate_data = {c.key: getattr(rate, c.key) for c in RoomRate.__table__.columns}
+    if rate.room_type:
+        from app.models.room_type import RoomType
+        rate_data["room_type"] = {c.key: getattr(rate.room_type, c.key) for c in RoomType.__table__.columns}
+    else:
+        rate_data["room_type"] = None
+    return RoomRateWithRoomType(**rate_data)
 
 
 @router.get("/", response_model=List[RoomRateWithRoomType])
@@ -40,13 +51,7 @@ async def get_room_rates(
         is_active=is_active
     )
 
-    return [
-        RoomRateWithRoomType(
-            **rate.__dict__,
-            room_type=rate.room_type.__dict__ if rate.room_type else None
-        )
-        for rate in rates
-    ]
+    return [_serialize_rate(rate) for rate in rates]
 
 
 @router.get("/matrix", response_model=List[RoomRateMatrix])
@@ -128,10 +133,7 @@ async def get_room_rate(
             detail="ไม่พบอัตราค่าห้อง"
         )
 
-    return RoomRateWithRoomType(
-        **rate.__dict__,
-        room_type=rate.room_type.__dict__ if rate.room_type else None
-    )
+    return _serialize_rate(rate)
 
 
 @router.post("/", response_model=RoomRateWithRoomType, status_code=status.HTTP_201_CREATED)
@@ -152,10 +154,7 @@ async def create_room_rate(
     service = RoomRateService(db)
     rate = await service.create(rate_data)
 
-    return RoomRateWithRoomType(
-        **rate.__dict__,
-        room_type=rate.room_type.__dict__ if rate.room_type else None
-    )
+    return _serialize_rate(rate)
 
 
 @router.patch("/{room_rate_id}", response_model=RoomRateWithRoomType)
@@ -176,10 +175,7 @@ async def update_room_rate(
     service = RoomRateService(db)
     rate = await service.update(room_rate_id, rate_data)
 
-    return RoomRateWithRoomType(
-        **rate.__dict__,
-        room_type=rate.room_type.__dict__ if rate.room_type else None
-    )
+    return _serialize_rate(rate)
 
 
 @router.delete("/{room_rate_id}", status_code=status.HTTP_204_NO_CONTENT)

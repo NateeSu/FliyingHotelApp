@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func as sa_func
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from fastapi import HTTPException, status
@@ -7,6 +7,8 @@ import uuid
 
 from app.models.room import Room, RoomStatus
 from app.models.room_type import RoomType
+from app.models.booking import Booking
+from app.models.check_in import CheckIn
 from app.schemas.room import RoomCreate, RoomUpdate, RoomStatusUpdate
 
 
@@ -221,8 +223,25 @@ class RoomService:
                 detail="ไม่สามารถลบห้องที่มีผู้พักหรือจองแล้วได้"
             )
 
-        # TODO: Check if room has check-in/booking history
-        # For now, we'll allow deletion
+        # Check for related bookings
+        booking_count = (await self.db.execute(
+            select(sa_func.count()).select_from(Booking).where(Booking.room_id == room_id)
+        )).scalar() or 0
+        if booking_count > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"ไม่สามารถลบห้องที่มีประวัติการจอง ({booking_count} รายการ) กรุณายกเลิกการจองก่อน"
+            )
+
+        # Check for related check-ins
+        checkin_count = (await self.db.execute(
+            select(sa_func.count()).select_from(CheckIn).where(CheckIn.room_id == room_id)
+        )).scalar() or 0
+        if checkin_count > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"ไม่สามารถลบห้องที่มีประวัติเช็คอิน ({checkin_count} รายการ)"
+            )
 
         await self.db.delete(room)
         await self.db.commit()
