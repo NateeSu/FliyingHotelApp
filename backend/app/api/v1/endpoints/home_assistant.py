@@ -4,9 +4,12 @@ Home Assistant Configuration API Endpoints
 Manages Home Assistant connection settings and configuration.
 ADMIN-only access for configuration management.
 """
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 from app.core.dependencies import get_db, require_role, get_current_user_id
 from app.services.home_assistant_service import HomeAssistantService
@@ -100,9 +103,11 @@ async def create_or_update_home_assistant_config(
             data.access_token
         )
     except Exception as e:
+        error_detail = getattr(e, 'detail', None) or str(e) or type(e).__name__
+        logger.error(f"HA config save - connection test failed: {type(e).__name__}: {error_detail}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"ไม่สามารถเชื่อมต่อ Home Assistant ได้: {str(e)}"
+            detail=f"ไม่สามารถเชื่อมต่อ Home Assistant ได้: {error_detail}"
         )
 
     # Encrypt the access token
@@ -190,9 +195,11 @@ async def update_home_assistant_config(
     try:
         test_result = await ha_service.test_connection_with_config(test_url, test_token)
     except Exception as e:
+        error_detail = getattr(e, 'detail', None) or str(e) or type(e).__name__
+        logger.error(f"HA config update - connection test failed: {type(e).__name__}: {error_detail}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"ไม่สามารถเชื่อมต่อด้วยค่าใหม่ได้: {str(e)}"
+            detail=f"ไม่สามารถเชื่อมต่อด้วยค่าใหม่ได้: {error_detail}"
         )
 
     # Update config
@@ -282,9 +289,11 @@ async def test_home_assistant_connection(
             response_time_ms=result.get("response_time_ms")
         )
     except Exception as e:
+        error_detail = getattr(e, 'detail', None) or str(e) or type(e).__name__
+        logger.error(f"HA test connection failed: {type(e).__name__}: {error_detail}")
         return HomeAssistantTestConnectionResponse(
             success=False,
-            message=f"การเชื่อมต่อล้มเหลว: {str(e)}",
+            message=f"การเชื่อมต่อล้มเหลว: {error_detail}",
             ha_version=None,
             entity_count=None,
             response_time_ms=None

@@ -604,7 +604,8 @@
               </button>
               <button
                 @click="handleSaveHAConfig"
-                :disabled="savingHA || !haForm.base_url || !haForm.access_token"
+                :disabled="savingHA || !haForm.base_url || !haForm.access_token || (!haTestResult?.success && !haStatus?.is_configured)"
+                :title="(!haTestResult?.success && !haStatus?.is_configured) ? 'กรุณาทดสอบการเชื่อมต่อก่อนบันทึก' : ''"
                 class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
                 <svg v-if="savingHA" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
