@@ -57,10 +57,19 @@ class CheckInService:
         # Calculate expected check-out time
         # Use Thailand timezone for check-in time
         check_in_time = check_in_data.check_in_time or now_thailand()
+
+        # Get temporary stay duration from system settings
+        temporary_stay_hours = 3  # default fallback
+        if check_in_data.stay_type == StayTypeEnum.TEMPORARY:
+            from app.services.settings_service import SettingsService
+            settings_service = SettingsService(self.db)
+            temporary_stay_hours = await settings_service.get_temporary_stay_hours()
+
         expected_check_out_time = self._calculate_expected_checkout(
             check_in_time,
             check_in_data.stay_type,
-            check_in_data.number_of_nights
+            check_in_data.number_of_nights,
+            temporary_stay_hours
         )
 
         # Calculate amounts
@@ -158,13 +167,14 @@ class CheckInService:
         self,
         check_in_time: datetime,
         stay_type: StayTypeEnum,
-        number_of_nights: Optional[int] = None
+        number_of_nights: Optional[int] = None,
+        temporary_stay_hours: int = 3
     ) -> datetime:
         """
         Calculate expected check-out time based on stay type
 
         Overnight: check_in_date + number_of_nights days at 12:00
-        Temporary: check_in_time + 3 hours
+        Temporary: check_in_time + configured hours (from system_settings)
         """
         if stay_type == StayTypeEnum.OVERNIGHT:
             if not number_of_nights or number_of_nights < 1:
@@ -175,8 +185,7 @@ class CheckInService:
             return datetime.combine(checkout_date, datetime.min.time().replace(hour=12))
 
         else:  # TEMPORARY
-            # Add 3 hours to check-in time
-            return check_in_time + timedelta(hours=3)
+            return check_in_time + timedelta(hours=temporary_stay_hours)
 
     def _calculate_amounts(
         self,

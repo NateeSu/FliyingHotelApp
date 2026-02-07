@@ -130,6 +130,32 @@
             </div>
           </div>
 
+          <!-- Temporary Stay Duration Section -->
+          <div class="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border-2 border-amber-200">
+            <div class="mb-4">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                <span class="text-2xl">⏱️</span>
+                <span>ระยะเวลาพักชั่วคราว</span>
+              </h3>
+              <p class="text-sm text-gray-600 mt-1">กำหนดจำนวนชั่วโมงสำหรับการเข้าพักแบบชั่วคราว (เมื่อเกินเวลาจะแจ้งเตือนและตัดไฟอัตโนมัติ)</p>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <input
+                v-model.number="formValue.general.temporary_stay_duration_hours"
+                type="number"
+                min="1"
+                max="24"
+                class="w-32 px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-200 focus:border-amber-500 transition-all text-center text-2xl font-bold"
+              />
+              <span class="text-lg font-semibold text-gray-700">ชั่วโมง</span>
+            </div>
+
+            <p class="mt-3 text-xs text-gray-500">
+              ค่าเริ่มต้น: 3 ชั่วโมง | ช่วงที่รองรับ: 1-24 ชั่วโมง
+            </p>
+          </div>
+
           <!-- Frontend Domain Section -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -641,7 +667,8 @@ const formValue = ref<SystemSettings>({
     frontend_domain: 'http://localhost:5173',
     hotel_name: '',
     hotel_address: '',
-    hotel_phone: ''
+    hotel_phone: '',
+    temporary_stay_duration_hours: 3
   }
 })
 

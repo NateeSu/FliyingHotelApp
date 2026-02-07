@@ -43,7 +43,7 @@
                   <div class="flex flex-col items-center">
                     <span class="text-2xl mb-1">⏰</span>
                     <span>ชั่วคราว</span>
-                    <span class="text-xs text-gray-500 mt-1">(3 Hours)</span>
+                    <span class="text-xs text-gray-500 mt-1">({{ tempStayHours }} Hours)</span>
                   </div>
                 </th>
               </tr>
@@ -90,7 +90,7 @@
                       {{ formatPrice(row.temporary_rate) }}
                     </span>
                     <span v-else class="text-gray-400 text-lg">ไม่มีราคา</span>
-                    <span class="text-xs text-gray-600 mt-1">บาท/3 ชม.</span>
+                    <span class="text-xs text-gray-600 mt-1">บาท/{{ tempStayHours }} ชม.</span>
                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 rounded-xl">
                       <span class="text-white font-semibold">✏️ แก้ไข</span>
                     </div>
@@ -110,7 +110,7 @@
               <ul class="list-disc list-inside space-y-1">
                 <li>คลิกที่ราคาเพื่อแก้ไขราคาห้อง</li>
                 <li>ราคาค้างคืน: สำหรับการเข้าพักตั้งแต่ 13:00 - 12:00 วันถัดไป</li>
-                <li>ราคาชั่วคราว: สำหรับการเข้าพัก 3 ชั่วโมง (สามารถปรับได้ในการตั้งค่า)</li>
+                <li>ราคาชั่วคราว: สำหรับการเข้าพัก {{ tempStayHours }} ชั่วโมง (สามารถปรับได้ในการตั้งค่า)</li>
               </ul>
             </div>
           </div>
@@ -153,7 +153,7 @@
               <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">บาท</span>
             </div>
             <p class="text-sm text-gray-500 mt-2 text-center">
-              {{ editingStayType === 'OVERNIGHT' ? 'ราคาต่อคืน' : 'ราคาต่อ 3 ชั่วโมง' }}
+              {{ editingStayType === 'OVERNIGHT' ? 'ราคาต่อคืน' : `ราคาต่อ ${tempStayHours} ชั่วโมง` }}
             </p>
           </div>
 
@@ -195,8 +195,11 @@
 import { ref, onMounted } from 'vue'
 import { useRoomStore } from '@/stores/room'
 import { StayType } from '@/types/room'
+import { getTemporaryStayHours } from '@/api/settings'
 
 const roomStore = useRoomStore()
+
+const tempStayHours = ref(3)
 
 const showEditDialog = ref(false)
 const editingRoomTypeId = ref<number>(0)
@@ -280,5 +283,10 @@ const handleUpdateRate = async () => {
 onMounted(async () => {
   await roomStore.fetchRoomTypes()
   await roomStore.fetchRateMatrix()
+  try {
+    tempStayHours.value = await getTemporaryStayHours()
+  } catch (e) {
+    // Keep default 3
+  }
 })
 </script>

@@ -22,6 +22,7 @@ class GeneralSettings(BaseModel):
     hotel_name: str = Field(default="", description="Hotel name for receipts and documents")
     hotel_address: str = Field(default="", description="Hotel address for receipts and documents")
     hotel_phone: str = Field(default="", description="Hotel phone number for receipts and documents")
+    temporary_stay_duration_hours: int = Field(default=3, ge=1, le=24, description="Temporary stay duration in hours")
 
 
 class SystemSettingsResponse(BaseModel):

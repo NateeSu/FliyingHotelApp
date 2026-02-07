@@ -40,7 +40,7 @@
             <span class="label">ประเภท:</span>
             <span class="value">
               <span class="badge" :class="summary.stay_type">
-                {{ summary.stay_type === 'OVERNIGHT' ? 'ค้างคืน' : 'ชั่วคราว (3 ชม.)' }}
+                {{ summary.stay_type === 'OVERNIGHT' ? 'ค้างคืน' : `ชั่วคราว (${tempStayHours} ชม.)` }}
               </span>
             </span>
           </div>
@@ -196,6 +196,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import { checkInApi, type CheckOutRequest, type CheckOutSummary } from '@/api/check-ins'
+import { getTemporaryStayHours } from '@/api/settings'
 
 const toast = useToast()
 
@@ -210,6 +211,9 @@ const emit = defineEmits<{
   close: []
   success: []
 }>()
+
+// Temporary stay duration (fetched from settings)
+const tempStayHours = ref(3)
 
 // Summary data
 const summary = ref<CheckOutSummary | null>(null)
@@ -376,8 +380,18 @@ watch(() => props.show, (newShow) => {
   }
 })
 
+// Fetch temporary stay hours from settings
+const fetchTempStayHours = async () => {
+  try {
+    tempStayHours.value = await getTemporaryStayHours()
+  } catch (e) {
+    // Keep default 3
+  }
+}
+
 // Load on mount if already shown
 onMounted(() => {
+  fetchTempStayHours()
   if (props.show) {
     loadCheckoutSummary()
   }

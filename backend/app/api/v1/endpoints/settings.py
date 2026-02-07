@@ -5,7 +5,7 @@ System settings management including Telegram integration
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_user, require_admin, get_db
+from app.core.dependencies import get_current_user, get_current_user_id, require_admin, get_db
 from app.schemas.settings import (
     SystemSettingsResponse,
     SystemSettingsUpdate,
@@ -53,6 +53,20 @@ async def update_settings(
     # Return updated settings
     settings = await service.get_all_settings()
     return settings
+
+
+@router.get("/temporary-stay-hours")
+async def get_temporary_stay_hours(
+    db: AsyncSession = Depends(get_db),
+    _current_user_id: int = Depends(get_current_user_id)
+):
+    """
+    Get temporary stay duration in hours (any authenticated user)
+    Used by frontend to display dynamic duration labels
+    """
+    service = SettingsService(db)
+    hours = await service.get_temporary_stay_hours()
+    return {"temporary_stay_duration_hours": hours}
 
 
 @router.post("/test-telegram", response_model=TelegramTestResponse)

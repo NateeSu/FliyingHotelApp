@@ -75,18 +75,31 @@ class SettingsService:
         await self.set_setting("telegram_maintenance_chat_id", settings.maintenance_chat_id, SettingDataTypeEnum.STRING)
         await self.set_setting("telegram_enabled", "true" if settings.enabled else "false", SettingDataTypeEnum.BOOLEAN)
 
+    async def get_temporary_stay_hours(self) -> int:
+        """Get temporary stay duration in hours from system_settings, with fallback to config default"""
+        from app.core.config import settings as app_config
+        value = await self.get_setting("temporary_stay_duration_hours")
+        if value is not None:
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                pass
+        return app_config.DEFAULT_TEMPORARY_STAY_HOURS
+
     async def get_general_settings(self) -> GeneralSettings:
         """Get general system settings"""
         frontend_domain = await self.get_setting("frontend_domain") or "http://localhost:5173"
         hotel_name = await self.get_setting("hotel_name") or ""
         hotel_address = await self.get_setting("hotel_address") or ""
         hotel_phone = await self.get_setting("hotel_phone") or ""
+        temporary_stay_duration_hours = await self.get_temporary_stay_hours()
 
         return GeneralSettings(
             frontend_domain=frontend_domain,
             hotel_name=hotel_name,
             hotel_address=hotel_address,
-            hotel_phone=hotel_phone
+            hotel_phone=hotel_phone,
+            temporary_stay_duration_hours=temporary_stay_duration_hours
         )
 
     async def update_general_settings(self, settings: GeneralSettings):
@@ -95,6 +108,7 @@ class SettingsService:
         await self.set_setting("hotel_name", settings.hotel_name, SettingDataTypeEnum.STRING)
         await self.set_setting("hotel_address", settings.hotel_address, SettingDataTypeEnum.STRING)
         await self.set_setting("hotel_phone", settings.hotel_phone, SettingDataTypeEnum.STRING)
+        await self.set_setting("temporary_stay_duration_hours", str(settings.temporary_stay_duration_hours), SettingDataTypeEnum.NUMBER)
 
     async def get_all_settings(self) -> SystemSettingsResponse:
         """Get all system settings"""

@@ -93,7 +93,7 @@
                 @click="formData.checkIn.stay_type = 'TEMPORARY'"
               >
                 <div class="icon">⏱️</div>
-                <div class="label">ชั่วคราว (3 ชม.)</div>
+                <div class="label">ชั่วคราว ({{ tempStayHours }} ชม.)</div>
               </button>
             </div>
           </div>
@@ -182,7 +182,7 @@
             {{ formData.checkIn.number_of_nights || 1 }} คืน × {{ ratePerNight }} บาท
           </div>
           <div v-else class="summary-detail">
-            1 รอบ (3 ชั่วโมง)
+            1 รอบ ({{ tempStayHours }} ชั่วโมง)
           </div>
         </section>
       </div>
@@ -205,6 +205,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import { checkInApi, type CheckInCreateData, type CustomerData } from '@/api/check-ins'
 import { customerApi, type CustomerSearchResult } from '@/api/customers'
+import { getTemporaryStayHours } from '@/api/settings'
 import dayjs from 'dayjs'
 
 const toast = useToast()
@@ -230,6 +231,9 @@ const emit = defineEmits<{
   close: []
   success: [checkInId: number]
 }>()
+
+// Temporary stay duration (fetched from settings)
+const tempStayHours = ref(3)
 
 // Form data
 const formData = ref({
@@ -373,8 +377,18 @@ const resetForm = () => {
   phoneNumberError.value = ''
 }
 
+// Fetch temporary stay hours from settings
+const fetchTempStayHours = async () => {
+  try {
+    tempStayHours.value = await getTemporaryStayHours()
+  } catch (e) {
+    // Keep default 3
+  }
+}
+
 // Prefill form data from booking when modal opens
 onMounted(() => {
+  fetchTempStayHours()
   prefillFromBooking()
 })
 

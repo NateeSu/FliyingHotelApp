@@ -14,6 +14,7 @@ export interface GeneralSettings {
   hotel_name: string
   hotel_address: string
   hotel_phone: string
+  temporary_stay_duration_hours: number
 }
 
 export interface SystemSettings {
@@ -46,6 +47,14 @@ export const getSettings = async (): Promise<SystemSettings> => {
 export const updateSettings = async (settings: Partial<SystemSettings>): Promise<SystemSettings> => {
   const response = await axios.put<SystemSettings>('/settings', settings)
   return response.data
+}
+
+/**
+ * Get temporary stay duration in hours (any authenticated user)
+ */
+export const getTemporaryStayHours = async (): Promise<number> => {
+  const response = await axios.get<{ temporary_stay_duration_hours: number }>('/settings/temporary-stay-hours')
+  return response.data.temporary_stay_duration_hours
 }
 
 /**
