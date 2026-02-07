@@ -464,7 +464,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
-import axios from '@/api/axios'
+import axios from '@/api/client'
 
 const router = useRouter()
 const route = useRoute()

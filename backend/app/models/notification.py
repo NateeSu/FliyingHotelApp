@@ -47,7 +47,7 @@ class Notification(Base):
     message = Column(Text, nullable=False)
 
     # Related room (optional)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=True, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Status tracking
     is_read = Column(Boolean, nullable=False, default=False, index=True)

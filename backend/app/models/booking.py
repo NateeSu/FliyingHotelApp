@@ -29,8 +29,8 @@ class Booking(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Relationships
-    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False, index=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False, index=True)
+    customer_id = Column(Integer, ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="RESTRICT"), nullable=False, index=True)
 
     # Booking details
     check_in_date = Column(Date, nullable=False, index=True)
@@ -44,7 +44,7 @@ class Booking(Base):
     notes = Column(Text, nullable=True)
 
     # Tracking
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     cancelled_at = Column(DateTime, nullable=True)

@@ -33,8 +33,8 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Relationships
-    check_in_id = Column(Integer, ForeignKey("check_ins.id"), nullable=False, index=True)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    check_in_id = Column(Integer, ForeignKey("check_ins.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="RESTRICT"), nullable=False)
 
     # Order details
     quantity = Column(Integer, nullable=False, default=1)

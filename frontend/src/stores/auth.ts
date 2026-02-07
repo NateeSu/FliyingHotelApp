@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from '@/api/axios'
+import axios from '@/api/client'
 
 export interface User {
   id: number
@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
 
       const response = await axios.post<LoginResponse>(
-        '/api/v1/auth/login',
+        '/auth/login',
         credentials
       )
 
@@ -72,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
 
       // Call logout endpoint
-      await axios.post('/api/v1/auth/logout')
+      await axios.post('/auth/logout')
     } catch (err: any) {
       // Even if logout fails, clear local state
       console.error('Logout error:', err)
@@ -91,7 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
       isLoading.value = true
       error.value = null
 
-      const response = await axios.get<User>('/api/v1/auth/me')
+      const response = await axios.get<User>('/auth/me')
       user.value = response.data
       localStorage.setItem('user', JSON.stringify(response.data))
     } catch (err: any) {

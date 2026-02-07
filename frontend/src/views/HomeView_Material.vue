@@ -472,7 +472,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import axios from '@/api/axios'
+import axios from '@/api/client'
 
 const authStore = useAuthStore()
 const loading = ref(true)
@@ -538,7 +538,7 @@ async function loadStats() {
 
     // Get room statistics from occupancy report
     const today = new Date().toISOString().split('T')[0]
-    const response = await axios.get(`/api/v1/reports/occupancy?start_date=${today}&end_date=${today}`)
+    const response = await axios.get(`/reports/occupancy?start_date=${today}&end_date=${today}`)
 
     const roomStatus = response.data.room_status_distribution
     const totalRooms = response.data.total_rooms
@@ -547,7 +547,7 @@ async function loadStats() {
 
     // Get revenue from reports
     const startDate = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    const summaryResponse = await axios.get(`/api/v1/reports/summary?start_date=${startDate}&end_date=${today}`)
+    const summaryResponse = await axios.get(`/reports/summary?start_date=${startDate}&end_date=${today}`)
 
     stats.value = {
       totalRooms: totalRooms,

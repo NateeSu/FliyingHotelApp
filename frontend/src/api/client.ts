@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const apiClient = axios.create({
   baseURL: `${API_URL}/api/v1`,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -18,6 +18,13 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // If the data is FormData, remove Content-Type header
+    // Browser will set it automatically with the correct boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+
     return config
   },
   (error) => {
@@ -32,6 +39,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
       router.push('/login')
     }
     return Promise.reject(error)

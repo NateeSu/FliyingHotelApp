@@ -285,7 +285,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from '@/api/axios'
+import axios from '@/api/client'
 import type { User } from '@/stores/auth'
 
 // State
@@ -324,7 +324,7 @@ function showToast(type: 'success' | 'error', message: string) {
 async function fetchUsers() {
   loading.value = true
   try {
-    const response = await axios.get<User[]>('/api/v1/users/')
+    const response = await axios.get<User[]>('/users/')
     users.value = response.data
   } catch (error: any) {
     showToast('error', error.response?.data?.detail || 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้')
@@ -411,10 +411,10 @@ async function handleSaveUser() {
     }
 
     if (editingUser.value) {
-      await axios.put(`/api/v1/users/${editingUser.value.id}`, payload)
+      await axios.put(`/users/${editingUser.value.id}`, payload)
       showToast('success', 'แก้ไขผู้ใช้สำเร็จ')
     } else {
-      await axios.post('/api/v1/users/', payload)
+      await axios.post('/users/', payload)
       showToast('success', 'เพิ่มผู้ใช้สำเร็จ')
     }
 
@@ -442,7 +442,7 @@ async function handleConfirmDelete() {
 
   saving.value = true
   try {
-    await axios.delete(`/api/v1/users/${deletingUser.value.id}`)
+    await axios.delete(`/users/${deletingUser.value.id}`)
     showToast('success', 'ลบผู้ใช้สำเร็จ')
     await fetchUsers()
     closeDeleteModal()

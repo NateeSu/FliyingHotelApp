@@ -351,9 +351,9 @@ async function handleComplete(): Promise<void> {
           formDataWithFiles.append('photos', photo.file)
         })
 
-        // Call maintenance API with FormData using axios.ts (has FormData interceptor)
-        const axiosInstance = (await import('@/api/axios')).default
-        await axiosInstance.post('/api/v1/maintenance/', formDataWithFiles)
+        // Call maintenance API with FormData
+        const axiosInstance = (await import('@/api/client')).default
+        await axiosInstance.post('/maintenance/', formDataWithFiles)
 
         message.success(`สร้างงานซ่อมห้อง ${task.value.room_number} สำเร็จ`)
       } catch (error: any) {

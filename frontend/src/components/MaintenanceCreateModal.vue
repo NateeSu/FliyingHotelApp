@@ -124,7 +124,7 @@ import {
 import { useDashboardStore } from '@/stores/dashboard'
 import { useAuthStore } from '@/stores/auth'
 import type { MaintenanceTaskCreate, MaintenanceTaskCategory, MaintenanceTaskPriority } from '@/types/maintenance'
-import api from '@/api/axios'
+import api from '@/api/client'
 
 // Props & Emits
 const props = defineProps<{
@@ -325,7 +325,7 @@ async function handleSubmit() {
     // Call API to create maintenance task
     // Note: Don't set Content-Type header manually for FormData
     // Browser will automatically set it with the correct boundary parameter
-    const response = await api.post('/api/v1/maintenance/', formDataWithFiles)
+    const response = await api.post('/maintenance/', formDataWithFiles)
 
     message.success('เพิ่มงานซ่อมบำรุงสำเร็จ')
     emit('created')

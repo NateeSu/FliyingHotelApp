@@ -21,7 +21,7 @@ class Payment(Base):
     payment_time = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
     payment_slip_url = Column(String(500), nullable=True)
     notes = Column(Text, nullable=True)
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 

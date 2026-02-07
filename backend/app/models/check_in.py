@@ -38,9 +38,9 @@ class CheckIn(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Relationships
-    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True, index=True)
-    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False, index=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="SET NULL"), nullable=True, index=True)
+    customer_id = Column(Integer, ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="RESTRICT"), nullable=False, index=True)
 
     # Stay information
     stay_type = Column(Enum(StayTypeEnum), nullable=False, index=True)
@@ -71,8 +71,8 @@ class CheckIn(Base):
     notes = Column(Text, nullable=True)
 
     # Tracking
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    checked_out_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    checked_out_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
