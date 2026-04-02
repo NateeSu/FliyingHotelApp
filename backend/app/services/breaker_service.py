@@ -293,12 +293,27 @@ class BreakerService:
         Returns:
             Dict with success status and details
         """
+        import logging
+        logger = logging.getLogger(__name__)
+
         breaker = await self.get_by_id(breaker_id)
         if not breaker:
             raise BreakerNotFoundError()
 
         if not breaker.is_available:
-            raise BreakerUnavailableError(f"Breaker {breaker.entity_id} ไม่พร้อมใช้งานใน Home Assistant")
+            # Attempt a fresh sync before raising — HA may be back online
+            logger.info(f"[BREAKER] turn_on: breaker {breaker_id} not available, attempting sync...")
+            try:
+                sync_result = await self.sync_breaker_state(breaker_id)
+                if sync_result.get("is_available"):
+                    breaker = await self.get_by_id(breaker_id)
+                    logger.info(f"[BREAKER] turn_on: sync succeeded, breaker {breaker_id} now available")
+                else:
+                    raise BreakerUnavailableError(f"Breaker {breaker.entity_id} ไม่พร้อมใช้งานใน Home Assistant")
+            except BreakerUnavailableError:
+                raise
+            except Exception:
+                raise BreakerUnavailableError(f"Breaker {breaker.entity_id} ไม่พร้อมใช้งานใน Home Assistant")
 
         start_time = datetime.now()
         action_status = ActionStatus.FAILED
@@ -378,12 +393,27 @@ class BreakerService:
         room_status_after: Optional[str] = None
     ) -> Dict[str, Any]:
         """Turn off breaker (similar to turn_on)"""
+        import logging
+        logger = logging.getLogger(__name__)
+
         breaker = await self.get_by_id(breaker_id)
         if not breaker:
             raise BreakerNotFoundError()
 
         if not breaker.is_available:
-            raise BreakerUnavailableError(f"Breaker {breaker.entity_id} ไม่พร้อมใช้งานใน Home Assistant")
+            # Attempt a fresh sync before raising — HA may be back online
+            logger.info(f"[BREAKER] turn_off: breaker {breaker_id} not available, attempting sync...")
+            try:
+                sync_result = await self.sync_breaker_state(breaker_id)
+                if sync_result.get("is_available"):
+                    breaker = await self.get_by_id(breaker_id)
+                    logger.info(f"[BREAKER] turn_off: sync succeeded, breaker {breaker_id} now available")
+                else:
+                    raise BreakerUnavailableError(f"Breaker {breaker.entity_id} ไม่พร้อมใช้งานใน Home Assistant")
+            except BreakerUnavailableError:
+                raise
+            except Exception:
+                raise BreakerUnavailableError(f"Breaker {breaker.entity_id} ไม่พร้อมใช้งานใน Home Assistant")
 
         start_time = datetime.now()
         action_status = ActionStatus.FAILED
@@ -596,8 +626,19 @@ class BreakerService:
             return  # Auto control disabled
 
         if not breaker.is_available:
-            logger.warning(f"[BREAKER AUTO-CONTROL] Breaker {breaker.id} not available in Home Assistant")
-            return  # Breaker not available in Home Assistant
+            # Attempt a fresh sync before giving up — HA may be back online
+            logger.info(f"[BREAKER AUTO-CONTROL] Breaker {breaker.id} not available, attempting sync first...")
+            try:
+                sync_result = await self.sync_breaker_state(breaker.id)
+                if sync_result.get("is_available"):
+                    breaker = await self.get_by_room_id(room_id)
+                    logger.info(f"[BREAKER AUTO-CONTROL] Sync succeeded, breaker {breaker.id} now available")
+                else:
+                    logger.warning(f"[BREAKER AUTO-CONTROL] Sync completed but breaker {breaker.id} still unavailable in Home Assistant")
+                    return
+            except Exception as sync_err:
+                logger.warning(f"[BREAKER AUTO-CONTROL] Sync failed for breaker {breaker.id}: {sync_err}")
+                return
 
         # Determine target state and execute IMMEDIATELY
         try:

@@ -77,6 +77,13 @@ celery_app.conf.beat_schedule = {
         'task': 'overtime.check_and_process_overtime',
         'schedule': 60.0,  # Every 60 seconds (1 minute)
     },
+    # Breaker: Enforce breaker-room state consistency
+    # If breaker is manually ON but room is AVAILABLE for > 10 min, auto-OFF
+    # Runs every 60 seconds
+    'enforce-breaker-room-state': {
+        'task': 'breaker.enforce_breaker_room_state',
+        'schedule': 60.0,  # Every 60 seconds (1 minute)
+    },
 }
 
 # Auto-discover tasks from all modules

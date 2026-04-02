@@ -5,9 +5,12 @@ Automated background tasks for breaker management:
 1. Periodic status synchronization (every 30 seconds)
 2. Process control queue (debouncing and retries)
 3. Health check and error monitoring
+4. Enforce breaker-room state consistency (reconciliation)
 """
+import logging
 from celery import shared_task
 from sqlalchemy import select, and_, or_
+from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 from typing import List
 
@@ -15,14 +18,18 @@ from app.db.session import AsyncSessionLocal
 from app.models.home_assistant import (
     HomeAssistantBreaker,
     BreakerControlQueue,
+    BreakerState,
     QueueStatus,
     TargetState,
     TriggerType
 )
+from app.models.room import Room, RoomStatus
 from app.services.breaker_service import BreakerService
 from app.services.home_assistant_service import HomeAssistantService
 from app.core.websocket import websocket_manager
 from app.core.exceptions import HomeAssistantException
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(name="breaker.sync_all_breaker_states")
@@ -411,6 +418,134 @@ async def _async_cleanup_old_activity_logs():
             }
 
         except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "failed_at": datetime.now().isoformat()
+            }
+
+
+@shared_task(name="breaker.enforce_breaker_room_state")
+def enforce_breaker_room_state():
+    """
+    Celery task: Enforce breaker state matches room status.
+
+    Schedule: Every 60 seconds
+
+    Purpose:
+    If someone manually turns ON a breaker while the room is AVAILABLE
+    (or RESERVED, OUT_OF_SERVICE), wait 10 minutes then auto-OFF.
+
+    Logic:
+    - Find breakers that are ON + auto_control_enabled + linked to a room
+    - Check if room status should have breaker OFF
+    - If breaker has been ON for >= 10 minutes (via last_state_update), turn OFF
+    """
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        return loop.run_until_complete(_async_enforce_breaker_room_state())
+    finally:
+        loop.close()
+
+
+async def _async_enforce_breaker_room_state():
+    """Async implementation of enforce_breaker_room_state"""
+    OVERRIDE_TIMEOUT_MINUTES = 10
+
+    async with AsyncSessionLocal() as db:
+        try:
+            cutoff_time = datetime.now() - timedelta(minutes=OVERRIDE_TIMEOUT_MINUTES)
+
+            # Find breakers that are ON, auto-controlled, linked to a room,
+            # and last_state_update is older than 10 minutes ago
+            stmt = (
+                select(HomeAssistantBreaker)
+                .options(selectinload(HomeAssistantBreaker.room))
+                .where(and_(
+                    HomeAssistantBreaker.is_active == True,
+                    HomeAssistantBreaker.auto_control_enabled == True,
+                    HomeAssistantBreaker.is_available == True,
+                    HomeAssistantBreaker.current_state == BreakerState.ON,
+                    HomeAssistantBreaker.room_id.isnot(None),
+                    HomeAssistantBreaker.last_state_update <= cutoff_time,
+                ))
+            )
+
+            result = await db.execute(stmt)
+            breakers = list(result.scalars().all())
+
+            if not breakers:
+                return {
+                    "success": True,
+                    "message": "No mismatched breakers found",
+                    "turned_off": 0
+                }
+
+            # Room statuses that require breaker OFF
+            off_statuses = [
+                RoomStatus.AVAILABLE,
+                RoomStatus.RESERVED,
+                RoomStatus.OUT_OF_SERVICE,
+            ]
+
+            breaker_service = BreakerService(db)
+            turned_off_count = 0
+
+            for breaker in breakers:
+                if not breaker.room:
+                    continue
+
+                if breaker.room.status not in off_statuses:
+                    continue
+
+                # Mismatch: breaker ON but room should be OFF, for > 10 min
+                logger.info(
+                    f"[BREAKER ENFORCE] Mismatch detected: breaker {breaker.id} "
+                    f"(entity={breaker.entity_id}) is ON but room {breaker.room.room_number} "
+                    f"is {breaker.room.status.value}. ON since {breaker.last_state_update}. "
+                    f"Auto turning OFF after {OVERRIDE_TIMEOUT_MINUTES} min override timeout."
+                )
+
+                try:
+                    await breaker_service.turn_off(
+                        breaker_id=breaker.id,
+                        trigger_type=TriggerType.SYSTEM,
+                        triggered_by=None,
+                        room_status_before=breaker.room.status.value,
+                        room_status_after=breaker.room.status.value,
+                    )
+                    turned_off_count += 1
+
+                    await websocket_manager.broadcast({
+                        "event": "breaker_state_changed",
+                        "data": {
+                            "breaker_id": breaker.id,
+                            "entity_id": breaker.entity_id,
+                            "new_state": "OFF",
+                            "trigger_type": "SYSTEM",
+                            "reason": "enforce_room_state",
+                            "room_number": breaker.room.room_number,
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    })
+
+                except Exception as e:
+                    logger.error(
+                        f"[BREAKER ENFORCE] Failed to turn off breaker {breaker.id}: {e}",
+                        exc_info=True
+                    )
+
+            return {
+                "success": True,
+                "message": f"Enforced {turned_off_count} breakers",
+                "turned_off": turned_off_count,
+                "checked_at": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"[BREAKER ENFORCE] Task failed: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": str(e),
